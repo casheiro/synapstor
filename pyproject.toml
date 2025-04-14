@@ -28,9 +28,10 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project.scripts]
-synapstor-index = "mcp_server_qdrant.tools.indexer:command_line_runner"
+synapstor-index = "synapstor.tools.indexer:command_line_runner"
 synapstor-server = "cli.server:main"
 synapstor-reindex = "cli.reindex:main"
 
 [tool.setuptools]
-packages = ["mcp_server_qdrant", "cli"]
+packages = ["synapstor", "cli"]
+package-dir = {"synapstor" = "src/synapstor"}

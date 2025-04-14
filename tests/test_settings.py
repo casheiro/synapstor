@@ -1,8 +1,8 @@
 import os
 from unittest.mock import patch
 
-from mcp_server_qdrant.embeddings.types import EmbeddingProviderType
-from mcp_server_qdrant.settings import (
+from synapstor.embeddings.types import EmbeddingProviderType
+from synapstor.settings import (
     DEFAULT_TOOL_FIND_DESCRIPTION,
     DEFAULT_TOOL_STORE_DESCRIPTION,
     EmbeddingProviderSettings,

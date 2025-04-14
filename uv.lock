@@ -501,8 +501,8 @@ cli = [
 ]
 
 [[package]]
-name = "mcp-server-qdrant"
-version = "0.7.1"
+name = "synapstor"
+version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastembed" },

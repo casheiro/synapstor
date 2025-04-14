@@ -16,6 +16,10 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
+from dotenv import load_dotenv
+from qdrant_client import QdrantClient
+from qdrant_client.http import models
+
 # Verificar dependências
 dependencias_necessarias = {
     "dotenv": "python-dotenv",
@@ -27,11 +31,6 @@ for modulo, pacote in dependencias_necessarias.items():
         print(f"Erro: Módulo '{modulo}' não encontrado. Instale-o usando:")
         print(f"pip install {pacote}")
         sys.exit(1)
-
-from dotenv import load_dotenv
-from qdrant_client import QdrantClient
-from qdrant_client.http import models
-from qdrant_client.http.exceptions import UnexpectedResponse
 
 
 def gerar_id_determinista(projeto: str, caminho_absoluto: str) -> int:
@@ -203,7 +202,6 @@ def processar_diretorio(
         Lista de IDs dos documentos processados
     """
     resultados = []
-    diretorio_path = Path(diretorio)
     
     # Diretorios para ignorar
     diretorios_ignorados = {'.git', '__pycache__', 'node_modules', 'venv', '.venv', 'env', '.env'}

@@ -3,7 +3,7 @@ from typing import Optional
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
-from mcp_server_qdrant.embeddings.types import EmbeddingProviderType
+from synapstor.embeddings.types import EmbeddingProviderType
 
 DEFAULT_TOOL_STORE_DESCRIPTION = (
     "Keep the memory for later use, when you are asked to remember something."

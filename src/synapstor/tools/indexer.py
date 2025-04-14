@@ -34,7 +34,7 @@ logger = logging.getLogger('indexador_direto')
 
 # Tentar importar o módulo de geração de IDs determinísticos
 try:
-    from mcp_server_qdrant.utils.id_generator import gerar_id_determinista
+    from synapstor.utils.id_generator import gerar_id_determinista
 except ImportError:
     # Função de fallback caso o módulo não exista
     def gerar_id_determinista(metadata: Dict[str, Any]) -> str:
@@ -231,6 +231,7 @@ class IndexadorDireto:
         self.tamanho_lote = tamanho_lote
         self.tamanho_maximo_arquivo = tamanho_maximo_arquivo
         self.vector_name = vector_name
+        self.verbose = console.verbose  # Adiciona o atributo verbose
         
         # Usa valores do .env se não fornecidos
         self.qdrant_url = qdrant_url or os.environ.get("QDRANT_URL")
@@ -799,4 +800,8 @@ def main():
         return 1
 
 if __name__ == "__main__":
+    sys.exit(main())
+
+def command_line_runner():
+    """Ponto de entrada para o comando synapstor-index."""
     sys.exit(main()) 

@@ -1,5 +1,5 @@
-from mcp_server_qdrant.mcp_server import QdrantMCPServer
-from mcp_server_qdrant.settings import (
+from synapstor.mcp_server import QdrantMCPServer
+from synapstor.settings import (
     EmbeddingProviderSettings,
     QdrantSettings,
     ToolSettings,

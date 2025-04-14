@@ -140,8 +140,8 @@ Se nenhum arquivo `.env` for encontrado, o servidor procurará variáveis de amb
 | `QDRANT_LOCAL_PATH` | Caminho para o banco de dados Qdrant local (alternativa ao `QDRANT_URL`) | Nenhum |
 | `EMBEDDING_PROVIDER` | Provedor de embeddings a ser usado (atualmente apenas "fastembed" é suportado) | `fastembed` |
 | `EMBEDDING_MODEL` | Nome do modelo de embedding a ser usado | `sentence-transformers/all-MiniLM-L6-v2` |
-| `TOOL_STORE_DESCRIPTION` | Descrição personalizada para a ferramenta store | Ver padrão em [`settings.py`](src/mcp_server_qdrant/settings.py) |
-| `TOOL_FIND_DESCRIPTION` | Descrição personalizada para a ferramenta find | Ver padrão em [`settings.py`](src/mcp_server_qdrant/settings.py) |
+| `TOOL_STORE_DESCRIPTION` | Descrição personalizada para a ferramenta store | Ver padrão em [`settings.py`](src/synapstor/settings.py) |
+| `TOOL_FIND_DESCRIPTION` | Descrição personalizada para a ferramenta find | Ver padrão em [`settings.py`](src/synapstor/settings.py) |
 | `LOG_LEVEL` | Nível de log (DEBUG, INFO, WARNING, ERROR) | INFO |
 
 Nota: Você não pode fornecer `QDRANT_URL` e `QDRANT_LOCAL_PATH` ao mesmo tempo.
@@ -290,7 +290,7 @@ As descrições das ferramentas, especificadas em `TOOL_STORE_DESCRIPTION` e `TO
 O servidor MCP pode ser executado em modo de desenvolvimento usando o comando `mcp dev`. Isso iniciará o servidor e abrirá o inspetor MCP em seu navegador.
 
 ```shell
-COLLECTION_NAME=mcp-dev mcp dev src/mcp_server_qdrant/server.py
+COLLECTION_NAME=mcp-dev mcp dev src/synapstor/server.py
 ```
 
 ## Contribuindo
@@ -304,7 +304,7 @@ O [MCP inspector](https://github.com/modelcontextprotocol/inspector) é uma ferr
 
 ```shell
 QDRANT_URL=":memory:" COLLECTION_NAME="teste" \
-mcp dev src/mcp_server_qdrant/server.py
+mcp dev src/synapstor/server.py
 ```
 
 Uma vez iniciado, abra seu navegador em http://localhost:5173 para acessar a interface do inspetor.

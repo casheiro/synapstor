@@ -21,7 +21,7 @@ def main():
     """
     try:
         # Importa a função principal do indexador
-        from mcp_server_qdrant.tools.indexer import main as indexer_main
+        from synapstor.tools.indexer import main as indexer_main
         
         # Executa a função principal do indexador com os mesmos argumentos
         return indexer_main()

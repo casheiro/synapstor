@@ -23,7 +23,7 @@ logging.basicConfig(
 logger = logging.getLogger("synapstor-config")
 
 # Definindo constantes (importadas do env_loader.py)
-from mcp_server_qdrant.env_loader import REQUIRED_VARS, OPTIONAL_VARS
+from synapstor.env_loader import REQUIRED_VARS, OPTIONAL_VARS
 
 class ConfiguradorInterativo:
     """
@@ -281,7 +281,7 @@ def main():
         print("\nVocê pode iniciar o servidor com:")
         print("  synapstor-server")
         print("ou:")
-        print("  python -m mcp_server_qdrant.main")
+        print("  python -m synapstor.main")
         return 0
     else:
         print("\n❌ Falha ao completar a configuração.")

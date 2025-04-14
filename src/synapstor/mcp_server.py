@@ -4,9 +4,9 @@ from typing import List
 
 from mcp.server.fastmcp import Context, FastMCP
 
-from mcp_server_qdrant.embeddings.factory import create_embedding_provider
-from mcp_server_qdrant.qdrant import Entry, Metadata, QdrantConnector
-from mcp_server_qdrant.settings import (
+from synapstor.embeddings.factory import create_embedding_provider
+from synapstor.qdrant import Entry, Metadata, QdrantConnector
+from synapstor.settings import (
     EmbeddingProviderSettings,
     QdrantSettings,
     ToolSettings,
@@ -27,7 +27,7 @@ class QdrantMCPServer(FastMCP):
         tool_settings: ToolSettings,
         qdrant_settings: QdrantSettings,
         embedding_provider_settings: EmbeddingProviderSettings,
-        name: str = "mcp-server-qdrant",
+        name: str = "synapstor",
     ):
         self.tool_settings = tool_settings
         self.qdrant_settings = qdrant_settings

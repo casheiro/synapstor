@@ -5,10 +5,10 @@ from typing import Any, Dict, Optional
 from pydantic import BaseModel
 from qdrant_client import AsyncQdrantClient, models
 
-from mcp_server_qdrant.embeddings.base import EmbeddingProvider
+from synapstor.embeddings.base import EmbeddingProvider
 # Importa o gerador de IDs determinísticos
 try:
-    from mcp_server_qdrant.utils.id_generator import gerar_id_determinista
+    from synapstor.utils.id_generator import gerar_id_determinista
 except ImportError:
     # Fallback caso ainda não exista o módulo
     import hashlib

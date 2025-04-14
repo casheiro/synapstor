@@ -50,7 +50,7 @@ def main():
     
     # Se o arquivo .env não existir e --create-env foi especificado, cria o arquivo
     if args.create_env and not os.path.exists(args.env_file):
-        from mcp_server_qdrant.env_loader import create_env_file_template
+        from synapstor.env_loader import create_env_file_template
         create_env_file_template()
         print(f"✅ Arquivo .env de exemplo criado como {args.env_file}")
         print("Por favor, edite-o com suas configurações e execute novamente.")
@@ -84,7 +84,7 @@ def main():
             sys.argv.remove("--configure")
         
         # Executa o servidor principal
-        from mcp_server_qdrant.main import main as mcp_main
+        from synapstor.main import main as mcp_main
         return mcp_main()
     except Exception as e:
         print(f"❌ Erro ao iniciar o servidor: {e}")
