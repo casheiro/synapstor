@@ -26,7 +26,12 @@ def main():
 
     # Import is done here to make sure environment variables are loaded
     # only after we make the changes.
-    from synapstor.server import mcp
-
-    print(f"Iniciando servidor MCP com transporte: {args.transport}")
-    mcp.run(transport=args.transport)
+    print("Iniciando servidor MCP...")
+    try:
+        from synapstor.server import mcp
+        
+        print(f"Iniciando servidor MCP com transporte: {args.transport}")
+        mcp.run(transport=args.transport)
+    except ImportError as e:
+        print(f"❌ Erro ao iniciar o servidor: {e}")
+        sys.exit(1)
