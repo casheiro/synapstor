@@ -30,6 +30,11 @@ dev-dependencies = [
 [project.scripts]
 mcp-server-qdrant = "mcp_server_qdrant.main:main"
 start-qdrant-server = "scripts.start_server:main"
+# Novos comandos do Synapstor
+synapstor-server = "mcp_server_qdrant.main:main"
+synapstor-setup = "cli.setup:main"
+synapstor-config = "cli.config:main"
+synapstor-indexer = "cli.indexer:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
