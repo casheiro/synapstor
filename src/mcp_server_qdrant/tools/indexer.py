@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Indexador Direto para o Qdrant Cloud
+Indexer é uma ferramenta para indexar projetos inteiros de uma única vez.
 
 Este script indexa diretamente arquivos no Qdrant Cloud, sem dependências do MCP Server.
 Usa diretamente o cliente Python oficial do Qdrant.
@@ -17,7 +17,6 @@ import os
 import sys
 from pathlib import Path
 import time
-import json
 import uuid
 from typing import Dict, List, Any, Optional
 import concurrent.futures
@@ -685,7 +684,7 @@ class IndexadorDireto:
 def main():
     """Função principal para uso via linha de comando"""
     parser = argparse.ArgumentParser(
-        description="Indexador direto para o Qdrant - Indexa projetos para busca semântica"
+        description="Indexador para o Qdrant - Indexa projetos para busca semântica"
     )
     
     parser.add_argument("--project", "-p", required=True, 
