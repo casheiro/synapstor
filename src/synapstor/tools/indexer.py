@@ -22,9 +22,6 @@ from typing import Dict, List, Any, Optional
 import concurrent.futures
 import logging
 from tqdm import tqdm
-import glob
-import json
-import traceback
 import hashlib
 
 # Configuração de logging - DESATIVA LOGS por padrão
@@ -231,7 +228,6 @@ class IndexadorDireto:
         self.tamanho_lote = tamanho_lote
         self.tamanho_maximo_arquivo = tamanho_maximo_arquivo
         self.vector_name = vector_name
-        self.verbose = console.verbose  # Adiciona o atributo verbose
         
         # Usa valores do .env se não fornecidos
         self.qdrant_url = qdrant_url or os.environ.get("QDRANT_URL")
@@ -800,8 +796,4 @@ def main():
         return 1
 
 if __name__ == "__main__":
-    sys.exit(main())
-
-def command_line_runner():
-    """Ponto de entrada para o comando synapstor-index."""
     sys.exit(main()) 
