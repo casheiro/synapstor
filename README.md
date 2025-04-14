@@ -36,20 +36,40 @@ It acts as a semantic memory layer on top of the Qdrant database.
                                    If there is a default collection name, this field is not enabled.
    - Returns: Information stored in the Qdrant database as separate messages
 
-## Environment Variables
+## Configuration
 
-The configuration of the server is done using environment variables:
+### Using Environment Variables
+
+The configuration of the server can be done using environment variables as listed below.
+
+### Using .env File (Recommended)
+
+The server now supports configuration via a `.env` file in the project root directory. This is the recommended way to configure the server for development and local use.
+
+1. Create a `.env` file in the project root directory (you can copy and modify the `.env.example` file)
+2. Set the required environment variables in the file
+3. Run the server - it will automatically load the configuration from the `.env` file
+
+If no `.env` file is found, the server will look for environment variables in the system environment. If required variables are missing, it will prompt you to create a `.env` file.
+
+### Required Environment Variables
 
 | Name                     | Description                                                         | Default Value                                                     |
 |--------------------------|---------------------------------------------------------------------|-------------------------------------------------------------------|
 | `QDRANT_URL`             | URL of the Qdrant server                                            | None                                                              |
 | `QDRANT_API_KEY`         | API key for the Qdrant server                                       | None                                                              |
 | `COLLECTION_NAME`        | Name of the default collection to use.                              | None                                                              |
+
+### Optional Environment Variables
+
+| Name                     | Description                                                         | Default Value                                                     |
+|--------------------------|---------------------------------------------------------------------|-------------------------------------------------------------------|
 | `QDRANT_LOCAL_PATH`      | Path to the local Qdrant database (alternative to `QDRANT_URL`)     | None                                                              |
 | `EMBEDDING_PROVIDER`     | Embedding provider to use (currently only "fastembed" is supported) | `fastembed`                                                       |
 | `EMBEDDING_MODEL`        | Name of the embedding model to use                                  | `sentence-transformers/all-MiniLM-L6-v2`                          |
 | `TOOL_STORE_DESCRIPTION` | Custom description for the store tool                               | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
 | `TOOL_FIND_DESCRIPTION`  | Custom description for the find tool                                | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
+| `LOG_LEVEL`              | Logging level (DEBUG, INFO, WARNING, ERROR)                         | INFO                                                              |
 
 Note: You cannot provide both `QDRANT_URL` and `QDRANT_LOCAL_PATH` at the same time.
 

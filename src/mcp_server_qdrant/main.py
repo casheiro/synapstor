@@ -1,4 +1,7 @@
 import argparse
+import sys
+
+from mcp_server_qdrant.env_loader import setup_environment
 
 
 def main():
@@ -7,6 +10,10 @@ def main():
     in pyproject.toml. It runs the MCP server with a specific transport
     protocol.
     """
+    # Configura o ambiente antes de iniciar o servidor
+    if not setup_environment():
+        print("Erro ao configurar o ambiente. O servidor MCP não pode ser iniciado.")
+        sys.exit(1)
 
     # Parse the command-line arguments to determine the transport protocol.
     parser = argparse.ArgumentParser(description="mcp-server-qdrant")
@@ -21,4 +28,5 @@ def main():
     # only after we make the changes.
     from mcp_server_qdrant.server import mcp
 
+    print(f"Iniciando servidor MCP com transporte: {args.transport}")
     mcp.run(transport=args.transport)
