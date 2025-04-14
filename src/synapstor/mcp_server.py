@@ -1,8 +1,15 @@
 import json
 import logging
 import asyncio
-import inspect
-from typing import Any, Awaitable, Callable, Dict, List, Optional, TypeVar, Union, get_type_hints
+from typing import Any, Awaitable, Callable, Dict, List, Optional, TypeVar
+
+from synapstor.embeddings.factory import create_embedding_provider
+from synapstor.qdrant import Entry, Metadata, QdrantConnector
+from synapstor.settings import (
+    EmbeddingProviderSettings,
+    QdrantSettings,
+    ToolSettings,
+)
 
 # Define um tipo genérico para retornos de função
 T = TypeVar("T")
@@ -97,14 +104,6 @@ class FastMCP:
         except ImportError:
             logger.error("Dependências para SSE não encontradas: fastapi, uvicorn")
             raise
-
-from synapstor.embeddings.factory import create_embedding_provider
-from synapstor.qdrant import Entry, Metadata, QdrantConnector
-from synapstor.settings import (
-    EmbeddingProviderSettings,
-    QdrantSettings,
-    ToolSettings,
-)
 
 # FastMCP is an alternative interface for declaring the capabilities
 # of the server. Its API is based on FastAPI.
