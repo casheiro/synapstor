@@ -27,7 +27,7 @@ import hashlib
 # Configuração de logging - DESATIVA LOGS por padrão
 # Isso evita que mensagens apareçam durante a execução normal
 logging.basicConfig(level=logging.CRITICAL)  # Só mostra erros críticos
-logger = logging.getLogger('indexador_direto')
+logger = logging.getLogger('indexer')
 
 # Tentar importar o módulo de geração de IDs determinísticos
 try:
