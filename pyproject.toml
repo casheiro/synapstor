@@ -1,43 +1,36 @@
 [project]
-name = "mcp-server-qdrant"
-version = "0.7.1"
-description = "MCP server for retrieving context from a Qdrant vector database"
+name = "synapstor"
+version = "0.1.0"
+description = "Uma evolução não oficial do mcp-server-qdrant - Cliente e servidor para armazenamento e busca semântica"
 readme = "README.md"
-requires-python = ">=3.10"
-license = "Apache-2.0"
-dependencies = [
-    "mcp[cli]>=1.3.0",
-    "fastembed>=0.6.0",
-    "qdrant-client>=1.12.0",
-    "pydantic>=2.10.6",
-    "python-dotenv>=1.0.0",
+requires-python = ">=3.7"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Malindentado", email = "malindentado@example.com"},
 ]
+dependencies = [
+    "dotenv",
+    "qdrant-client[fastembed]>=1.3.1",
+    "sentence-transformers>=2.2.2",
+    "Unidecode>=1.3.0",
+    "docopt>=0.6.0",
+    "fastapi>=0.85.1",
+    "uvicorn>=0.19.0",
+    "langchain>=0.0.200",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/malindentado/synapstor"
+"Bug Tracker" = "https://github.com/malindentado/synapstor/issues"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.uv]
-dev-dependencies = [
-    "isort>=6.0.1",
-    "pre-commit>=4.1.0",
-    "pyright>=1.1.389",
-    "pytest>=8.3.3",
-    "pytest-asyncio>=0.23.0",
-    "ruff>=0.8.0",
-]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
 
 [project.scripts]
-mcp-server-qdrant = "mcp_server_qdrant.main:main"
-start-qdrant-server = "scripts.start_server:main"
-# Novos comandos do Synapstor
-synapstor-server = "mcp_server_qdrant.main:main"
-synapstor-setup = "cli.setup:main"
-synapstor-config = "cli.config:main"
-synapstor-indexer = "cli.indexer:main"
+synapstor-index = "mcp_server_qdrant.tools.indexer:command_line_runner"
+synapstor-server = "cli.server:main"
+synapstor-reindex = "cli.reindex:main"
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = "test_*.py"
-python_functions = "test_*"
-asyncio_mode = "auto"
+[tool.setuptools]
+packages = ["mcp_server_qdrant", "cli"]

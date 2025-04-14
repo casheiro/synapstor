@@ -22,11 +22,36 @@ from typing import Dict, List, Any, Optional
 import concurrent.futures
 import logging
 from tqdm import tqdm
+import glob
+import json
+import traceback
+import hashlib
 
 # Configuração de logging - DESATIVA LOGS por padrão
 # Isso evita que mensagens apareçam durante a execução normal
 logging.basicConfig(level=logging.CRITICAL)  # Só mostra erros críticos
 logger = logging.getLogger('indexador_direto')
+
+# Tentar importar o módulo de geração de IDs determinísticos
+try:
+    from mcp_server_qdrant.utils.id_generator import gerar_id_determinista
+except ImportError:
+    # Função de fallback caso o módulo não exista
+    def gerar_id_determinista(metadata: Dict[str, Any]) -> str:
+        """Versão interna de fallback do gerador de IDs determinísticos"""
+        # Extrai dados para identificação
+        projeto = metadata.get('projeto', '')
+        caminho = metadata.get('caminho_absoluto', '')
+        
+        if projeto and caminho:
+            content_hash = f"{projeto}:{caminho}"
+        else:
+            content_hash = ":".join(f"{k}:{v}" for k, v in sorted(metadata.items()) if v)
+        
+        if not content_hash:
+            return str(uuid.uuid4())
+        
+        return hashlib.md5(content_hash.encode('utf-8')).hexdigest()
 
 # Classe para substituir a função print com uma versão que só imprime em modo verbose
 class ConsolePrinter:
@@ -315,12 +340,12 @@ class IndexadorDireto:
                     return
             
             # Se não conseguir determinar, usa o padrão
-            self.vector_name = "vector"
+            self.vector_name = "fast-all-minilm-l6-v2"
             print(f"⚠️ Não foi possível determinar o nome do vetor. Usando padrão: {self.vector_name}")
             
         except Exception as e:
             # Em caso de erro, usa o padrão
-            self.vector_name = "vector"
+            self.vector_name = "fast-all-minilm-l6-v2"
             print(f"⚠️ Erro ao obter configuração da coleção: {e}. Usando nome de vetor padrão: {self.vector_name}")
     
     def _imprimir_info_colecao(self, colecao_info):
@@ -486,12 +511,19 @@ class IndexadorDireto:
             # Usa o nome do vetor determinado na inicialização
             vector_name = getattr(self, 'vector_name', 'vector')
             
-            # Cria um ponto no Qdrant
+            # Gera um ID determinístico baseado nos metadados
+            # Isso garante que o mesmo arquivo terá sempre o mesmo ID
+            deterministic_id = gerar_id_determinista(metadata)
+            
+            if self.verbose:
+                print(f"🔑 ID gerado para {metadata.get('caminho_relativo', 'desconhecido')}: {deterministic_id}")
+            
+            # Cria um ponto no Qdrant usando ID determinístico
             self.qdrant_client.upsert(
                 collection_name=self.collection_name,
                 points=[
                     models.PointStruct(
-                        id=str(uuid.uuid4()),
+                        id=deterministic_id,  # Usa ID determinístico
                         vector={vector_name: embedding},  # Use o nome do vetor
                         payload=payload
                     )
@@ -734,7 +766,7 @@ def main():
             embedding_model=args.embedding_model,
             max_workers=args.workers,
             tamanho_maximo_arquivo=args.max_file_size * 1024 * 1024,
-            vector_name="vector" if not args.vector_name else args.vector_name
+            vector_name="fast-all-minilm-l6-v2" if not args.vector_name else args.vector_name
         )
         
         # Executa a indexação

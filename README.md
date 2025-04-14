@@ -1,299 +1,314 @@
-# mcp-server-qdrant: A Qdrant MCP server
+# Synapstor: Um servidor MCP para Qdrant com memória semântica
 
 [![smithery badge](https://smithery.ai/badge/mcp-server-qdrant)](https://smithery.ai/protocol/mcp-server-qdrant)
 
-> The [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction) is an open protocol that enables
-> seamless integration between LLM applications and external data sources and tools. Whether you're building an
-> AI-powered IDE, enhancing a chat interface, or creating custom AI workflows, MCP provides a standardized way to
-> connect LLMs with the context they need.
+> Synapstor é uma evolução não oficial do [mcp-server-qdrant](https://github.com/modelcontextprotocol/mcp-server-qdrant), trazendo uma interface de linha de comando aprimorada e facilidades de instalação e configuração.
 
-This repository is an example of how to create a MCP server for [Qdrant](https://qdrant.tech/), a vector search engine.
+## Visão Geral
+
+O [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction) é um protocolo aberto que possibilita a integração perfeita entre aplicações de LLM e fontes externas de dados e ferramentas. O Synapstor implementa este protocolo para fornecer uma camada de memória semântica sobre o banco de dados vetorial [Qdrant](https://qdrant.tech/).
+
+Com o Synapstor, você pode:
+- Armazenar informações com metadados no Qdrant
+- Recuperar informações relevantes usando busca semântica
+- Integrar com várias ferramentas de IA como Claude, Cursor e outras
 
 <a href="https://glama.ai/mcp/servers/9ejy5scw5i"><img width="380" height="200" src="https://glama.ai/mcp/servers/9ejy5scw5i/badge" alt="mcp-server-qdrant MCP server" /></a>
 
-## Overview
+## Componentes
 
-An official Model Context Protocol server for keeping and retrieving memories in the Qdrant vector search engine.
-It acts as a semantic memory layer on top of the Qdrant database.
-
-## Components
-
-### Tools
+### Ferramentas
 
 1. `qdrant-store`
-   - Store some information in the Qdrant database
-   - Input:
-     - `information` (string): Information to store
-     - `metadata` (JSON): Optional metadata to store
-     - `collection_name` (string): Name of the collection to store the information in. This field is required if there are no default collection name.
-                                   If there is a default collection name, this field is not enabled.
-   - Returns: Confirmation message
+   - Armazena informações no banco de dados Qdrant
+   - Entrada:
+     - `information` (string): Informação a ser armazenada
+     - `metadata` (JSON): Metadados opcionais para armazenar
+     - `collection_name` (string): Nome da coleção onde armazenar a informação (opcional se houver uma coleção padrão configurada)
+   - Retorna: Mensagem de confirmação
+
 2. `qdrant-find`
-   - Retrieve relevant information from the Qdrant database
-   - Input:
-     - `query` (string): Query to use for searching
-     - `collection_name` (string): Name of the collection to store the information in. This field is required if there are no default collection name.
-                                   If there is a default collection name, this field is not enabled.
-   - Returns: Information stored in the Qdrant database as separate messages
+   - Recupera informações relevantes do banco de dados Qdrant
+   - Entrada:
+     - `query` (string): Consulta para a busca
+     - `collection_name` (string): Nome da coleção onde buscar (opcional se houver uma coleção padrão configurada)
+   - Retorna: Informações armazenadas no Qdrant como mensagens separadas
 
-## Configuration
+## Instalação
 
-### Using Environment Variables
+### Instalação Rápida
 
-The configuration of the server can be done using environment variables as listed below.
-
-### Using .env File (Recommended)
-
-The server now supports configuration via a `.env` file in the project root directory. This is the recommended way to configure the server for development and local use.
-
-1. Create a `.env` file in the project root directory (you can copy and modify the `.env.example` file)
-2. Set the required environment variables in the file
-3. Run the server - it will automatically load the configuration from the `.env` file
-
-If no `.env` file is found, the server will look for environment variables in the system environment. If required variables are missing, it will prompt you to create a `.env` file.
-
-### Required Environment Variables
-
-| Name                     | Description                                                         | Default Value                                                     |
-|--------------------------|---------------------------------------------------------------------|-------------------------------------------------------------------|
-| `QDRANT_URL`             | URL of the Qdrant server                                            | None                                                              |
-| `QDRANT_API_KEY`         | API key for the Qdrant server                                       | None                                                              |
-| `COLLECTION_NAME`        | Name of the default collection to use.                              | None                                                              |
-
-### Optional Environment Variables
-
-| Name                     | Description                                                         | Default Value                                                     |
-|--------------------------|---------------------------------------------------------------------|-------------------------------------------------------------------|
-| `QDRANT_LOCAL_PATH`      | Path to the local Qdrant database (alternative to `QDRANT_URL`)     | None                                                              |
-| `EMBEDDING_PROVIDER`     | Embedding provider to use (currently only "fastembed" is supported) | `fastembed`                                                       |
-| `EMBEDDING_MODEL`        | Name of the embedding model to use                                  | `sentence-transformers/all-MiniLM-L6-v2`                          |
-| `TOOL_STORE_DESCRIPTION` | Custom description for the store tool                               | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
-| `TOOL_FIND_DESCRIPTION`  | Custom description for the find tool                                | See default in [`settings.py`](src/mcp_server_qdrant/settings.py) |
-| `LOG_LEVEL`              | Logging level (DEBUG, INFO, WARNING, ERROR)                         | INFO                                                              |
-
-Note: You cannot provide both `QDRANT_URL` and `QDRANT_LOCAL_PATH` at the same time.
-
-> [!IMPORTANT]
-> Command-line arguments are not supported anymore! Please use environment variables for all configuration.
-
-## Installation
-
-### Using uvx
-
-When using [`uvx`](https://docs.astral.sh/uv/guides/tools/#running-tools) no specific installation is needed to directly run *mcp-server-qdrant*.
-
-```shell
-QDRANT_URL="http://localhost:6333" \
-COLLECTION_NAME="my-collection" \
-EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2" \
-uvx mcp-server-qdrant
-```
-
-#### Transport Protocols
-
-The server supports different transport protocols that can be specified using the `--transport` flag:
-
-```shell
-QDRANT_URL="http://localhost:6333" \
-COLLECTION_NAME="my-collection" \
-uvx mcp-server-qdrant --transport sse
-```
-
-Supported transport protocols:
-
-- `stdio` (default): Standard input/output transport, might only be used by local MCP clients
-- `sse`: Server-Sent Events transport, perfect for remote clients
-
-The default transport is `stdio` if not specified.
-
-### Using Docker
-
-A Dockerfile is available for building and running the MCP server:
+1. **Instalar a partir do código fonte**:
 
 ```bash
-# Build the container
-docker build -t mcp-server-qdrant .
+# Clonar o repositório
+git clone https://github.com/seu-usuario/synapstor.git
+cd synapstor
 
-# Run the container
+# Instalar o pacote em modo de desenvolvimento
+pip install -e .
+```
+
+2. **Executar o script de configuração**:
+
+```bash
+# Configuração interativa
+synapstor-setup
+```
+
+O script de configuração irá:
+- Verificar e instalar dependências necessárias
+- Guiá-lo pela configuração das conexões do Qdrant
+- Criar scripts de inicialização para sua plataforma
+- Gerar um arquivo .env com suas configurações
+
+### Comandos CLI
+
+O Synapstor fornece várias ferramentas de linha de comando:
+
+| Comando | Descrição |
+|---------|-----------|
+| `synapstor-setup` | Configuração e instalação interativa |
+| `synapstor-config` | Atualizar configurações |
+| `synapstor-server` | Iniciar o servidor MCP |
+| `synapstor-indexer` | Indexar conteúdo no Qdrant |
+
+### Iniciar o Servidor
+
+Após a instalação, você pode iniciar o servidor de várias maneiras:
+
+```bash
+# Uso básico
+synapstor-server
+
+# Com protocolo de transporte específico
+synapstor-server --transport sse
+
+# Criar arquivo .env se não existir
+synapstor-server --create-env
+
+# Configurar antes de iniciar
+synapstor-server --configure
+
+# Usar arquivo .env personalizado
+synapstor-server --env-file personalizado.env
+```
+
+### Indexação de Conteúdo
+
+O Synapstor inclui um indexador poderoso para adicionar conteúdo à sua coleção Qdrant:
+
+```bash
+# Indexação básica de um projeto
+synapstor-indexer --project meu-projeto --path /caminho/do/projeto
+
+# Opções adicionais
+synapstor-indexer --project meu-projeto --path /caminho/do/projeto \
+  --collection minha-colecao \
+  --workers 8 \
+  --verbose
+```
+
+## Configuração
+
+### Usando Variáveis de Ambiente
+
+A configuração do servidor pode ser feita usando variáveis de ambiente como listado abaixo.
+
+### Usando Arquivo .env (Recomendado)
+
+O servidor suporta configuração via arquivo `.env` no diretório raiz do projeto. Esta é a forma recomendada para configurar o servidor para desenvolvimento e uso local.
+
+1. Crie um arquivo `.env` no diretório raiz do projeto (automaticamente criado com `synapstor-setup` ou `synapstor-server --create-env`)
+2. Defina as variáveis de ambiente necessárias no arquivo
+3. Execute o servidor - ele carregará automaticamente a configuração do arquivo `.env`
+
+Se nenhum arquivo `.env` for encontrado, o servidor procurará variáveis de ambiente no sistema. Se variáveis obrigatórias estiverem faltando, ele solicitará que você crie um arquivo `.env`.
+
+### Variáveis de Ambiente Obrigatórias
+
+| Nome | Descrição | Valor Padrão |
+|------|-----------|--------------|
+| `QDRANT_URL` | URL do servidor Qdrant | Nenhum |
+| `QDRANT_API_KEY` | Chave API para o servidor Qdrant | Nenhum |
+| `COLLECTION_NAME` | Nome da coleção padrão a ser usada | Nenhum |
+
+### Variáveis de Ambiente Opcionais
+
+| Nome | Descrição | Valor Padrão |
+|------|-----------|--------------|
+| `QDRANT_LOCAL_PATH` | Caminho para o banco de dados Qdrant local (alternativa ao `QDRANT_URL`) | Nenhum |
+| `EMBEDDING_PROVIDER` | Provedor de embeddings a ser usado (atualmente apenas "fastembed" é suportado) | `fastembed` |
+| `EMBEDDING_MODEL` | Nome do modelo de embedding a ser usado | `sentence-transformers/all-MiniLM-L6-v2` |
+| `TOOL_STORE_DESCRIPTION` | Descrição personalizada para a ferramenta store | Ver padrão em [`settings.py`](src/mcp_server_qdrant/settings.py) |
+| `TOOL_FIND_DESCRIPTION` | Descrição personalizada para a ferramenta find | Ver padrão em [`settings.py`](src/mcp_server_qdrant/settings.py) |
+| `LOG_LEVEL` | Nível de log (DEBUG, INFO, WARNING, ERROR) | INFO |
+
+Nota: Você não pode fornecer `QDRANT_URL` e `QDRANT_LOCAL_PATH` ao mesmo tempo.
+
+> [!IMPORTANTE]
+> Embora variáveis de ambiente sejam suportadas, recomenda-se usar os comandos `synapstor-setup` ou `synapstor-config` para uma configuração mais fácil.
+
+## Uso com Diferentes Clientes
+
+### Usando com Docker
+
+Um Dockerfile está disponível para construir e executar o servidor MCP:
+
+```bash
+# Construir o container
+docker build -t synapstor .
+
+# Executar o container
 docker run -p 8000:8000 \
-  -e QDRANT_URL="http://your-qdrant-server:6333" \
-  -e QDRANT_API_KEY="your-api-key" \
-  -e COLLECTION_NAME="your-collection" \
-  mcp-server-qdrant
+  -e QDRANT_URL="http://seu-servidor-qdrant:6333" \
+  -e QDRANT_API_KEY="sua-chave-api" \
+  -e COLLECTION_NAME="sua-colecao" \
+  synapstor
 ```
 
-### Installing via Smithery
+### Configuração manual para Claude Desktop
 
-To install Qdrant MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/protocol/mcp-server-qdrant):
-
-```bash
-npx @smithery/cli install mcp-server-qdrant --client claude
-```
-
-### Manual configuration of Claude Desktop
-
-To use this server with the Claude Desktop app, add the following configuration to the "mcpServers" section of your
-`claude_desktop_config.json`:
+Para usar este servidor com o aplicativo Claude Desktop, adicione a seguinte configuração à seção "mcpServers" do seu arquivo `claude_desktop_config.json`:
 
 ```json
 {
   "qdrant": {
-    "command": "uvx",
-    "args": ["mcp-server-qdrant"],
+    "command": "synapstor-server",
+    "args": ["--transport", "stdio"],
     "env": {
-      "QDRANT_URL": "https://xyz-example.eu-central.aws.cloud.qdrant.io:6333",
-      "QDRANT_API_KEY": "your_api_key",
-      "COLLECTION_NAME": "your-collection-name",
+      "QDRANT_URL": "https://xyz-exemplo.eu-central.aws.cloud.qdrant.io:6333",
+      "QDRANT_API_KEY": "sua_chave_api",
+      "COLLECTION_NAME": "nome-da-sua-colecao",
       "EMBEDDING_MODEL": "sentence-transformers/all-MiniLM-L6-v2"
     }
   }
 }
 ```
 
-For local Qdrant mode:
+Para modo Qdrant local:
 
 ```json
 {
   "qdrant": {
-    "command": "uvx",
-    "args": ["mcp-server-qdrant"],
+    "command": "synapstor-server",
+    "args": ["--transport", "stdio"],
     "env": {
-      "QDRANT_LOCAL_PATH": "/path/to/qdrant/database",
-      "COLLECTION_NAME": "your-collection-name",
+      "QDRANT_LOCAL_PATH": "/caminho/para/banco/qdrant",
+      "COLLECTION_NAME": "nome-da-sua-colecao",
       "EMBEDDING_MODEL": "sentence-transformers/all-MiniLM-L6-v2"
     }
   }
 }
 ```
 
-This MCP server will automatically create a collection with the specified name if it doesn't exist.
+Este servidor MCP criará automaticamente uma coleção com o nome especificado se ela não existir.
 
-By default, the server will use the `sentence-transformers/all-MiniLM-L6-v2` embedding model to encode memories.
-For the time being, only [FastEmbed](https://qdrant.github.io/fastembed/) models are supported.
+Por padrão, o servidor usará o modelo de embedding `sentence-transformers/all-MiniLM-L6-v2` para codificar memórias.
+Por enquanto, apenas modelos [FastEmbed](https://qdrant.github.io/fastembed/) são suportados.
 
-## Support for other tools
+## Suporte para outras ferramentas
 
-This MCP server can be used with any MCP-compatible client. For example, you can use it with
-[Cursor](https://docs.cursor.com/context/model-context-protocol), which provides built-in support for the Model Context
-Protocol.
+Este servidor MCP pode ser usado com qualquer cliente compatível com MCP. Por exemplo, você pode usá-lo com [Cursor](https://docs.cursor.com/context/model-context-protocol), que fornece suporte integrado para o Model Context Protocol.
 
-### Using with Cursor/Windsurf
+### Uso com Cursor/Windsurf
 
-You can configure this MCP server to work as a code search tool for Cursor or Windsurf by customizing the tool
-descriptions:
+Você pode configurar este servidor MCP para funcionar como uma ferramenta de busca de código para Cursor ou Windsurf personalizando as descrições das ferramentas:
 
 ```bash
-QDRANT_URL="http://localhost:6333" \
-COLLECTION_NAME="code-snippets" \
-TOOL_STORE_DESCRIPTION="Store reusable code snippets for later retrieval. \
-The 'information' parameter should contain a natural language description of what the code does, \
-while the actual code should be included in the 'metadata' parameter as a 'code' property. \
-The value of 'metadata' is a Python dictionary with strings as keys. \
-Use this whenever you generate some code snippet." \
-TOOL_FIND_DESCRIPTION="Search for relevant code snippets based on natural language descriptions. \
-The 'query' parameter should describe what you're looking for, \
-and the tool will return the most relevant code snippets. \
-Use this when you need to find existing code snippets for reuse or reference." \
-uvx mcp-server-qdrant --transport sse # Enable SSE transport
+synapstor-server --configure
 ```
 
-In Cursor/Windsurf, you can then configure the MCP server in your settings by pointing to this running server using
-SSE transport protocol. The description on how to add an MCP server to Cursor can be found in the [Cursor
-documentation](https://docs.cursor.com/context/model-context-protocol#adding-an-mcp-server-to-cursor). If you are
-running Cursor/Windsurf locally, you can use the following URL:
+Em seguida, defina os seguintes valores quando solicitado:
+
+- `COLLECTION_NAME`: "code-snippets"
+- `TOOL_STORE_DESCRIPTION`: "Armazene trechos de código reutilizáveis para recuperação posterior. O parâmetro 'information' deve conter uma descrição em linguagem natural do que o código faz, enquanto o código real deve ser incluído no parâmetro 'metadata' como uma propriedade 'code'. O valor de 'metadata' é um dicionário Python com strings como chaves. Use isso sempre que gerar algum trecho de código."
+- `TOOL_FIND_DESCRIPTION`: "Pesquise trechos de código relevantes com base em descrições em linguagem natural. O parâmetro 'query' deve descrever o que você está procurando, e a ferramenta retornará os trechos de código mais relevantes. Use isso quando precisar encontrar trechos de código existentes para reutilização ou referência."
+
+Após a configuração, inicie o servidor com transporte SSE:
+
+```bash
+synapstor-server --transport sse
+```
+
+No Cursor/Windsurf, você pode configurar o servidor MCP em suas configurações apontando para este servidor em execução usando o protocolo de transporte SSE. A descrição sobre como adicionar um servidor MCP ao Cursor pode ser encontrada na [documentação do Cursor](https://docs.cursor.com/context/model-context-protocol#adding-an-mcp-server-to-cursor). Se você estiver executando o Cursor/Windsurf localmente, pode usar a seguinte URL:
 
 ```
 http://localhost:8000/sse
 ```
 
-> [!TIP]
-> We suggest SSE transport as a preferred way to connect Cursor/Windsurf to the MCP server, as it can support remote
-> connections. That makes it easy to share the server with your team or use it in a cloud environment.
+> [!DICA]
+> Sugerimos o transporte SSE como forma preferida de conectar o Cursor/Windsurf ao servidor MCP, pois ele pode suportar conexões remotas. Isso facilita o compartilhamento do servidor com sua equipe ou o uso em um ambiente de nuvem.
 
-This configuration transforms the Qdrant MCP server into a specialized code search tool that can:
+Esta configuração transforma o servidor Synapstor em uma ferramenta especializada de busca de código que pode:
 
-1. Store code snippets, documentation, and implementation details
-2. Retrieve relevant code examples based on semantic search
-3. Help developers find specific implementations or usage patterns
+1. Armazenar trechos de código, documentação e detalhes de implementação
+2. Recuperar exemplos de código relevantes com base em busca semântica
+3. Ajudar desenvolvedores a encontrar implementações específicas ou padrões de uso
 
-You can populate the database by storing natural language descriptions of code snippets (in the `information` parameter)
-along with the actual code (in the `metadata.code` property), and then search for them using natural language queries
-that describe what you're looking for.
+Você pode popular o banco de dados armazenando descrições em linguagem natural de trechos de código (no parâmetro `information`) junto com o código real (na propriedade `metadata.code`), e depois pesquisar por eles usando consultas em linguagem natural que descrevem o que você está procurando.
 
-> [!NOTE]
-> The tool descriptions provided above are examples and may need to be customized for your specific use case. Consider
-> adjusting the descriptions to better match your team's workflow and the specific types of code snippets you want to
-> store and retrieve.
+> [!NOTA]
+> As descrições de ferramentas fornecidas acima são exemplos e podem precisar ser personalizadas para seu caso de uso específico. Considere ajustar as descrições para melhor corresponder ao fluxo de trabalho da sua equipe e aos tipos específicos de trechos de código que você deseja armazenar e recuperar.
 
-**If you have successfully installed the `mcp-server-qdrant`, but still can't get it to work with Cursor, please
-consider creating the [Cursor rules](https://docs.cursor.com/context/rules-for-ai) so the MCP tools are always used when
-the agent produces a new code snippet.** You can restrict the rules to only work for certain file types, to avoid using
-the MCP server for the documentation or other types of content.
+**Se você instalou com sucesso o Synapstor, mas ainda não consegue fazê-lo funcionar com o Cursor, considere criar [regras do Cursor](https://docs.cursor.com/context/rules-for-ai) para que as ferramentas MCP sejam sempre usadas quando o agente produzir um novo trecho de código.** Você pode restringir as regras para funcionarem apenas para certos tipos de arquivo, para evitar usar o servidor MCP para documentação ou outros tipos de conteúdo.
 
-### Using with Claude Code
+### Uso com Claude Code
 
-You can enhance Claude Code's capabilities by connecting it to this MCP server, enabling semantic search over your
-existing codebase.
+Você pode aprimorar as capacidades do Claude Code conectando-o a este servidor MCP, habilitando a busca semântica em sua base de código existente.
 
-#### Setting up mcp-server-qdrant
+#### Configurando o Synapstor
 
-1. Add the MCP server to Claude Code:
+1. Adicione o servidor MCP ao Claude Code:
 
     ```shell
-    # Add mcp-server-qdrant configured for code search
-    claude mcp add code-search \
+    # Adicione o Synapstor configurado para busca de código
+    claude mcp add busca-codigo \
     -e QDRANT_URL="http://localhost:6333" \
-    -e COLLECTION_NAME="code-repository" \
+    -e COLLECTION_NAME="repositorio-codigo" \
     -e EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2" \
-    -e TOOL_STORE_DESCRIPTION="Store code snippets with descriptions. The 'information' parameter should contain a natural language description of what the code does, while the actual code should be included in the 'metadata' parameter as a 'code' property." \
-    -e TOOL_FIND_DESCRIPTION="Search for relevant code snippets using natural language. The 'query' parameter should describe the functionality you're looking for." \
-    -- uvx mcp-server-qdrant
+    -e TOOL_STORE_DESCRIPTION="Armazene trechos de código com descrições. O parâmetro 'information' deve conter uma descrição em linguagem natural do que o código faz, enquanto o código real deve ser incluído no parâmetro 'metadata' como uma propriedade 'code'." \
+    -e TOOL_FIND_DESCRIPTION="Pesquise trechos de código relevantes usando linguagem natural. O parâmetro 'query' deve descrever a funcionalidade que você está procurando." \
+    -- synapstor-server
     ```
 
-2. Verify the server was added:
+2. Verifique se o servidor foi adicionado:
 
     ```shell
     claude mcp list
     ```
 
-#### Using Semantic Code Search in Claude Code
+#### Usando a Busca Semântica de Código no Claude Code
 
-Tool descriptions, specified in `TOOL_STORE_DESCRIPTION` and `TOOL_FIND_DESCRIPTION`, guide Claude Code on how to use
-the MCP server. The ones provided above are examples and may need to be customized for your specific use case. However,
-Claude Code should be already able to:
+As descrições das ferramentas, especificadas em `TOOL_STORE_DESCRIPTION` e `TOOL_FIND_DESCRIPTION`, orientam o Claude Code sobre como usar o servidor MCP. As fornecidas acima são exemplos e podem precisar ser personalizadas para seu caso de uso específico. No entanto, o Claude Code já deve ser capaz de:
 
-1. Use the `qdrant-store` tool to store code snippets with descriptions.
-2. Use the `qdrant-find` tool to search for relevant code snippets using natural language.
+1. Usar a ferramenta `qdrant-store` para armazenar trechos de código com descrições.
+2. Usar a ferramenta `qdrant-find` para pesquisar trechos de código relevantes usando linguagem natural.
 
-### Run MCP server in Development Mode
+### Executar o servidor MCP em Modo de Desenvolvimento
 
-The MCP server can be run in development mode using the `mcp dev` command. This will start the server and open the MCP
-inspector in your browser.
+O servidor MCP pode ser executado em modo de desenvolvimento usando o comando `mcp dev`. Isso iniciará o servidor e abrirá o inspetor MCP em seu navegador.
 
 ```shell
 COLLECTION_NAME=mcp-dev mcp dev src/mcp_server_qdrant/server.py
 ```
 
-## Contributing
+## Contribuindo
 
-If you have suggestions for how mcp-server-qdrant could be improved, or want to report a bug, open an issue!
-We'd love all and any contributions.
+Se você tiver sugestões para melhorar o Synapstor ou quiser relatar um bug, abra uma issue!
+Adoraríamos qualquer contribuição.
 
-### Testing `mcp-server-qdrant` locally
+### Testando o `Synapstor` localmente
 
-The [MCP inspector](https://github.com/modelcontextprotocol/inspector) is a developer tool for testing and debugging MCP
-servers. It runs both a client UI (default port 5173) and an MCP proxy server (default port 3000). Open the client UI in
-your browser to use the inspector.
+O [MCP inspector](https://github.com/modelcontextprotocol/inspector) é uma ferramenta de desenvolvedor para testar e depurar servidores MCP. Ele executa tanto uma UI cliente (porta padrão 5173) quanto um servidor proxy MCP (porta padrão 3000). Abra a UI cliente em seu navegador para usar o inspetor.
 
 ```shell
-QDRANT_URL=":memory:" COLLECTION_NAME="test" \
+QDRANT_URL=":memory:" COLLECTION_NAME="teste" \
 mcp dev src/mcp_server_qdrant/server.py
 ```
 
-Once started, open your browser to http://localhost:5173 to access the inspector interface.
+Uma vez iniciado, abra seu navegador em http://localhost:5173 para acessar a interface do inspetor.
 
-## License
+## Licença
 
-This MCP server is licensed under the Apache License 2.0. This means you are free to use, modify, and distribute the
-software, subject to the terms and conditions of the Apache License 2.0. For more details, please see the LICENSE file
-in the project repository.
+Este servidor MCP é licenciado sob a Licença Apache 2.0. Isso significa que você é livre para usar, modificar e distribuir o software, sujeito aos termos e condições da Licença Apache 2.0. Para mais detalhes, consulte o arquivo LICENSE no repositório do projeto.

@@ -6,6 +6,28 @@ from pydantic import BaseModel
 from qdrant_client import AsyncQdrantClient, models
 
 from mcp_server_qdrant.embeddings.base import EmbeddingProvider
+# Importa o gerador de IDs determinísticos
+try:
+    from mcp_server_qdrant.utils.id_generator import gerar_id_determinista
+except ImportError:
+    # Fallback caso ainda não exista o módulo
+    import hashlib
+    
+    def gerar_id_determinista(metadata: Dict[str, Any]) -> str:
+        """Versão interna de fallback do gerador de IDs determinísticos"""
+        # Extrai dados para identificação
+        projeto = metadata.get('projeto', '')
+        caminho = metadata.get('caminho_absoluto', '')
+        
+        if projeto and caminho:
+            content_hash = f"{projeto}:{caminho}"
+        else:
+            content_hash = ":".join(f"{k}:{v}" for k, v in sorted(metadata.items()) if v)
+        
+        if not content_hash:
+            return uuid.uuid4().hex
+        
+        return hashlib.md5(content_hash.encode('utf-8')).hexdigest()
 
 logger = logging.getLogger(__name__)
 
@@ -73,11 +95,23 @@ class QdrantConnector:
         # Add to Qdrant
         vector_name = self._embedding_provider.get_vector_name()
         payload = {"document": entry.content, "metadata": entry.metadata}
+        
+        # Gera um ID determinístico se houver metadados suficientes
+        if entry.metadata:
+            # Usa o gerador de IDs determinísticos
+            document_id = gerar_id_determinista(entry.metadata)
+        else:
+            # Fallback para UUID se não tiver metadados
+            document_id = uuid.uuid4().hex
+            
+        # Log informativo
+        logger.debug(f"Armazenando documento com ID: {document_id}")
+        
         await self._client.upsert(
             collection_name=collection_name,
             points=[
                 models.PointStruct(
-                    id=uuid.uuid4().hex,
+                    id=document_id,  # Usa ID determinístico ou UUID
                     vector={vector_name: embeddings[0]},
                     payload=payload,
                 )
