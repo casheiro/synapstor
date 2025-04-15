@@ -32,14 +32,9 @@ build-backend = "setuptools.build_meta"
 synapstor-index = "synapstor.tools.indexer:command_line_runner"
 synapstor-server = "cli.server:main"
 synapstor-reindex = "cli.reindex:main"
-synapstor-setup = "cli.setup:main"
-synapstor-uninstall = "installer.synapstorctl:uninstall_command"
-uninstall-synapstor = "installer.uninstall:main"
-synapstor-remove = "cli.uninstall:main"
-synapstorctl = "installer.synapstorctl:main"
 
 [tool.setuptools]
-packages = ["synapstor", "cli", "installer"]
+packages = ["synapstor", "cli"]
 package-dir = { "synapstor" = "src/synapstor" }
 
 [project.optional-dependencies]

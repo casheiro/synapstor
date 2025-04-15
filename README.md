@@ -34,14 +34,6 @@ Com o Synapstor, você pode:
      - `collection_name` (string): Nome da coleção onde buscar (opcional se houver uma coleção padrão configurada)
    - Retorna: Informações armazenadas no Qdrant como mensagens separadas
 
-## Documentação
-
-Este repositório inclui diversos documentos que ajudam a entender e usar o Synapstor:
-
-- [Guia de Instalação e Configuração](#instalação) (neste README)
-- [Criando Novas Ferramentas](docs/criando_ferramentas.md) - Como criar e registrar plugins personalizados
-- [Desinstalação](docs/desinstalacao.md) - Diferentes formas de desinstalar o Synapstor
-
 ## Instalação
 
 ### Instalação Rápida
@@ -80,10 +72,6 @@ O Synapstor fornece várias ferramentas de linha de comando:
 | `synapstor-config` | Atualizar configurações |
 | `synapstor-server` | Iniciar o servidor MCP |
 | `synapstor-indexer` | Indexar conteúdo no Qdrant |
-| `synapstor-uninstall` | Desinstalar o Synapstor com confirmação |
-| `synapstor-remove` | Desinstalar o Synapstor rapidamente sem confirmação |
-| `uninstall-synapstor` | Alias para desinstalação rápida |
-| `synapstorctl uninstall` | Desinstalar via gerenciador central |
 
 ### Iniciar o Servidor
 
@@ -120,50 +108,6 @@ synapstor-indexer --project meu-projeto --path /caminho/do/projeto \
   --workers 8 \
   --verbose
 ```
-
-## Desinstalação
-
-O Synapstor oferece várias opções para desinstalação, adaptadas a diferentes necessidades:
-
-### Desinstalação com o Gerenciador
-
-O utilitário `synapstorctl` fornece uma interface centralizada:
-
-```bash
-# Desinstalação interativa com confirmação
-synapstorctl uninstall
-```
-
-### Desinstalação Rápida
-
-Para desinstalar rapidamente sem confirmações adicionais:
-
-```bash
-# Desinstalar sem confirmação
-synapstor-remove
-
-# Alternativa (mesmo comportamento)
-uninstall-synapstor
-```
-
-### Scripts de Desinstalação Universal
-
-Para situações onde o PATH não está configurado corretamente ou em ambientes restritos, o projeto inclui scripts independentes:
-
-**Windows:**
-```bash
-# No PowerShell ou Prompt de Comando
-.\quick-uninstall.bat
-```
-
-**Linux/macOS:**
-```bash
-# Tornar executável e rodar
-chmod +x quick-uninstall.sh
-./quick-uninstall.sh
-```
-
-Estes scripts não dependem do PATH e tentarão encontrar a instalação do Python automaticamente.
 
 ## Configuração
 
@@ -303,6 +247,11 @@ Esta configuração transforma o servidor Synapstor em uma ferramenta especializ
 3. Ajudar desenvolvedores a encontrar implementações específicas ou padrões de uso
 
 Você pode popular o banco de dados armazenando descrições em linguagem natural de trechos de código (no parâmetro `information`) junto com o código real (na propriedade `metadata.code`), e depois pesquisar por eles usando consultas em linguagem natural que descrevem o que você está procurando.
+
+> [!NOTA]
+> As descrições de ferramentas fornecidas acima são exemplos e podem precisar ser personalizadas para seu caso de uso específico. Considere ajustar as descrições para melhor corresponder ao fluxo de trabalho da sua equipe e aos tipos específicos de trechos de código que você deseja armazenar e recuperar.
+
+**Se você instalou com sucesso o Synapstor, mas ainda não consegue fazê-lo funcionar com o Cursor, considere criar [regras do Cursor](https://docs.cursor.com/context/rules-for-ai) para que as ferramentas MCP sejam sempre usadas quando o agente produzir um novo trecho de código.** Você pode restringir as regras para funcionarem apenas para certos tipos de arquivo, para evitar usar o servidor MCP para documentação ou outros tipos de conteúdo.
 
 ## Adicionando Ferramentas Personalizadas (Sistema de Plugins)
 

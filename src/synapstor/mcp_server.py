@@ -161,7 +161,7 @@ class QdrantMCPServer(FastMCP):
                     name="qdrant-store",
                     description=self.tool_settings.tool_store_description,
                 )
-        
+
         # Carrega ferramentas adicionais dos plugins
         try:
             from synapstor.plugins import load_plugin_tools
