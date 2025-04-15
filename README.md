@@ -312,3 +312,142 @@ Uma vez iniciado, abra seu navegador em http://localhost:5173 para acessar a int
 ## Licença
 
 Este servidor MCP é licenciado sob a Licença Apache 2.0. Isso significa que você é livre para usar, modificar e distribuir o software, sujeito aos termos e condições da Licença Apache 2.0. Para mais detalhes, consulte o arquivo LICENSE no repositório do projeto.
+
+## Perguntas Frequentes (FAQ)
+
+### Sobre o Synapstor
+
+#### O que é o Synapstor?
+O Synapstor é uma evolução não oficial do mcp-server-qdrant que implementa o Model Context Protocol (MCP) para fornecer uma camada de memória semântica sobre o banco de dados vetorial Qdrant. Ele permite armazenar, recuperar e buscar informações usando busca semântica, integrando-se perfeitamente com várias ferramentas de IA como Claude, Cursor e outras.
+
+#### Quais são os principais componentes do Synapstor?
+O Synapstor oferece duas ferramentas principais:
+1. `qdrant-store`: Armazena informações com metadados no banco de dados Qdrant
+2. `qdrant-find`: Recupera informações relevantes usando busca semântica
+
+Além disso, inclui várias ferramentas de linha de comando: synapstor-setup, synapstor-config, synapstor-server e synapstor-indexer.
+
+#### Como o Synapstor se diferencia do mcp-server-qdrant original?
+O Synapstor aprimora o mcp-server-qdrant original com:
+- Interface de linha de comando melhorada
+- Facilidades de instalação e configuração
+- Ferramentas de indexação mais robustas
+- Suporte a metadados mais completo
+- Configuração simplificada através de arquivos .env
+
+### Instalação e Configuração
+
+#### Como instalar o Synapstor?
+Para instalar o Synapstor:
+1. Clone o repositório: `git clone https://github.com/seu-usuario/synapstor.git`
+2. Entre no diretório: `cd synapstor`
+3. Instale o pacote em modo de desenvolvimento: `pip install -e .`
+4. Execute o script de configuração: `synapstor-setup`
+
+#### Quais são as variáveis de ambiente necessárias para configurar o Synapstor?
+Variáveis obrigatórias:
+- `QDRANT_URL`: URL do servidor Qdrant
+- `QDRANT_API_KEY`: Chave API para o servidor Qdrant
+- `COLLECTION_NAME`: Nome da coleção padrão a ser usada
+
+Variáveis opcionais:
+- `QDRANT_LOCAL_PATH`: Caminho para banco de dados Qdrant local (alternativa ao QDRANT_URL)
+- `EMBEDDING_PROVIDER`: Provedor de embeddings (atualmente apenas "fastembed")
+- `EMBEDDING_MODEL`: Nome do modelo de embedding
+- `TOOL_STORE_DESCRIPTION`: Descrição personalizada para a ferramenta store
+- `TOOL_FIND_DESCRIPTION`: Descrição personalizada para a ferramenta find
+- `LOG_LEVEL`: Nível de log (DEBUG, INFO, WARNING, ERROR)
+
+#### Como configurar o Synapstor para usar Qdrant local em vez do Qdrant Cloud?
+Em vez de configurar `QDRANT_URL` e `QDRANT_API_KEY`, configure `QDRANT_LOCAL_PATH` com o caminho para o diretório onde deseja armazenar os dados localmente. Se usar o comando `synapstor-setup`, você será guiado através das opções, incluindo a escolha entre Qdrant Cloud e local.
+
+### Uso e Funcionalidades
+
+#### Como iniciar o servidor Synapstor?
+Após a instalação e configuração, você pode iniciar o servidor com:
+```bash
+synapstor-server
+```
+
+Para iniciar com transporte SSE (recomendado para Cursor):
+```bash
+synapstor-server --transport sse
+```
+
+#### Como indexar um projeto com o Synapstor?
+Para indexar um projeto:
+```bash
+synapstor-indexer --project meu-projeto --path /caminho/do/projeto
+```
+
+Opções adicionais:
+```bash
+synapstor-indexer --project meu-projeto --path /caminho/do/projeto --collection minha-colecao --workers 8 --verbose
+```
+
+#### Quais são as funcionalidades do indexador do Synapstor?
+O indexador do Synapstor oferece diversas funcionalidades:
+- Comunicação direta com o Qdrant usando o cliente oficial
+- Geração de embeddings usando o modelo sentence-transformers
+- Suporte a regras do .gitignore para ignorar arquivos
+- Processamento em lote para envio eficiente
+- Filtros de metadados (projeto, extensão, etc.)
+- Paralelismo para indexação mais rápida
+- Geração de IDs determinísticos para evitar duplicação
+
+#### Como configurar o Synapstor para uso com o Cursor?
+1. Configure o servidor: `synapstor-server --configure`
+2. Defina valores apropriados para `COLLECTION_NAME`, `TOOL_STORE_DESCRIPTION` e `TOOL_FIND_DESCRIPTION`
+3. Inicie o servidor com transporte SSE: `synapstor-server --transport sse`
+4. No Cursor, adicione o servidor MCP nas configurações, apontando para `http://localhost:8000/sse`
+
+#### Como configurar o Synapstor para uso com o Claude Desktop?
+Adicione a seguinte configuração ao arquivo `claude_desktop_config.json`:
+```json
+{
+  "qdrant": {
+    "command": "synapstor-server",
+    "args": ["--transport", "stdio"],
+    "env": {
+      "QDRANT_URL": "https://seu-servidor-qdrant:6333",
+      "QDRANT_API_KEY": "sua_chave_api",
+      "COLLECTION_NAME": "sua-colecao",
+      "EMBEDDING_MODEL": "sentence-transformers/all-MiniLM-L6-v2"
+    }
+  }
+}
+```
+
+### Resolução de Problemas
+
+#### O servidor não está iniciando. O que fazer?
+Verifique se:
+1. Todas as dependências estão instaladas: `pip install -e .`
+2. O arquivo .env está configurado corretamente: `synapstor-server --create-env`
+3. As variáveis de ambiente obrigatórias estão definidas
+4. A conexão com o Qdrant está funcionando
+5. A coleção especificada existe ou pode ser criada
+
+#### Como verificar se a conexão com o Qdrant está funcionando?
+Você pode testar a conexão iniciando o servidor com nível de log DEBUG:
+```bash
+LOG_LEVEL=DEBUG synapstor-server
+```
+Isso mostrará informações detalhadas sobre a tentativa de conexão.
+
+#### O indexador está muito lento. Como melhorar o desempenho?
+Aumente o número de workers paralelos:
+```bash
+synapstor-indexer --project meu-projeto --path /caminho/do/projeto --workers 16
+```
+Ou reduza o tamanho máximo dos arquivos indexados:
+```bash
+synapstor-indexer --project meu-projeto --path /caminho/do/projeto --max-file-size 1
+```
+
+#### Como saber se meu projeto foi indexado corretamente?
+Após a indexação, o indexador mostrará estatísticas sobre o processo. Você também pode testar uma consulta:
+```bash
+synapstor-indexer --project meu-projeto --path /caminho/do/projeto --query "exemplo de consulta"
+```
+Isso executará a indexação e uma busca de teste.
