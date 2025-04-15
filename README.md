@@ -253,6 +253,58 @@ Você pode popular o banco de dados armazenando descrições em linguagem natura
 
 **Se você instalou com sucesso o Synapstor, mas ainda não consegue fazê-lo funcionar com o Cursor, considere criar [regras do Cursor](https://docs.cursor.com/context/rules-for-ai) para que as ferramentas MCP sejam sempre usadas quando o agente produzir um novo trecho de código.** Você pode restringir as regras para funcionarem apenas para certos tipos de arquivo, para evitar usar o servidor MCP para documentação ou outros tipos de conteúdo.
 
+## Adicionando Ferramentas Personalizadas (Sistema de Plugins)
+
+O Synapstor inclui um sistema de plugins que permite adicionar novas ferramentas ao servidor MCP sem modificar o código principal. Isso torna o servidor mais extensível e facilita a adição de funcionalidades personalizadas.
+
+### Como Adicionar Uma Nova Ferramenta
+
+1. Crie um arquivo Python no diretório `src/synapstor/plugins/` com o prefixo `tool_` (exemplo: `tool_calculadora.py`).
+
+2. Implemente sua ferramenta seguindo este modelo:
+
+```python
+import logging
+from typing import List
+from mcp.server.fastmcp import Context
+
+logger = logging.getLogger(__name__)
+
+async def minha_ferramenta(ctx: Context, parametro1: str) -> str:
+    """
+    Descrição detalhada da ferramenta.
+    
+    :param ctx: O contexto da solicitação MCP.
+    :param parametro1: Descrição do parâmetro.
+    :return: Resultado da operação.
+    """
+    await ctx.debug(f"Processando: {parametro1}")
+    resultado = f"Processado {parametro1}"
+    return resultado
+
+def setup_tools(server) -> List[str]:
+    """
+    Registra as ferramentas deste plugin no servidor.
+    """
+    server.add_tool(
+        minha_ferramenta,
+        name="minha-ferramenta",
+        description="Descrição da ferramenta."
+    )
+    return ["minha-ferramenta"]
+```
+
+3. O sistema carregará automaticamente sua ferramenta na próxima inicialização do servidor.
+
+### Diretrizes para Desenvolver Ferramentas
+
+- Use funções assíncronas (`async def`) com o primeiro parâmetro sendo `ctx: Context`
+- Forneça tipos para todos os parâmetros para melhorar a experiência do cliente
+- Inclua documentação detalhada sobre o que a ferramenta faz e seus parâmetros
+- Implemente uma função `setup_tools(server)` que registre todas as ferramentas fornecidas
+
+Para obter informações mais detalhadas sobre como desenvolver plugins, consulte o arquivo `src/synapstor/plugins/README.md` no código-fonte.
+
 ### Uso com Claude Code
 
 Você pode aprimorar as capacidades do Claude Code conectando-o a este servidor MCP, habilitando a busca semântica em sua base de código existente.

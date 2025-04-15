@@ -161,3 +161,12 @@ class QdrantMCPServer(FastMCP):
                     name="qdrant-store",
                     description=self.tool_settings.tool_store_description,
                 )
+        
+        # Carrega ferramentas adicionais dos plugins
+        try:
+            from synapstor.plugins import load_plugin_tools
+            plugin_tools = load_plugin_tools(self)
+            if plugin_tools:
+                logger.info(f"Ferramentas carregadas dos plugins: {', '.join(plugin_tools)}")
+        except Exception as e:
+            logger.warning(f"Erro ao carregar plugins: {e}")
