@@ -88,7 +88,7 @@ class QdrantMCPServer(FastMCP):
             metadata: Metadata = None,
         ) -> str:
             return await store(
-                ctx, information, metadata, self.qdrant_settings.collection_name
+                ctx, information, self.qdrant_settings.collection_name, metadata
             )
 
         async def find(
