@@ -17,7 +17,6 @@ import os
 import sys
 from pathlib import Path
 import time
-import uuid
 from typing import Dict, List, Any, Optional
 import concurrent.futures
 import logging
@@ -32,6 +31,7 @@ logger = logging.getLogger('indexer')
 # Tentar importar o módulo de geração de IDs determinísticos
 try:
     from synapstor.utils.id_generator import gerar_id_determinista
+    print("✅ Usando gerador de IDs determinísticos do synapstor.utils")
 except ImportError:
     # Função de fallback caso o módulo não exista
     def gerar_id_determinista(metadata: Dict[str, Any]) -> str:
@@ -40,15 +40,31 @@ except ImportError:
         projeto = metadata.get('projeto', '')
         caminho = metadata.get('caminho_absoluto', '')
         
-        if projeto and caminho:
-            content_hash = f"{projeto}:{caminho}"
+        # Se não tiver projeto e caminho, tenta usar outros identificadores
+        if not (projeto and caminho):
+            content_hash = ""
+            # Tenta usar nome_arquivo se disponível
+            if 'nome_arquivo' in metadata:
+                content_hash += f"file:{metadata['nome_arquivo']};"
+                
+            # Usa qualquer metadados disponível para criar uma string única
+            for key in sorted(metadata.keys()):
+                if key not in ['projeto', 'caminho_absoluto', 'nome_arquivo']:
+                    value = str(metadata[key])
+                    if value:
+                        content_hash += f"{key}:{value};"
         else:
-            content_hash = ":".join(f"{k}:{v}" for k, v in sorted(metadata.items()) if v)
+            # Usa a combinação projeto+caminho_absoluto como identificador principal
+            content_hash = f"{projeto}:{caminho}"
         
+        # Se mesmo assim não tiver nada para hash, lança erro
         if not content_hash:
-            return str(uuid.uuid4())
+            print("❌ Metadados insuficientes para gerar ID determinístico:", metadata)
+            raise ValueError("Metadados insuficientes para gerar ID determinístico")
         
+        # Calcula o hash MD5 da string de identificação
         return hashlib.md5(content_hash.encode('utf-8')).hexdigest()
+    print("⚠️ Módulo synapstor.utils não encontrado, usando versão interna de gerar_id_determinista")
 
 # Classe para substituir a função print com uma versão que só imprime em modo verbose
 class ConsolePrinter:
@@ -291,7 +307,7 @@ class IndexadorDireto:
             collection_exists = any(col.name == self.collection_name for col in collections)
             
             if not collection_exists:
-                print(f"�� Criando coleção: {self.collection_name}")
+                print(f"🔍 Criando coleção: {self.collection_name}")
                 
                 # Obtém a dimensão dos embeddings do modelo
                 vector_size = self.embedding_model.get_sentence_embedding_dimension()
@@ -479,7 +495,8 @@ class IndexadorDireto:
             tamanho_bytes = 0
             data_modificacao = None
         
-        # Cria metadados factuais
+        # Cria metadados factuais necessários para o ID determinístico
+        # O projeto e caminho_absoluto são OBRIGATÓRIOS para um bom ID
         metadata = {
             "projeto": self.nome_projeto,
             "caminho_absoluto": str(caminho.absolute()),
@@ -489,6 +506,12 @@ class IndexadorDireto:
             "tamanho_bytes": tamanho_bytes
         }
         
+        # Verifica se os campos essenciais estão presentes
+        if not metadata["projeto"] or not metadata["caminho_absoluto"]:
+            print(f"⚠️ Aviso: Metadados essenciais incompletos para: {nome_arquivo}")
+            # Adiciona um timestamp para pelo menos garantir que tenha algo único
+            metadata["timestamp"] = time.time()
+            
         if data_modificacao:
             metadata["data_modificacao"] = data_modificacao
             
@@ -511,10 +534,17 @@ class IndexadorDireto:
             
             # Gera um ID determinístico baseado nos metadados
             # Isso garante que o mesmo arquivo terá sempre o mesmo ID
-            deterministic_id = gerar_id_determinista(metadata)
-            
-            if self.verbose:
-                print(f"🔑 ID gerado para {metadata.get('caminho_relativo', 'desconhecido')}: {deterministic_id}")
+            try:
+                deterministic_id = gerar_id_determinista(metadata)
+                
+                if self.verbose:
+                    caminho_rel = metadata.get('caminho_relativo', 'desconhecido')
+                    print(f"🔑 ID gerado para {caminho_rel}: {deterministic_id}")
+            except Exception as e:
+                print(f"❌ Erro ao gerar ID determinístico: {e}")
+                print(f"⚠️ Metadados usados: {metadata}")
+                # Não use UUID! Retorne falha
+                return False
             
             # Cria um ponto no Qdrant usando ID determinístico
             self.qdrant_client.upsert(
@@ -581,6 +611,27 @@ class IndexadorDireto:
         print(f"\n🔍 Indexando '{self.nome_projeto}' em '{self.collection_name}'")
         
         try:
+            # Verificação de consistência do gerador de IDs
+            print("✓ Verificando gerador de IDs determinísticos...")
+            teste_metadata = {
+                "projeto": self.nome_projeto,
+                "caminho_absoluto": str(self.caminho_projeto / "teste.txt")
+            }
+            
+            try:
+                teste_id = gerar_id_determinista(teste_metadata)
+                teste_id2 = gerar_id_determinista(teste_metadata)
+                
+                if teste_id == teste_id2:
+                    print("✅ Geração de IDs determinísticos funcionando corretamente")
+                else:
+                    print(f"❌ ERRO: Gerador de IDs não está produzindo resultados consistentes! ID1={teste_id}, ID2={teste_id2}")
+                    print("⚠️ A indexação continuará, mas pode haver resultados duplicados. Verifique a instalação.")
+            except Exception as e:
+                print(f"❌ ERRO no gerador de IDs: {e}")
+                print("⚠️ A indexação não pode continuar sem um gerador de IDs válido.")
+                return False
+            
             # Coleta todos os arquivos em silêncio
             print("Escaneando arquivos...")
             todos_arquivos = list(self.caminho_projeto.rglob('*'))

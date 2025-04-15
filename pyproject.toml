@@ -3,12 +3,11 @@ name = "synapstor"
 version = "0.1.0"
 description = "Uma evolução não oficial do mcp-server-qdrant - Cliente e servidor para armazenamento e busca semântica"
 readme = "README.md"
-requires-python = ">=3.7"
-license = {file = "LICENSE"}
-authors = [
-    {name = "Malindentado", email = "malindentado@example.com"},
-]
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Malindentado", email = "malindentado@example.com" }]
 dependencies = [
+    "mcp[cli]>=1.3.0",
     "dotenv",
     "qdrant-client>=1.3.1",
     "fastembed>=0.6.1",
@@ -36,7 +35,7 @@ synapstor-reindex = "cli.reindex:main"
 
 [tool.setuptools]
 packages = ["synapstor", "cli"]
-package-dir = {"synapstor" = "src/synapstor"}
+package-dir = { "synapstor" = "src/synapstor" }
 
 [project.optional-dependencies]
 fastembed = ["fastembed>=0.6.1"]
