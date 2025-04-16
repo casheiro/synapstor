@@ -1,505 +1,387 @@
-# Synapstor: Um servidor MCP para Qdrant com memória semântica
+# Synapstor 📚🔍
 
-[![smithery badge](https://smithery.ai/badge/mcp-server-qdrant)](https://smithery.ai/protocol/mcp-server-qdrant)
+![Version](https://img.shields.io/badge/versão-0.1.0-blue)
+![Python](https://img.shields.io/badge/python-3.9%2B-blue)
+![License](https://img.shields.io/badge/licença-MIT-green)
 
-> Synapstor é uma evolução não oficial do [mcp-server-qdrant](https://github.com/modelcontextprotocol/mcp-server-qdrant), trazendo uma interface de linha de comando aprimorada e facilidades de instalação e configuração.
+> **Synapstor** é uma biblioteca modular para armazenamento e recuperação semântica de informações usando embeddings vetoriais e banco de dados Qdrant.
 
-## Visão Geral
+<p align="center">
+  <img src="https://via.placeholder.com/800x200?text=Synapstor" alt="Synapstor" width="800"/>
+</p>
 
-O [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction) é um protocolo aberto que possibilita a integração perfeita entre aplicações de LLM e fontes externas de dados e ferramentas. O Synapstor implementa este protocolo para fornecer uma camada de memória semântica sobre o banco de dados vetorial [Qdrant](https://qdrant.tech/).
+## 📋 Índice
 
-Com o Synapstor, você pode:
-- Armazenar informações com metadados no Qdrant
-- Recuperar informações relevantes usando busca semântica
-- Integrar com várias ferramentas de IA como Claude, Cursor e outras
+- [Visão Geral](#-visão-geral)
+- [Arquitetura](#-arquitetura)
+- [Requisitos](#-requisitos)
+- [Instalação](#-instalação)
+- [Ferramentas CLI](#-ferramentas-cli)
+- [Uso Rápido](#-uso-rápido)
+- [Integração com LLMs](#-integração-com-llms)
+- [Documentação Detalhada](#-documentação-detalhada)
+- [Testes](#-testes)
+- [Contribuição](#-contribuição)
+- [Licença](#-licença)
 
-<a href="https://glama.ai/mcp/servers/9ejy5scw5i"><img width="380" height="200" src="https://glama.ai/mcp/servers/9ejy5scw5i/badge" alt="mcp-server-qdrant MCP server" /></a>
+## 🔭 Visão Geral
 
-## Componentes
+Synapstor é uma solução completa para armazenamento e recuperação de informações baseada em embeddings vetoriais. Combinando a potência do Qdrant (banco de dados vetorial) com modelos modernos de embeddings, o Synapstor permite:
 
-### Ferramentas
+- 🔍 **Busca semântica** em documentos, código e outros conteúdos textuais
+- 🧠 **Armazenamento eficiente** de informações com metadados associados
+- 🔄 **Integração com LLMs** através do Protocolo MCP (Model Control Protocol)
+- 🛠️ **Ferramentas CLI** para indexação e consulta de dados
 
-1. `qdrant-store`
-   - Armazena informações no banco de dados Qdrant
-   - Entrada:
-     - `information` (string): Informação a ser armazenada
-     - `metadata` (JSON): Metadados opcionais para armazenar
-     - `collection_name` (string): Nome da coleção onde armazenar a informação (opcional se houver uma coleção padrão configurada)
-   - Retorna: Mensagem de confirmação
+O projeto foi desenhado com modularidade e extensibilidade em mente, permitindo fácil customização e ampliação de suas capacidades.
 
-2. `qdrant-find`
-   - Recupera informações relevantes do banco de dados Qdrant
-   - Entrada:
-     - `query` (string): Consulta para a busca
-     - `collection_name` (string): Nome da coleção onde buscar (opcional se houver uma coleção padrão configurada)
-   - Retorna: Informações armazenadas no Qdrant como mensagens separadas
+## 🏗️ Arquitetura
 
-## Instalação
+A estrutura real do projeto é organizada da seguinte forma:
 
-### Instalação Rápida
+```
+synapstor/
+├── src/
+│   └── synapstor/           # Pacote principal
+│       ├── embeddings/      # Geradores de embeddings vetoriais
+│       ├── plugins/         # Sistema de plugins extensível
+│       ├── tools/           # Utilitários e ferramentas CLI
+│       ├── utils/           # Funções auxiliares
+│       ├── qdrant.py        # Conector para o banco de dados Qdrant
+│       ├── settings.py      # Configurações do sistema
+│       ├── mcp_server.py    # Implementação do servidor MCP
+│       ├── main.py          # Ponto de entrada principal
+│       ├── server.py        # Implementação do servidor
+│       └── env_loader.py    # Carregador de variáveis de ambiente
+├── tests/                   # Testes automatizados
+└── pyproject.toml           # Configuração do projeto e dependências
+```
 
-1. **Instalar a partir do código fonte**:
+## 🖥️ Requisitos
+
+### Dependências Principais
+
+- **Python**: 3.9 ou superior
+- **Qdrant**: Banco de dados vetorial para armazenamento e busca de embeddings
+- **Modelos de Embedding**: Por padrão, usa modelos da biblioteca FastEmbed
+
+### Requisitos para o Qdrant
+
+O Synapstor funciona com o Qdrant de duas formas:
+
+1. **Qdrant Cloud** (Recomendado para produção):
+   - Crie uma conta em [cloud.qdrant.io](https://cloud.qdrant.io/)
+   - Obtenha sua URL e chave API
+   - Configure o Synapstor com estas credenciais
+
+2. **Qdrant Local** (Recomendado para desenvolvimento):
+   - **Docker** (mais simples):
+     ```bash
+     docker pull qdrant/qdrant
+     docker run -p 6333:6333 -p 6334:6334 -v $(pwd)/qdrant_storage:/qdrant/storage qdrant/qdrant
+     ```
+   - **Instalação nativa**: Consulte a [documentação oficial do Qdrant](https://qdrant.tech/documentation/guides/installation/)
+
+## 📦 Instalação
+
+### Ambiente Virtual (Recomendado)
+
+É altamente recomendado usar um ambiente virtual para evitar conflitos de dependências.
+
+#### Usando Conda (Recomendado)
 
 ```bash
-# Clonar o repositório
+# Instalar Conda (se ainda não tiver)
+# Visite https://docs.conda.io/en/latest/miniconda.html
+
+# Criar ambiente virtual
+conda create -n synapstor python=3.9
+conda activate synapstor
+
+# Clone o repositório
 git clone https://github.com/seu-usuario/synapstor.git
 cd synapstor
 
-# Instalar o pacote em modo de desenvolvimento
+# Instalar o projeto em modo de desenvolvimento
 pip install -e .
 ```
 
-2. **Executar o script de configuração**:
+#### Usando venv
 
 ```bash
-# Configuração interativa
-synapstor-setup
+# Criar ambiente virtual
+python -m venv synapstor-env
+source synapstor-env/bin/activate  # Linux/macOS
+# ou
+synapstor-env\Scripts\activate  # Windows
+
+# Clone o repositório
+git clone https://github.com/seu-usuario/synapstor.git
+cd synapstor
+
+# Instalar o projeto em modo de desenvolvimento
+pip install -e .
 ```
 
-O script de configuração irá:
-- Verificar e instalar dependências necessárias
-- Guiá-lo pela configuração das conexões do Qdrant
-- Criar scripts de inicialização para sua plataforma
-- Gerar um arquivo .env com suas configurações
+### Instalação de Dependências de Desenvolvimento
 
-### Comandos CLI
+Se você precisa executar testes ou contribuir com o desenvolvimento, instale as dependências de teste manualmente:
 
-O Synapstor fornece várias ferramentas de linha de comando:
+```bash
+# Dentro do diretório do projeto, com ambiente virtual ativado
+pip install pytest pytest-cov
+```
 
-| Comando | Descrição |
-|---------|-----------|
-| `synapstor-setup` | Configuração e instalação interativa |
-| `synapstor-config` | Atualizar configurações |
-| `synapstor-server` | Iniciar o servidor MCP |
-| `synapstor-indexer` | Indexar conteúdo no Qdrant |
+## 🔧 Ferramentas CLI
 
-### Iniciar o Servidor
+O Synapstor oferece um conjunto de ferramentas de linha de comando para facilitar seu uso. A forma mais recomendada de interagir com o Synapstor é através do comando centralizado `synapstor-ctl`.
 
-Após a instalação, você pode iniciar o servidor de várias maneiras:
+### `synapstor-ctl` (Recomendado)
+
+Interface centralizada para gerenciar todas as funcionalidades do Synapstor:
+
+```bash
+# Iniciar o servidor MCP
+synapstor-ctl server
+
+# Configuração interativa
+synapstor-ctl configure
+
+# Indexar um projeto
+synapstor-ctl indexer --project meu-projeto --path /caminho/do/projeto
+
+# Ver status
+synapstor-ctl status
+
+# Listar coleções disponíveis
+synapstor-ctl collections list
+
+# Ajuda sobre comandos disponíveis
+synapstor-ctl --help
+```
+
+### Ferramentas Individuais
+
+Além do `synapstor-ctl`, você também pode usar as ferramentas individuais:
+
+#### `synapstor-server`
+
+Inicia o servidor MCP para integração com LLMs e outras ferramentas.
 
 ```bash
 # Uso básico
 synapstor-server
 
-# Com protocolo de transporte específico
+# Especificar protocolo de transporte
 synapstor-server --transport sse
 
-# Criar arquivo .env se não existir
-synapstor-server --create-env
-
-# Configurar antes de iniciar
-synapstor-server --configure
-
-# Usar arquivo .env personalizado
-synapstor-server --env-file personalizado.env
+# Especificar arquivo .env personalizado
+synapstor-server --env-file config.env
 ```
 
-### Indexação de Conteúdo
+#### `synapstor-indexer`
 
-O Synapstor inclui um indexador poderoso para adicionar conteúdo à sua coleção Qdrant:
+Ferramenta para indexação em lote de projetos e diretórios no Qdrant.
 
 ```bash
-# Indexação básica de um projeto
+# Indexar um projeto completo
 synapstor-indexer --project meu-projeto --path /caminho/do/projeto
 
-# Opções adicionais
+# Opções avançadas
 synapstor-indexer --project meu-projeto --path /caminho/do/projeto \
-  --collection minha-colecao \
+  --collection colecao-personalizada \
   --workers 8 \
+  --max-file-size 5 \
   --verbose
+
+# Indexar e testar com uma consulta
+synapstor-indexer --project meu-projeto --path /caminho/do/projeto \
+  --query "como implementar autenticação"
 ```
 
-## Configuração
+A ferramenta de indexação oferece funcionalidades avançadas:
+- Respeito a regras `.gitignore` para exclusão de arquivos
+- Detecção automática de arquivos binários
+- Processamento paralelo para indexação rápida
+- IDs determinísticos para evitar duplicação de documentos
 
-### Usando Variáveis de Ambiente
+## 🚀 Uso Rápido
 
-A configuração do servidor pode ser feita usando variáveis de ambiente como listado abaixo.
+### Configuração
 
-### Usando Arquivo .env (Recomendado)
+Configure o Synapstor através de variáveis de ambiente ou arquivo `.env`:
 
-O servidor suporta configuração via arquivo `.env` no diretório raiz do projeto. Esta é a forma recomendada para configurar o servidor para desenvolvimento e uso local.
+```
+QDRANT_URL=http://localhost:6333
+QDRANT_API_KEY=sua-chave-api
+COLLECTION_NAME=synapstor
+EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+```
 
-1. Crie um arquivo `.env` no diretório raiz do projeto (automaticamente criado com `synapstor-setup` ou `synapstor-server --create-env`)
-2. Defina as variáveis de ambiente necessárias no arquivo
-3. Execute o servidor - ele carregará automaticamente a configuração do arquivo `.env`
+### Exemplos de Uso
 
-Se nenhum arquivo `.env` for encontrado, o servidor procurará variáveis de ambiente no sistema. Se variáveis obrigatórias estiverem faltando, ele solicitará que você crie um arquivo `.env`.
-
-### Variáveis de Ambiente Obrigatórias
-
-| Nome | Descrição | Valor Padrão |
-|------|-----------|--------------|
-| `QDRANT_URL` | URL do servidor Qdrant | Nenhum |
-| `QDRANT_API_KEY` | Chave API para o servidor Qdrant | Nenhum |
-| `COLLECTION_NAME` | Nome da coleção padrão a ser usada | Nenhum |
-
-### Variáveis de Ambiente Opcionais
-
-| Nome | Descrição | Valor Padrão |
-|------|-----------|--------------|
-| `QDRANT_LOCAL_PATH` | Caminho para o banco de dados Qdrant local (alternativa ao `QDRANT_URL`) | Nenhum |
-| `EMBEDDING_PROVIDER` | Provedor de embeddings a ser usado (atualmente apenas "fastembed" é suportado) | `fastembed` |
-| `EMBEDDING_MODEL` | Nome do modelo de embedding a ser usado | `sentence-transformers/all-MiniLM-L6-v2` |
-| `TOOL_STORE_DESCRIPTION` | Descrição personalizada para a ferramenta store | Ver padrão em [`settings.py`](src/synapstor/settings.py) |
-| `TOOL_FIND_DESCRIPTION` | Descrição personalizada para a ferramenta find | Ver padrão em [`settings.py`](src/synapstor/settings.py) |
-| `LOG_LEVEL` | Nível de log (DEBUG, INFO, WARNING, ERROR) | INFO |
-
-Nota: Você não pode fornecer `QDRANT_URL` e `QDRANT_LOCAL_PATH` ao mesmo tempo.
-
-> [!IMPORTANTE]
-> Embora variáveis de ambiente sejam suportadas, recomenda-se usar os comandos `synapstor-setup` ou `synapstor-config` para uma configuração mais fácil.
-
-## Uso com Diferentes Clientes
-
-### Usando com Docker
-
-Um Dockerfile está disponível para construir e executar o servidor MCP:
+#### Como servidor MCP
 
 ```bash
-# Construir o container
-docker build -t synapstor .
+# Iniciar o servidor MCP com a interface centralizada
+synapstor-ctl server
 
-# Executar o container
-docker run -p 8000:8000 \
-  -e QDRANT_URL="http://seu-servidor-qdrant:6333" \
-  -e QDRANT_API_KEY="sua-chave-api" \
-  -e COLLECTION_NAME="sua-colecao" \
-  synapstor
-```
-
-### Configuração manual para Claude Desktop
-
-Para usar este servidor com o aplicativo Claude Desktop, adicione a seguinte configuração à seção "mcpServers" do seu arquivo `claude_desktop_config.json`:
-
-```json
-{
-  "qdrant": {
-    "command": "synapstor-server",
-    "args": ["--transport", "stdio"],
-    "env": {
-      "QDRANT_URL": "https://xyz-exemplo.eu-central.aws.cloud.qdrant.io:6333",
-      "QDRANT_API_KEY": "sua_chave_api",
-      "COLLECTION_NAME": "nome-da-sua-colecao",
-      "EMBEDDING_MODEL": "sentence-transformers/all-MiniLM-L6-v2"
-    }
-  }
-}
-```
-
-Para modo Qdrant local:
-
-```json
-{
-  "qdrant": {
-    "command": "synapstor-server",
-    "args": ["--transport", "stdio"],
-    "env": {
-      "QDRANT_LOCAL_PATH": "/caminho/para/banco/qdrant",
-      "COLLECTION_NAME": "nome-da-sua-colecao",
-      "EMBEDDING_MODEL": "sentence-transformers/all-MiniLM-L6-v2"
-    }
-  }
-}
-```
-
-Este servidor MCP criará automaticamente uma coleção com o nome especificado se ela não existir.
-
-Por padrão, o servidor usará o modelo de embedding `sentence-transformers/all-MiniLM-L6-v2` para codificar memórias.
-Por enquanto, apenas modelos [FastEmbed](https://qdrant.github.io/fastembed/) são suportados.
-
-## Suporte para outras ferramentas
-
-Este servidor MCP pode ser usado com qualquer cliente compatível com MCP. Por exemplo, você pode usá-lo com [Cursor](https://docs.cursor.com/context/model-context-protocol), que fornece suporte integrado para o Model Context Protocol.
-
-### Uso com Cursor/Windsurf
-
-Você pode configurar este servidor MCP para funcionar como uma ferramenta de busca de código para Cursor ou Windsurf personalizando as descrições das ferramentas:
-
-```bash
-synapstor-server --configure
-```
-
-Em seguida, defina os seguintes valores quando solicitado:
-
-- `COLLECTION_NAME`: "code-snippets"
-- `TOOL_STORE_DESCRIPTION`: "Armazene trechos de código reutilizáveis para recuperação posterior. O parâmetro 'information' deve conter uma descrição em linguagem natural do que o código faz, enquanto o código real deve ser incluído no parâmetro 'metadata' como uma propriedade 'code'. O valor de 'metadata' é um dicionário Python com strings como chaves. Use isso sempre que gerar algum trecho de código."
-- `TOOL_FIND_DESCRIPTION`: "Pesquise trechos de código relevantes com base em descrições em linguagem natural. O parâmetro 'query' deve descrever o que você está procurando, e a ferramenta retornará os trechos de código mais relevantes. Use isso quando precisar encontrar trechos de código existentes para reutilização ou referência."
-
-Após a configuração, inicie o servidor com transporte SSE:
-
-```bash
-synapstor-server --transport sse
-```
-
-No Cursor/Windsurf, você pode configurar o servidor MCP em suas configurações apontando para este servidor em execução usando o protocolo de transporte SSE. A descrição sobre como adicionar um servidor MCP ao Cursor pode ser encontrada na [documentação do Cursor](https://docs.cursor.com/context/model-context-protocol#adding-an-mcp-server-to-cursor). Se você estiver executando o Cursor/Windsurf localmente, pode usar a seguinte URL:
-
-```
-http://localhost:8000/sse
-```
-
-> [!DICA]
-> Sugerimos o transporte SSE como forma preferida de conectar o Cursor/Windsurf ao servidor MCP, pois ele pode suportar conexões remotas. Isso facilita o compartilhamento do servidor com sua equipe ou o uso em um ambiente de nuvem.
-
-Esta configuração transforma o servidor Synapstor em uma ferramenta especializada de busca de código que pode:
-
-1. Armazenar trechos de código, documentação e detalhes de implementação
-2. Recuperar exemplos de código relevantes com base em busca semântica
-3. Ajudar desenvolvedores a encontrar implementações específicas ou padrões de uso
-
-Você pode popular o banco de dados armazenando descrições em linguagem natural de trechos de código (no parâmetro `information`) junto com o código real (na propriedade `metadata.code`), e depois pesquisar por eles usando consultas em linguagem natural que descrevem o que você está procurando.
-
-> [!NOTA]
-> As descrições de ferramentas fornecidas acima são exemplos e podem precisar ser personalizadas para seu caso de uso específico. Considere ajustar as descrições para melhor corresponder ao fluxo de trabalho da sua equipe e aos tipos específicos de trechos de código que você deseja armazenar e recuperar.
-
-**Se você instalou com sucesso o Synapstor, mas ainda não consegue fazê-lo funcionar com o Cursor, considere criar [regras do Cursor](https://docs.cursor.com/context/rules-for-ai) para que as ferramentas MCP sejam sempre usadas quando o agente produzir um novo trecho de código.** Você pode restringir as regras para funcionarem apenas para certos tipos de arquivo, para evitar usar o servidor MCP para documentação ou outros tipos de conteúdo.
-
-## Adicionando Ferramentas Personalizadas (Sistema de Plugins)
-
-O Synapstor inclui um sistema de plugins que permite adicionar novas ferramentas ao servidor MCP sem modificar o código principal. Isso torna o servidor mais extensível e facilita a adição de funcionalidades personalizadas.
-
-### Como Adicionar Uma Nova Ferramenta
-
-1. Crie um arquivo Python no diretório `src/synapstor/plugins/` com o prefixo `tool_` (exemplo: `tool_calculadora.py`).
-
-2. Implemente sua ferramenta seguindo este modelo:
-
-```python
-import logging
-from typing import List
-from mcp.server.fastmcp import Context
-
-logger = logging.getLogger(__name__)
-
-async def minha_ferramenta(ctx: Context, parametro1: str) -> str:
-    """
-    Descrição detalhada da ferramenta.
-    
-    :param ctx: O contexto da solicitação MCP.
-    :param parametro1: Descrição do parâmetro.
-    :return: Resultado da operação.
-    """
-    await ctx.debug(f"Processando: {parametro1}")
-    resultado = f"Processado {parametro1}"
-    return resultado
-
-def setup_tools(server) -> List[str]:
-    """
-    Registra as ferramentas deste plugin no servidor.
-    """
-    server.add_tool(
-        minha_ferramenta,
-        name="minha-ferramenta",
-        description="Descrição da ferramenta."
-    )
-    return ["minha-ferramenta"]
-```
-
-3. O sistema carregará automaticamente sua ferramenta na próxima inicialização do servidor.
-
-### Diretrizes para Desenvolver Ferramentas
-
-- Use funções assíncronas (`async def`) com o primeiro parâmetro sendo `ctx: Context`
-- Forneça tipos para todos os parâmetros para melhorar a experiência do cliente
-- Inclua documentação detalhada sobre o que a ferramenta faz e seus parâmetros
-- Implemente uma função `setup_tools(server)` que registre todas as ferramentas fornecidas
-
-Para obter informações mais detalhadas sobre como desenvolver plugins, consulte o arquivo `src/synapstor/plugins/README.md` no código-fonte.
-
-### Uso com Claude Code
-
-Você pode aprimorar as capacidades do Claude Code conectando-o a este servidor MCP, habilitando a busca semântica em sua base de código existente.
-
-#### Configurando o Synapstor
-
-1. Adicione o servidor MCP ao Claude Code:
-
-    ```shell
-    # Adicione o Synapstor configurado para busca de código
-    claude mcp add busca-codigo \
-    -e QDRANT_URL="http://localhost:6333" \
-    -e COLLECTION_NAME="repositorio-codigo" \
-    -e EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2" \
-    -e TOOL_STORE_DESCRIPTION="Armazene trechos de código com descrições. O parâmetro 'information' deve conter uma descrição em linguagem natural do que o código faz, enquanto o código real deve ser incluído no parâmetro 'metadata' como uma propriedade 'code'." \
-    -e TOOL_FIND_DESCRIPTION="Pesquise trechos de código relevantes usando linguagem natural. O parâmetro 'query' deve descrever a funcionalidade que você está procurando." \
-    -- synapstor-server
-    ```
-
-2. Verifique se o servidor foi adicionado:
-
-    ```shell
-    claude mcp list
-    ```
-
-#### Usando a Busca Semântica de Código no Claude Code
-
-As descrições das ferramentas, especificadas em `TOOL_STORE_DESCRIPTION` e `TOOL_FIND_DESCRIPTION`, orientam o Claude Code sobre como usar o servidor MCP. As fornecidas acima são exemplos e podem precisar ser personalizadas para seu caso de uso específico. No entanto, o Claude Code já deve ser capaz de:
-
-1. Usar a ferramenta `qdrant-store` para armazenar trechos de código com descrições.
-2. Usar a ferramenta `qdrant-find` para pesquisar trechos de código relevantes usando linguagem natural.
-
-### Executar o servidor MCP em Modo de Desenvolvimento
-
-O servidor MCP pode ser executado em modo de desenvolvimento usando o comando `mcp dev`. Isso iniciará o servidor e abrirá o inspetor MCP em seu navegador.
-
-```shell
-COLLECTION_NAME=mcp-dev mcp dev src/synapstor/server.py
-```
-
-## Contribuindo
-
-Se você tiver sugestões para melhorar o Synapstor ou quiser relatar um bug, abra uma issue!
-Adoraríamos qualquer contribuição.
-
-### Testando o `Synapstor` localmente
-
-O [MCP inspector](https://github.com/modelcontextprotocol/inspector) é uma ferramenta de desenvolvedor para testar e depurar servidores MCP. Ele executa tanto uma UI cliente (porta padrão 5173) quanto um servidor proxy MCP (porta padrão 3000). Abra a UI cliente em seu navegador para usar o inspetor.
-
-```shell
-QDRANT_URL=":memory:" COLLECTION_NAME="teste" \
-mcp dev src/synapstor/server.py
-```
-
-Uma vez iniciado, abra seu navegador em http://localhost:5173 para acessar a interface do inspetor.
-
-## Licença
-
-Este servidor MCP é licenciado sob a Licença Apache 2.0. Isso significa que você é livre para usar, modificar e distribuir o software, sujeito aos termos e condições da Licença Apache 2.0. Para mais detalhes, consulte o arquivo LICENSE no repositório do projeto.
-
-## Perguntas Frequentes (FAQ)
-
-### Sobre o Synapstor
-
-#### O que é o Synapstor?
-O Synapstor é uma evolução não oficial do mcp-server-qdrant que implementa o Model Context Protocol (MCP) para fornecer uma camada de memória semântica sobre o banco de dados vetorial Qdrant. Ele permite armazenar, recuperar e buscar informações usando busca semântica, integrando-se perfeitamente com várias ferramentas de IA como Claude, Cursor e outras.
-
-#### Quais são os principais componentes do Synapstor?
-O Synapstor oferece duas ferramentas principais:
-1. `qdrant-store`: Armazena informações com metadados no banco de dados Qdrant
-2. `qdrant-find`: Recupera informações relevantes usando busca semântica
-
-Além disso, inclui várias ferramentas de linha de comando: synapstor-setup, synapstor-config, synapstor-server e synapstor-indexer.
-
-#### Como o Synapstor se diferencia do mcp-server-qdrant original?
-O Synapstor aprimora o mcp-server-qdrant original com:
-- Interface de linha de comando melhorada
-- Facilidades de instalação e configuração
-- Ferramentas de indexação mais robustas
-- Suporte a metadados mais completo
-- Configuração simplificada através de arquivos .env
-
-### Instalação e Configuração
-
-#### Como instalar o Synapstor?
-Para instalar o Synapstor:
-1. Clone o repositório: `git clone https://github.com/seu-usuario/synapstor.git`
-2. Entre no diretório: `cd synapstor`
-3. Instale o pacote em modo de desenvolvimento: `pip install -e .`
-4. Execute o script de configuração: `synapstor-setup`
-
-#### Quais são as variáveis de ambiente necessárias para configurar o Synapstor?
-Variáveis obrigatórias:
-- `QDRANT_URL`: URL do servidor Qdrant
-- `QDRANT_API_KEY`: Chave API para o servidor Qdrant
-- `COLLECTION_NAME`: Nome da coleção padrão a ser usada
-
-Variáveis opcionais:
-- `QDRANT_LOCAL_PATH`: Caminho para banco de dados Qdrant local (alternativa ao QDRANT_URL)
-- `EMBEDDING_PROVIDER`: Provedor de embeddings (atualmente apenas "fastembed")
-- `EMBEDDING_MODEL`: Nome do modelo de embedding
-- `TOOL_STORE_DESCRIPTION`: Descrição personalizada para a ferramenta store
-- `TOOL_FIND_DESCRIPTION`: Descrição personalizada para a ferramenta find
-- `LOG_LEVEL`: Nível de log (DEBUG, INFO, WARNING, ERROR)
-
-#### Como configurar o Synapstor para usar Qdrant local em vez do Qdrant Cloud?
-Em vez de configurar `QDRANT_URL` e `QDRANT_API_KEY`, configure `QDRANT_LOCAL_PATH` com o caminho para o diretório onde deseja armazenar os dados localmente. Se usar o comando `synapstor-setup`, você será guiado através das opções, incluindo a escolha entre Qdrant Cloud e local.
-
-### Uso e Funcionalidades
-
-#### Como iniciar o servidor Synapstor?
-Após a instalação e configuração, você pode iniciar o servidor com:
-```bash
+# Ou usando o comando específico
 synapstor-server
 ```
 
-Para iniciar com transporte SSE (recomendado para Cursor):
-```bash
-synapstor-server --transport sse
-```
+#### Indexação de projetos
 
-#### Como indexar um projeto com o Synapstor?
-Para indexar um projeto:
 ```bash
+# Indexar um projeto usando a interface centralizada (recomendado)
+synapstor-ctl indexer --project meu-projeto --path /caminho/do/projeto
+
+# Ou usando o comando específico
 synapstor-indexer --project meu-projeto --path /caminho/do/projeto
 ```
 
-Opções adicionais:
-```bash
-synapstor-indexer --project meu-projeto --path /caminho/do/projeto --collection minha-colecao --workers 8 --verbose
+#### Como biblioteca em aplicações Python
+
+```python
+from synapstor.qdrant import QdrantConnector, Entry
+from synapstor.embeddings.factory import create_embedding_provider
+from synapstor.settings import EmbeddingProviderSettings
+
+# Inicializar componentes
+settings = EmbeddingProviderSettings()
+embedding_provider = create_embedding_provider(settings)
+
+connector = QdrantConnector(
+    qdrant_url="http://localhost:6333",
+    collection_name="minha_colecao",
+    embedding_provider=embedding_provider
+)
+
+# Armazenar informações
+async def store_data():
+    entry = Entry(
+        content="Conteúdo a ser armazenado",
+        metadata={"chave": "valor"}
+    )
+    await connector.store(entry)
+
+# Buscar informações
+async def search_data():
+    results = await connector.search("consulta em linguagem natural")
+    for result in results:
+        print(result.content)
 ```
 
-#### Quais são as funcionalidades do indexador do Synapstor?
-O indexador do Synapstor oferece diversas funcionalidades:
-- Comunicação direta com o Qdrant usando o cliente oficial
-- Geração de embeddings usando o modelo sentence-transformers
-- Suporte a regras do .gitignore para ignorar arquivos
-- Processamento em lote para envio eficiente
-- Filtros de metadados (projeto, extensão, etc.)
-- Paralelismo para indexação mais rápida
-- Geração de IDs determinísticos para evitar duplicação
+## 🤖 Integração com LLMs
 
-#### Como configurar o Synapstor para uso com o Cursor?
-1. Configure o servidor: `synapstor-server --configure`
-2. Defina valores apropriados para `COLLECTION_NAME`, `TOOL_STORE_DESCRIPTION` e `TOOL_FIND_DESCRIPTION`
-3. Inicie o servidor com transporte SSE: `synapstor-server --transport sse`
-4. No Cursor, adicione o servidor MCP nas configurações, apontando para `http://localhost:8000/sse`
+O Synapstor implementa o [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction), permitindo integração com diversos modelos de linguagem.
 
-#### Como configurar o Synapstor para uso com o Claude Desktop?
-Adicione a seguinte configuração ao arquivo `claude_desktop_config.json`:
+### 1. Integração com Claude (Anthropic)
+
+#### Claude Desktop
+
+Configure o Synapstor no arquivo `claude_desktop_config.json`:
+
 ```json
 {
-  "qdrant": {
-    "command": "synapstor-server",
-    "args": ["--transport", "stdio"],
-    "env": {
-      "QDRANT_URL": "https://seu-servidor-qdrant:6333",
-      "QDRANT_API_KEY": "sua_chave_api",
-      "COLLECTION_NAME": "sua-colecao",
-      "EMBEDDING_MODEL": "sentence-transformers/all-MiniLM-L6-v2"
+  "mcpServers": {
+    "synapstor": {
+      "command": "synapstor-ctl",
+      "args": ["server", "--transport", "stdio"],
+      "env": {
+        "QDRANT_URL": "http://localhost:6333",
+        "COLLECTION_NAME": "minha-colecao",
+        "EMBEDDING_MODEL": "sentence-transformers/all-MiniLM-L6-v2"
+      }
     }
   }
 }
 ```
 
-### Resolução de Problemas
+#### Claude Web / API
 
-#### O servidor não está iniciando. O que fazer?
-Verifique se:
-1. Todas as dependências estão instaladas: `pip install -e .`
-2. O arquivo .env está configurado corretamente: `synapstor-server --create-env`
-3. As variáveis de ambiente obrigatórias estão definidas
-4. A conexão com o Qdrant está funcionando
-5. A coleção especificada existe ou pode ser criada
+Inicie o servidor com transporte SSE:
 
-#### Como verificar se a conexão com o Qdrant está funcionando?
-Você pode testar a conexão iniciando o servidor com nível de log DEBUG:
 ```bash
-LOG_LEVEL=DEBUG synapstor-server
-```
-Isso mostrará informações detalhadas sobre a tentativa de conexão.
-
-#### O indexador está muito lento. Como melhorar o desempenho?
-Aumente o número de workers paralelos:
-```bash
-synapstor-indexer --project meu-projeto --path /caminho/do/projeto --workers 16
-```
-Ou reduza o tamanho máximo dos arquivos indexados:
-```bash
-synapstor-indexer --project meu-projeto --path /caminho/do/projeto --max-file-size 1
+synapstor-ctl server --transport sse
 ```
 
-#### Como saber se meu projeto foi indexado corretamente?
-Após a indexação, o indexador mostrará estatísticas sobre o processo. Você também pode testar uma consulta:
+Acesse via API Anthropic usando o endpoint local do Synapstor como provedor MCP.
+
+### 2. Integração com Cursor (Editor de Código)
+
+1. Inicie o servidor MCP:
+   ```bash
+   synapstor-ctl server --transport sse
+   ```
+
+2. Em Cursor, vá para Configurações → Contexto → Adicionar Servidor MCP
+3. Configure a URL: `http://localhost:8000/sse`
+4. Personalize as descrições de ferramenta para melhor integração com seu fluxo de trabalho
+
+### 3. Integração com Windsurf
+
+Semelhante ao Cursor, configure o Windsurf para usar o endpoint SSE do Synapstor como provedor MCP.
+
+### 4. Integração com Microsoft Copilot
+
+Para integrar com Microsoft Copilot:
+
+1. Inicie o servidor com configurações específicas:
+   ```bash
+   TOOL_STORE_DESCRIPTION="Armazene trechos de código ou documentação" \
+   TOOL_FIND_DESCRIPTION="Busque informações relacionadas à consulta" \
+   synapstor-ctl server --transport stdio
+   ```
+
+2. Configure o Copilot para usar o Synapstor como provedor de plugins
+
+## 📚 Documentação Detalhada
+
+O Synapstor possui documentação específica para cada módulo:
+
+- **[Módulo Principal](src/synapstor/README.md)**: Visão geral e componentes principais
+- **[Embeddings](src/synapstor/embeddings/README.md)**: Geração de embeddings vetoriais
+- **[Plugins](src/synapstor/plugins/README.md)**: Sistema extensível de plugins
+- **[Ferramentas](src/synapstor/tools/README.md)**: Ferramentas CLI e utilitários
+- **[Utilitários](src/synapstor/utils/README.md)**: Funções auxiliares comuns
+- **[Testes](tests/README.md)**: Suíte de testes e exemplos
+
+## 🧪 Testes
+
+O Synapstor inclui uma suíte completa de testes para garantir a qualidade e robustez do código:
+
 ```bash
-synapstor-indexer --project meu-projeto --path /caminho/do/projeto --query "exemplo de consulta"
+# Com ambiente virtual ativado
+
+# Executar todos os testes
+pytest
+
+# Executar um módulo específico de testes
+pytest tests/test_qdrant_integration.py
+
+# Executar com cobertura de código
+pytest --cov=synapstor
 ```
-Isso executará a indexação e uma busca de teste.
+
+Para mais detalhes sobre os testes, consulte a [documentação de testes](tests/README.md).
+
+## 🤝 Contribuição
+
+Contribuições são bem-vindas! Se você deseja contribuir para o Synapstor:
+
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/nome-da-feature`)
+3. Adicione seus commits (`git commit -m 'Adiciona nova feature'`)
+4. Faça push para a branch (`git push origin feature/nome-da-feature`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+---
+
+<p align="center">
+  Desenvolvido com ❤️ pelo time Synapstor
+</p>
