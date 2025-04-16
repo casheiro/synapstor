@@ -62,7 +62,7 @@ synapstor/
 
 ### Dependências Principais
 
-- **Python**: 3.9 ou superior
+- **Python**: 3.10 ou superior
 - **Qdrant**: Banco de dados vetorial para armazenamento e busca de embeddings
 - **Modelos de Embedding**: Por padrão, usa modelos da biblioteca FastEmbed
 
@@ -96,7 +96,7 @@ O Synapstor funciona com o Qdrant de duas formas:
 # Visite https://docs.conda.io/en/latest/miniconda.html
 
 # Criar ambiente virtual
-conda create -n synapstor python=3.9
+conda create -n synapstor python=3.10
 conda activate synapstor
 
 # Clone o repositório
