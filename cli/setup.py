@@ -7,6 +7,7 @@ Este script é executado quando o usuário executa 'synapstor-setup' após a ins
 
 import os
 import sys
+import shutil
 from pathlib import Path
 
 # Adiciona o diretório raiz ao path para importar o módulo
@@ -44,36 +45,98 @@ def main():
     criar_scripts = input().strip().lower() in ["s", "sim", "y", "yes"]
     
     if criar_scripts:
+        # Oferece opções para onde instalar os scripts
+        print("\nOnde deseja instalar os scripts? (Escolha uma opção)")
+        print(" 1. Diretório atual")
+        print(" 2. Diretório de usuário (~/.synapstor/bin)")
+        print(" 3. Outro diretório (personalizado)")
+        
+        opcao = input("\nOpção: ").strip()
+        
+        # Define o diretório de destino com base na opção escolhida
+        destino = None
+        
+        if opcao == "1":
+            destino = diretorio_atual
+            print(f"\nScripts serão instalados em: {destino}")
+        elif opcao == "2":
+            # Criar diretório ~/.synapstor/bin se não existir
+            user_dir = Path.home() / '.synapstor' / 'bin'
+            user_dir.mkdir(parents=True, exist_ok=True)
+            destino = user_dir
+            print(f"\nScripts serão instalados em: {destino}")
+            
+            # Perguntar se deseja adicionar ao PATH (apenas em sistemas Unix-like)
+            if os.name != 'nt':
+                print("\nDeseja adicionar este diretório ao seu PATH? (s/n)")
+                add_to_path = input().strip().lower() in ["s", "sim", "y", "yes"]
+                
+                if add_to_path:
+                    # Detecta o shell do usuário
+                    shell_file = None
+                    shell = os.environ.get('SHELL', '')
+                    
+                    if 'bash' in shell:
+                        shell_file = Path.home() / '.bashrc'
+                    elif 'zsh' in shell:
+                        shell_file = Path.home() / '.zshrc'
+                    
+                    if shell_file:
+                        try:
+                            # Adiciona ao path no arquivo de configuração do shell
+                            with open(shell_file, 'a') as f:
+                                f.write('\n# Adicionado pelo instalador do Synapstor\n')
+                                f.write(f'export PATH="$PATH:{destino}"\n')
+                            print(f"✅ Adicionado ao PATH em {shell_file}")
+                        except Exception as e:
+                            print(f"⚠️ Não foi possível adicionar ao PATH: {e}")
+                    else:
+                        print("⚠️ Não foi possível determinar o arquivo de configuração do shell.")
+                        print(f"Adicione manualmente: export PATH=\"$PATH:{destino}\"")
+                        
+        elif opcao == "3":
+            custom_dir = input("\nDigite o caminho completo para o diretório: ").strip()
+            destino = Path(custom_dir)
+            
+            # Tenta criar o diretório se ele não existir
+            try:
+                destino.mkdir(parents=True, exist_ok=True)
+                print(f"\nScripts serão instalados em: {destino}")
+            except Exception as e:
+                print(f"\n⚠️ Erro ao criar diretório: {e}")
+                print("Continuando com o diretório atual...")
+                destino = diretorio_atual
+        else:
+            # Opção inválida, usa o diretório atual
+            print("\n⚠️ Opção inválida. Usando o diretório atual.")
+            destino = diretorio_atual
+        
         # Cria scripts para diferentes sistemas operacionais
         try:
-            # Cria script para Windows (.bat)
-            with open(diretorio_atual / 'start-synapstor.bat', 'w', encoding='utf-8') as f:
-                f.write('@echo off\n')
-                f.write('echo Iniciando servidor Synapstor...\n')
-                f.write('synapstor-server\n')
-                f.write('pause\n')
+            # Caminhos para os templates
+            template_dir = Path(__file__).parent / 'templates'
             
-            # Cria script para Windows (PowerShell)
-            with open(diretorio_atual / 'Start-Synapstor.ps1', 'w', encoding='utf-8') as f:
-                f.write('#!/usr/bin/env pwsh\n\n')
-                f.write('Write-Host "Iniciando servidor Synapstor..." -ForegroundColor Cyan\n')
-                f.write('synapstor-server\n')
-                f.write('Write-Host "Pressione qualquer tecla para continuar..." -NoNewLine\n')
-                f.write('$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")\n')
-                f.write('Write-Host ""\n')
+            # Lista de scripts a serem copiados
+            scripts = [
+                ('start-synapstor.bat', destino / 'start-synapstor.bat'),
+                ('Start-Synapstor.ps1', destino / 'Start-Synapstor.ps1'),
+                ('start-synapstor.sh', destino / 'start-synapstor.sh')
+            ]
             
-            # Cria script para Linux/macOS (.sh)
-            with open(diretorio_atual / 'start-synapstor.sh', 'w', encoding='utf-8') as f:
-                f.write('#!/bin/bash\n\n')
-                f.write('echo "Iniciando servidor Synapstor..."\n')
-                f.write('synapstor-server\n')
-            
-            # Torna o script shell executável (somente em sistemas Unix-like)
-            if os.name != 'nt':  # Se não for Windows
+            # Copia cada script do template para o destino
+            for origem_nome, destino_caminho in scripts:
+                origem_caminho = template_dir / origem_nome
                 try:
-                    os.chmod(diretorio_atual / 'start-synapstor.sh', 0o755)
-                except:
-                    pass
+                    shutil.copy2(origem_caminho, destino_caminho)
+                    
+                    # Torna o script shell executável (somente em sistemas Unix-like)
+                    if origem_nome.endswith('.sh') and os.name != 'nt':
+                        try:
+                            os.chmod(destino_caminho, 0o755)
+                        except Exception:
+                            pass
+                except Exception as e:
+                    print(f"\n⚠️ Erro ao copiar {origem_nome}: {e}")
                     
             print("\n✅ Scripts de inicialização criados com sucesso!")
         except Exception as e:
@@ -87,8 +150,14 @@ def main():
         
         if criar_scripts:
             print("\nVocê pode iniciar o servidor com um dos scripts criados:")
-            print("  - Windows: start-synapstor.bat ou Start-Synapstor.ps1")
-            print("  - Linux/macOS: ./start-synapstor.sh")
+            
+            if opcao == "1" or opcao == "3":
+                print("  - Windows: start-synapstor.bat ou Start-Synapstor.ps1")
+                print("  - Linux/macOS: ./start-synapstor.sh")
+            elif opcao == "2":
+                print(f"  - Windows: {destino}/start-synapstor.bat ou {destino}/Start-Synapstor.ps1")
+                print(f"  - Linux/macOS: {destino}/start-synapstor.sh")
+                print(f"\nCaminho completo do diretório: {destino}")
         else:
             print("\nVocê pode iniciar o servidor com:")
             print("  synapstor-server")

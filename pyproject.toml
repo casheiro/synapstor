@@ -18,6 +18,7 @@ dependencies = [
     "uvicorn>=0.19.0",
     "langchain>=0.0.200",
     "pydantic-settings>=2.0.0",
+    "psutil>=6.0.0",
 ]
 
 [project.urls]
@@ -34,6 +35,7 @@ synapstor-server = "cli.server:main"
 synapstor-reindex = "cli.reindex:main"
 synapstor-setup = "cli.setup:main"
 synapstor-config = "cli.config:main"
+synapstor-ctl = "cli.ctl:main"
 
 [tool.setuptools]
 packages = ["synapstor", "cli"]
