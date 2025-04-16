@@ -100,7 +100,7 @@ conda create -n synapstor python=3.10
 conda activate synapstor
 
 # Clone o repositório
-git clone https://github.com/seu-usuario/synapstor.git
+git clone https://github.com/casheiro/synapstor.git
 cd synapstor
 
 # Instalar o projeto em modo de desenvolvimento
@@ -117,7 +117,7 @@ source synapstor-env/bin/activate  # Linux/macOS
 synapstor-env\Scripts\activate  # Windows
 
 # Clone o repositório
-git clone https://github.com/seu-usuario/synapstor.git
+git clone https://github.com/casheiro/synapstor.git
 cd synapstor
 
 # Instalar o projeto em modo de desenvolvimento
@@ -490,5 +490,5 @@ Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICE
 ---
 
 <p align="center">
-  Desenvolvido com ❤️ pelo time Synapstor
+  Desenvolvido com ❤️ pelo time Synapstor by <a href="https://github.com/casheiro">Casheiro®</a>
 </p>

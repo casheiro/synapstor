@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
 
 # Clona o repositório do Synapstor
 # Substitua o URL do repositório pelo correto quando disponível
-RUN git clone https://github.com/seu-usuario/synapstor.git .
+RUN git clone https://github.com/casheiro/synapstor.git .
 
 # Instala o pacote em modo de desenvolvimento
 RUN pip install --no-cache-dir -e .
