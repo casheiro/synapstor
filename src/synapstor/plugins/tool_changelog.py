@@ -9,6 +9,7 @@ import logging
 import os
 import re
 import subprocess
+import shutil
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from mcp.server.fastmcp import Context
@@ -71,25 +72,29 @@ BREAKING_CHANGE_TEMPLATE = """### BREAKING CHANGES
 #############################################################################
 
 def _executar_comando_git(comando: List[str]) -> str:
-    """
-    Executa um comando git e retorna a saída.
-    
-    Args:
-        comando: Lista com o comando git a ser executado.
-        
-    Returns:
-        str: A saída do comando.
-        
-    Raises:
-        Exception: Se o comando falhar.
-    """
+    """Executa um comando git com compatibilidade Windows/Linux."""
     try:
+        # Tenta primeiro o caminho padrão do git
+        git_cmd = comando[0]
+        if os.name == 'nt':  # Windows
+            # Verifica se precisamos usar o caminho completo do Git
+            if not shutil.which(git_cmd):
+                # Caminhos comuns do Git no Windows
+                for path in [
+                    r"C:\Program Files\Git\bin\git.exe",
+                    r"C:\Program Files (x86)\Git\bin\git.exe"
+                ]:
+                    if os.path.exists(path):
+                        comando[0] = path
+                        break
+        
         resultado = subprocess.run(
             comando,
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            universal_newlines=True
+            universal_newlines=True,
+            encoding='utf-8'
         )
         return resultado.stdout.strip()
     except subprocess.CalledProcessError as e:
@@ -360,7 +365,16 @@ def _salvar_changelog(conteudo: str, caminho: str = "CHANGELOG.md") -> str:
         str: Caminho do arquivo salvo
     """
     try:
-        with open(caminho, "w", encoding="utf-8") as f:
+        # Adaptar função para detectar codificação
+        def _determinar_encoding():
+            """Determina a codificação ideal para o sistema"""
+            if os.name == 'nt':  # Windows
+                return 'utf-8-sig'  # Usar BOM no Windows
+            return 'utf-8'
+
+        # E usar na abertura de arquivos
+        encoding = _determinar_encoding()
+        with open(caminho, "w", encoding=encoding) as f:
             f.write(conteudo)
         return caminho
     except Exception as e:
