@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 import logging
 from typing import Dict, Optional, List
+from synapstor.env_loader import REQUIRED_VARS, OPTIONAL_VARS
 
 # Adiciona o diretório raiz ao path para importar o módulo
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -21,9 +22,6 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()],
 )
 logger = logging.getLogger("synapstor-config")
-
-# Definindo constantes (importadas do env_loader.py)
-from synapstor.env_loader import REQUIRED_VARS, OPTIONAL_VARS
 
 class ConfiguradorInterativo:
     """
@@ -122,7 +120,7 @@ class ConfiguradorInterativo:
             if padrao:
                 prompt = f"  Valor [{padrao}]: "
             else:
-                prompt = f"  Valor: "
+                prompt = "  Valor: "
                 
             novo_valor = input(prompt)
             

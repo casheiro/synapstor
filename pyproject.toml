@@ -32,6 +32,8 @@ build-backend = "setuptools.build_meta"
 synapstor-index = "synapstor.tools.indexer:command_line_runner"
 synapstor-server = "cli.server:main"
 synapstor-reindex = "cli.reindex:main"
+synapstor-setup = "cli.setup:main"
+synapstor-config = "cli.config:main"
 
 [tool.setuptools]
 packages = ["synapstor", "cli"]
