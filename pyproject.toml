@@ -19,6 +19,7 @@ dependencies = [
     "langchain>=0.0.200",
     "pydantic-settings>=2.0.0",
     "psutil>=6.0.0",
+    "pytest>=7.4.3",
 ]
 
 [project.urls]
