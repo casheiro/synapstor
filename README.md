@@ -1,7 +1,7 @@
 # Synapstor 📚🔍
 
 <p align="center">
-  <img src="./logo-synapstor.png" alt="Synapstor" width="400"/>
+  <img src="https://2.gravatar.com/userimage/264864229/4e133a67b7d5fff345dd8f2bc4d0743b?size=400" alt="Synapstor" width="400"/>
 </p>
 
 ![Version](https://img.shields.io/badge/versão-0.1.0-blue)
