@@ -1,106 +1,165 @@
 # Sistema de Plugins do Synapstor
 
-Este diretório contém o sistema de plugins do Synapstor, que permite adicionar novas ferramentas ao servidor MCP sem modificar o código principal.
+Este módulo implementa um sistema flexível de plugins que permite estender o Synapstor com novas funcionalidades sem modificar o código principal.
 
-## Como Adicionar Novas Ferramentas
+## Visão Geral
 
-Para adicionar uma nova ferramenta ao servidor MCP, siga estes passos:
+O sistema de plugins do Synapstor foi projetado com os seguintes objetivos:
 
-1. Crie um arquivo Python no diretório `plugins/` com o prefixo `tool_` (exemplo: `tool_calculadora.py`).
+- **Extensibilidade**: Adicionar novas ferramentas sem modificar o código principal
+- **Modularidade**: Cada plugin é um módulo independente com responsabilidade única
+- **Simplicidade**: API simples e direta para desenvolvedores de plugins
+- **Carregamento Dinâmico**: Plugins são descobertos e carregados automaticamente na inicialização
 
-2. Implemente sua ferramenta seguindo este modelo:
+## Arquitetura
+
+### Carregador de Plugins (`__init__.py`)
+
+O módulo principal implementa o mecanismo de descoberta e carregamento de plugins:
 
 ```python
-"""
-Plugin que adiciona [nome da ferramenta] ao Synapstor.
+def load_plugin_tools(server_instance: Any) -> List[str]:
+    """
+    Carrega todas as ferramentas dos plugins disponíveis.
+    """
+    # Descobre e importa arquivos com prefixo "tool_"
+    # Chama a função setup_tools() de cada plugin
+    # Retorna a lista de ferramentas registradas
+```
 
-Este plugin adiciona a funcionalidade [descrição resumida].
-"""
+### Anatomia de um Plugin
 
-import logging
-from typing import List
-from mcp.server.fastmcp import Context
+Cada plugin é um módulo Python independente que:
 
-logger = logging.getLogger(__name__)
+1. Define uma ou mais funções de ferramenta
+2. Implementa a função `setup_tools()` para registrar suas ferramentas no servidor
 
+## Desenvolvimento de Plugins
+
+### Template de Referência
+
+O arquivo `tool_boilerplate.py` fornece um template completo para desenvolvimento de plugins:
+
+```python
 async def minha_ferramenta(
     ctx: Context,
-    parametro1: str,
-    parametro2: int = 10,  # Parâmetros opcionais podem ter valores padrão
-) -> str:  # ou List[str] para retornar múltiplas mensagens
-    """
-    Descrição detalhada da ferramenta.
-    
-    :param ctx: O contexto da solicitação MCP.
-    :param parametro1: Descrição do primeiro parâmetro.
-    :param parametro2: Descrição do segundo parâmetro com valor padrão.
-    :return: Resultado da operação ou mensagem de erro.
-    """
-    # Log de debug (não visível para o usuário)
-    await ctx.debug(f"Processando: {parametro1}, {parametro2}")
-    
-    # Implementação da ferramenta
-    resultado = f"Processado {parametro1} com valor {parametro2}"
-    
-    return resultado
+    entrada: str,
+    opcao: int = 1,
+    parametros_adicionais: Optional[List[str]] = None,
+) -> str:
+    """Implementação da ferramenta"""
+    # ...
 
 def setup_tools(server) -> List[str]:
-    """
-    Registra as ferramentas fornecidas por este plugin no servidor.
-    
-    Esta função é chamada automaticamente pelo carregador de plugins.
-    
-    Args:
-        server: A instância do servidor QdrantMCPServer.
-        
-    Returns:
-        List[str]: Lista de nomes das ferramentas registradas.
-    """
-    logger.info("Registrando minha ferramenta")
-    
-    # Registra a ferramenta no servidor MCP
+    """Registra as ferramentas no servidor"""
     server.add_tool(
         minha_ferramenta,
-        name="minha-ferramenta",  # Nome da ferramenta exposto à API
-        description="Descrição clara e concisa da ferramenta."
+        name="minha-ferramenta",
+        description="Descrição da ferramenta"
     )
-    
-    # Retorna os nomes das ferramentas registradas
     return ["minha-ferramenta"]
 ```
 
-3. O sistema carregará automaticamente sua ferramenta na próxima inicialização do servidor.
+### Criando um Novo Plugin
 
-## Diretrizes para Desenvolver Ferramentas
+1. **Nome do Arquivo**: Crie um novo arquivo com o prefixo `tool_` (ex: `tool_minha_ferramenta.py`)
 
-1. **Nomes de Arquivos**: Use o prefixo `tool_` para todos os arquivos de plugin.
+2. **Implementação de Ferramentas**: Defina suas funções de ferramenta como funções assíncronas:
 
-2. **Função setup_tools**: Cada plugin deve ter uma função `setup_tools(server)` que registra as ferramentas.
+```python
+async def minha_ferramenta(ctx: Context, param1: str, param2: int = 0) -> str:
+    """
+    Descrição detalhada da ferramenta.
+    
+    :param ctx: O contexto da solicitação.
+    :param param1: Descrição do primeiro parâmetro.
+    :param param2: Descrição do segundo parâmetro.
+    :return: Resultado da operação.
+    """
+    # Implemente a lógica da ferramenta
+    return f"Resultado: {param1}, {param2}"
+```
 
-3. **Funções Assíncronas**: Todas as ferramentas devem ser definidas como funções assíncronas (`async def`).
+3. **Registro de Ferramentas**: Implemente a função `setup_tools`:
 
-4. **Primeiro Parâmetro**: O primeiro parâmetro deve sempre ser `ctx: Context`.
+```python
+def setup_tools(server) -> List[str]:
+    """Registra as ferramentas fornecidas por este plugin."""
+    server.add_tool(
+        minha_ferramenta,
+        name="minha-ferramenta",
+        description="Descrição concisa da ferramenta."
+    )
+    return ["minha-ferramenta"]
+```
 
-5. **Tipos de Parâmetros**: Todos os parâmetros devem ter tipos explícitos para serem corretamente expostos ao cliente.
+## Diretrizes e Melhores Práticas
 
-6. **Documentação**: Forneça docstrings detalhadas para sua ferramenta e seus parâmetros.
+### Convenções de Nomenclatura
 
-7. **Retorno**: As ferramentas podem retornar `str` para uma única mensagem ou `List[str]` para múltiplas mensagens.
+- **Arquivos**: Use o prefixo `tool_` seguido de um nome descritivo (ex: `tool_conversor.py`)
+- **Funções**: Use `snake_case` para definições e `kebab-case` para exposição
+- **Parâmetros**: Nomes claros e autodescritivos
 
-8. **Logging**: Use `await ctx.debug()` para registrar informações úteis para depuração.
+### Parâmetros das Ferramentas
 
-## Exemplos
+- **Primeiro Parâmetro**: Sempre deve ser `ctx: Context`
+- **Tipos Explícitos**: Todos os parâmetros devem ter tipos explícitos
+- **Valores Padrão**: Parâmetros opcionais devem ter valores padrão
+- **Documentação**: Docstrings detalhadas para cada parâmetro
 
-Veja os exemplos de plugins disponíveis:
+### Retorno das Ferramentas
 
-- `tool_calculadora.py`: Adiciona uma calculadora simples
-- `tool_conversor.py`: Adiciona um conversor de unidades
-- `tool_tradutor.py`: Adiciona um tradutor de texto
+- **Tipos de Retorno**: `str` para mensagem única, `List[str]` para múltiplas mensagens
+- **Formatação**: Texto formatado para melhor legibilidade
+- **Erros**: Retorne mensagens de erro claras e úteis
 
-## Melhores Práticas
+### Logging e Debug
 
-1. Mantenha suas ferramentas focadas em uma única funcionalidade.
-2. Trate erros adequadamente e forneça mensagens de erro úteis.
-3. Documente claramente os parâmetros e formato esperado de entrada.
-4. Use typing adequadamente para melhorar a experiência do cliente.
-5. Evite dependências externas desnecessárias. 
+- **Logging Interno**: Use `logger.info()`, `logger.debug()`, etc.
+- **Debug ao Cliente**: Use `await ctx.debug()` para mensagens de depuração
+
+## Plugins Disponíveis
+
+### Conversor de Unidades (`tool_conversor.py`)
+
+Converte valores entre diferentes unidades de medida.
+
+```python
+# Uso
+await conversor(ctx, valor=10, de_unidade="km", para_unidade="mi")
+# Retorno: "10 quilômetros = 6.21 milhas"
+
+# Listar unidades disponíveis
+await ajuda_conversor(ctx)
+```
+
+### Template de Exemplo (`tool_boilerplate.py`)
+
+Fornece um modelo de referência para desenvolvimento de plugins.
+
+```python
+# Uso
+await minha_ferramenta(ctx, entrada="exemplo", opcao=2)
+# Retorno: "exemplo processado (x2)"
+
+# Ferramenta auxiliar
+await ferramenta_auxiliar(ctx, consulta="categoria1")
+# Retorno: ["Categoria: categoria1", "  - item1", "  - item2", "  - item3"]
+```
+
+## Segurança e Considerações
+
+1. **Validação de Entrada**: Sempre valide as entradas do usuário
+2. **Tratamento de Erros**: Use try/except para capturar e tratar erros
+3. **Recursos**: Seja consciente do uso de recursos (memória, CPU, rede)
+4. **Dependências**: Minimize dependências externas e documente as necessárias
+
+## Contribuição
+
+Para contribuir com novos plugins:
+
+1. Siga o template e as diretrizes de desenvolvimento
+2. Documente adequadamente todos os parâmetros e comportamentos
+3. Adicione exemplos de uso ao README
+4. Garanta que o plugin funcione corretamente em todos os casos de uso 
