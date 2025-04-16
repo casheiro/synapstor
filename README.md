@@ -7,7 +7,7 @@
 > **Synapstor** é uma biblioteca modular para armazenamento e recuperação semântica de informações usando embeddings vetoriais e banco de dados Qdrant.
 
 <p align="center">
-  <img src="https://via.placeholder.com/800x200?text=Synapstor" alt="Synapstor" width="800"/>
+  <img src="./logo-synapstor.png" alt="Synapstor" width="400"/>
 </p>
 
 ## 📋 Índice
