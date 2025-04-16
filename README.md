@@ -19,6 +19,7 @@
 - [Ferramentas CLI](#-ferramentas-cli)
 - [Uso Rápido](#-uso-rápido)
 - [Integração com LLMs](#-integração-com-llms)
+- [Deployment com Docker](#-deployment-com-docker)
 - [Documentação Detalhada](#-documentação-detalhada)
 - [Testes](#-testes)
 - [Contribuição](#-contribuição)
@@ -335,6 +336,112 @@ Para integrar com Microsoft Copilot:
    ```
 
 2. Configure o Copilot para usar o Synapstor como provedor de plugins
+
+## 🐳 Deployment com Docker
+
+O Synapstor pode ser facilmente implantado usando Docker, permitindo uma configuração consistente em diferentes ambientes.
+
+### Dockerfile Incluído
+
+O projeto inclui um Dockerfile pré-configurado que:
+- Usa Python 3.11 como base
+- Clona o repositório do Synapstor
+- Configura as dependências necessárias
+- Expõe a porta 8000 para o transporte SSE
+- Usa `synapstor-ctl` como ponto de entrada
+
+### Construindo a Imagem Docker
+
+```bash
+# Na raiz do projeto (onde está o Dockerfile)
+docker build -t synapstor .
+```
+
+### Executando o Contêiner
+
+```bash
+# Executar com as configurações básicas
+docker run -p 8000:8000 synapstor
+
+# Executar com variáveis de ambiente personalizadas
+docker run -p 8000:8000 \
+  -e QDRANT_URL="http://seu-servidor-qdrant:6333" \
+  -e QDRANT_API_KEY="sua-chave-api" \
+  -e COLLECTION_NAME="sua-colecao" \
+  -e EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2" \
+  synapstor
+```
+
+### Conectando a um Qdrant Externo
+
+Para conectar o contêiner Synapstor a um Qdrant executando em outro contêiner ou serviço:
+
+```bash
+# Criar uma rede Docker
+docker network create synapstor-network
+
+# Executar o Qdrant
+docker run -d --name qdrant --network synapstor-network \
+  -p 6333:6333 -p 6334:6334 \
+  -v $(pwd)/qdrant_storage:/qdrant/storage \
+  qdrant/qdrant
+
+# Executar o Synapstor conectado ao Qdrant
+docker run -d --name synapstor --network synapstor-network \
+  -p 8000:8000 \
+  -e QDRANT_URL="http://qdrant:6333" \
+  -e COLLECTION_NAME="synapstor" \
+  synapstor
+```
+
+### Docker Compose (Recomendado para Desenvolvimento)
+
+Para uma configuração completa com Qdrant e Synapstor, você pode usar Docker Compose:
+
+```yaml
+# docker-compose.yml
+version: '3'
+
+services:
+  qdrant:
+    image: qdrant/qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - ./qdrant_storage:/qdrant/storage
+    networks:
+      - synapstor-network
+
+  synapstor:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - QDRANT_URL=http://qdrant:6333
+      - COLLECTION_NAME=synapstor
+      - EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+    depends_on:
+      - qdrant
+    networks:
+      - synapstor-network
+
+networks:
+  synapstor-network:
+```
+
+Para usar:
+
+```bash
+# Iniciar todos os serviços
+docker-compose up -d
+
+# Ver logs
+docker-compose logs -f
+
+# Parar todos os serviços
+docker-compose down
+```
 
 ## 📚 Documentação Detalhada
 
