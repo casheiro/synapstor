@@ -5,7 +5,7 @@
 </p>
 
 ![Version](https://img.shields.io/badge/versão-0.1.0-blue)
-![Python](https://img.shields.io/badge/python-3.9%2B-blue)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/licença-MIT-green)
 
 > **Synapstor** é uma biblioteca modular para armazenamento e recuperação semântica de informações usando embeddings vetoriais e banco de dados Qdrant.
