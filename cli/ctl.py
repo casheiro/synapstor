@@ -133,9 +133,12 @@ def stop_server():
         max_wait = 5  # segundos
         for _ in range(max_wait):
             try:
-                os.kill(pid, 0)  # Verifica se o processo existe
-                time.sleep(1)
-            except OSError:
+                # Verifica se o processo existe usando psutil em vez de os.kill(pid, 0)
+                if psutil.pid_exists(pid):
+                    time.sleep(1)
+                else:
+                    break
+            except Exception:
                 break
         else:
             # Se chegou aqui, o processo não terminou após o tempo máximo
