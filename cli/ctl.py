@@ -336,7 +336,7 @@ def setup_client(args):
 def run_indexer(args):
     """Executa o indexador com argumentos específicos"""
     # Constrói o comando base
-    indexer_cmd = ["synapstor-indexer"]
+    indexer_cmd = ["synapstor-index"]
     
     # Adiciona argumentos específicos
     if args.project:
