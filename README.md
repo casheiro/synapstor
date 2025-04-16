@@ -1,14 +1,17 @@
 # Synapstor 📚🔍
 
+<p align="center">
+  <img src="./logo-synapstor.png" alt="Synapstor" width="400"/>
+</p>
+
 ![Version](https://img.shields.io/badge/versão-0.1.0-blue)
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue)
 ![License](https://img.shields.io/badge/licença-MIT-green)
 
 > **Synapstor** é uma biblioteca modular para armazenamento e recuperação semântica de informações usando embeddings vetoriais e banco de dados Qdrant.
+>
+> **Nota**: O Synapstor é uma evolução não oficial do projeto [mcp-server-qdrant](https://github.com/qdrant/mcp-server-qdrant), expandindo suas funcionalidades para criar uma solução mais abrangente para armazenamento e recuperação semântica.
 
-<p align="center">
-  <img src="./logo-synapstor.png" alt="Synapstor" width="400"/>
-</p>
 
 ## 📋 Índice
 
