@@ -97,7 +97,7 @@ def setup_tools(server) -> List[str]:
 
 ### Convenções de Nomenclatura
 
-- **Arquivos**: Use o prefixo `tool_` seguido de um nome descritivo (ex: `tool_conversor.py`)
+- **Arquivos**: Use o prefixo `tool_` seguido de um nome descritivo (ex: `tool_changelog.py`)
 - **Funções**: Use `snake_case` para definições e `kebab-case` para exposição
 - **Parâmetros**: Nomes claros e autodescritivos
 
@@ -121,18 +121,26 @@ def setup_tools(server) -> List[str]:
 
 ## Plugins Disponíveis
 
-### Conversor de Unidades (`tool_conversor.py`)
+### Gerador de Changelog (`tool_changelog.py`)
 
-Converte valores entre diferentes unidades de medida.
+Gera changelogs automaticamente a partir do histórico de commits Git, seguindo o padrão Conventional Commits.
 
 ```python
-# Uso
-await conversor(ctx, valor=10, de_unidade="km", para_unidade="mi")
-# Retorno: "10 quilômetros = 6.21 milhas"
+# Geração de changelog
+await gerar_changelog(ctx, desde="v1.0.0", ate="HEAD", arquivo_saida="CHANGELOG.md")
+# Retorno: "Changelog gerado com sucesso em: CHANGELOG.md"
 
-# Listar unidades disponíveis
-await ajuda_conversor(ctx)
+# Verificação de conformidade dos commits
+await verificar_commits(ctx, desde="v1.0.0", detalhado=True)
+# Retorno: Lista com estatísticas e detalhes de conformidade dos commits
 ```
+
+Características principais:
+- Análise de mensagens de commit no formato Conventional Commits
+- Geração automática da próxima versão seguindo regras SemVer
+- Agrupamento de commits por tipo (feat, fix, refactor, etc.)
+- Destaque para breaking changes
+- Manutenção incremental do changelog (preserva versões anteriores)
 
 ### Template de Exemplo (`tool_boilerplate.py`)
 
