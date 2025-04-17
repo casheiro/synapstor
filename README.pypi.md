@@ -53,7 +53,7 @@ Existem várias formas de configurar o Synapstor:
    export QDRANT_API_KEY="sua-chave-api"
    export COLLECTION_NAME="synapstor"
    export EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2"
-   
+
    # Ou no Windows (PowerShell)
    $env:QDRANT_URL = "http://localhost:6333"
    $env:QDRANT_API_KEY = "sua-chave-api"
@@ -69,7 +69,7 @@ Existem várias formas de configurar o Synapstor:
 3. **Programaticamente** (para uso como biblioteca):
    ```python
    from synapstor.settings import Settings
-   
+
    settings = Settings(
        qdrant_url="http://localhost:6333",
        qdrant_api_key="sua-chave-api",
@@ -91,7 +91,7 @@ synapstor-ctl server --qdrant-url http://localhost:6333 --qdrant-api-key sua-cha
 ### Indexação de projetos
 
 ```bash
-# Indexar um projeto 
+# Indexar um projeto
 synapstor-ctl indexer --project meu-projeto --path /caminho/do/projeto
 ```
 
@@ -133,4 +133,4 @@ Para documentação detalhada, exemplos avançados, integração com diferentes 
 
 ---
 
-Desenvolvido com ❤️ pelo time Synapstor 
+Desenvolvido com ❤️ pelo time Synapstor

@@ -14,4 +14,6 @@ def create_embedding_provider(settings: EmbeddingProviderSettings) -> EmbeddingP
 
         return FastEmbedProvider(settings.model_name)
     else:
-        raise ValueError(f"Provedor de embeddings não suportado: {settings.provider_type}")
+        raise ValueError(
+            f"Provedor de embeddings não suportado: {settings.provider_type}"
+        )

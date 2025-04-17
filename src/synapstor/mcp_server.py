@@ -14,6 +14,7 @@ from synapstor.settings import (
 
 logger = logging.getLogger(__name__)
 
+
 # FastMCP is an alternative interface for declaring the capabilities
 # of the server. Its API is based on FastAPI.
 class QdrantMCPServer(FastMCP):
@@ -107,9 +108,7 @@ class QdrantMCPServer(FastMCP):
             """
             await ctx.debug(f"Encontrando resultados para consulta {query}")
             if collection_name:
-                await ctx.debug(
-                    f"Substituindo o nome da coleção por {collection_name}"
-                )
+                await ctx.debug(f"Substituindo o nome da coleção por {collection_name}")
 
             entries = await self.qdrant_connector.search(
                 query,
@@ -165,8 +164,11 @@ class QdrantMCPServer(FastMCP):
         # Carrega ferramentas adicionais dos plugins
         try:
             from synapstor.plugins import load_plugin_tools
+
             plugin_tools = load_plugin_tools(self)
             if plugin_tools:
-                logger.info(f"Ferramentas carregadas dos plugins: {', '.join(plugin_tools)}")
+                logger.info(
+                    f"Ferramentas carregadas dos plugins: {', '.join(plugin_tools)}"
+                )
         except Exception as e:
             logger.warning(f"Erro ao carregar plugins: {e}")

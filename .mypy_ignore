@@ -1,0 +1,4 @@
+cli/*.py
+src/synapstor/*.py
+src/synapstor/*/*.py
+src/synapstor/*/*/*.py

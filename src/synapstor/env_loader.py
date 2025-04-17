@@ -36,41 +36,43 @@ OPTIONAL_VARS = [
     "LOG_LEVEL",
 ]
 
+
 def find_dotenv():
     """
     Procura pelo arquivo .env na raiz do projeto ou em diretórios acima.
-    
+
     Returns:
         Path or None: Caminho para o arquivo .env ou None se não encontrado
     """
     # Inicia na pasta onde o script está sendo executado
     current_dir = Path.cwd()
-    
+
     # Procura pelo arquivo .env no diretório atual e nos diretórios pais
     while True:
-        env_path = current_dir / '.env'
+        env_path = current_dir / ".env"
         if env_path.exists():
             return env_path
-        
+
         # Verifica se estamos na raiz do sistema
         parent_dir = current_dir.parent
         if parent_dir == current_dir:
             break
-        
+
         current_dir = parent_dir
-    
+
     # Tenta a pasta do pacote do projeto
     module_dir = Path(__file__).parent.parent.parent
-    env_path = module_dir / '.env'
+    env_path = module_dir / ".env"
     if env_path.exists():
         return env_path
-    
+
     return None
+
 
 def load_dotenv():
     """
     Carrega o arquivo .env se existir
-    
+
     Returns:
         bool: True se conseguiu carregar o arquivo .env, False caso contrário
     """
@@ -81,14 +83,18 @@ def load_dotenv():
         except ImportError:
             logger.warning("Pacote python-dotenv não encontrado. Tentando instalar...")
             import subprocess
+
             try:
-                subprocess.check_call([sys.executable, "-m", "pip", "install", "python-dotenv"])
+                subprocess.check_call(
+                    [sys.executable, "-m", "pip", "install", "python-dotenv"]
+                )
                 from dotenv import load_dotenv as dotenv_load
+
                 logger.info("python-dotenv instalado com sucesso!")
             except Exception as e:
                 logger.error(f"Erro ao instalar python-dotenv: {e}")
                 return False
-        
+
         # Procura pelo arquivo .env
         dotenv_path = find_dotenv()
         if dotenv_path:
@@ -99,29 +105,33 @@ def load_dotenv():
         else:
             logger.warning("Arquivo .env não encontrado")
             return False
-            
+
     except Exception as e:
         logger.error(f"Erro ao carregar arquivo .env: {e}")
         return False
 
+
 def validate_environment():
     """
     Verifica se todas as variáveis de ambiente necessárias estão configuradas
-    
+
     Returns:
         bool: True se todas as variáveis necessárias estão configuradas, False caso contrário
     """
     missing_vars = []
-    
+
     for var in REQUIRED_VARS:
         if not os.environ.get(var):
             missing_vars.append(var)
-    
+
     if missing_vars:
-        logger.error(f"Variáveis de ambiente obrigatórias não configuradas: {', '.join(missing_vars)}")
+        logger.error(
+            f"Variáveis de ambiente obrigatórias não configuradas: {', '.join(missing_vars)}"
+        )
         return False
-    
+
     return True
+
 
 def create_env_file_template():
     """
@@ -149,7 +159,7 @@ TOOL_FIND_DESCRIPTION=Encontra informações relacionadas no banco de dados veto
 # Configurações gerais
 LOG_LEVEL=INFO
 """
-    
+
     try:
         with open(".env", "w", encoding="utf-8") as f:
             f.write(template)
@@ -159,23 +169,30 @@ LOG_LEVEL=INFO
         logger.error(f"Erro ao criar arquivo .env de exemplo: {e}")
         return False
 
+
 def setup_environment():
     """
     Configura o ambiente para o servidor MCP
-    
+
     Returns:
         bool: True se o ambiente foi configurado com sucesso, False caso contrário
     """
     # Tenta carregar variáveis do arquivo .env
     env_loaded = load_dotenv()
-    
+
     # Verifica se todas as variáveis necessárias estão configuradas
     if not validate_environment():
         if not env_loaded:
-            logger.error("Arquivo .env não encontrado e variáveis de ambiente não configuradas.")
-            print("\n" + "="*80)
-            print("Arquivo .env não encontrado e variáveis de ambiente necessárias não configuradas!")
-            print("Você precisa configurar as seguintes variáveis para executar o servidor MCP:")
+            logger.error(
+                "Arquivo .env não encontrado e variáveis de ambiente não configuradas."
+            )
+            print("\n" + "=" * 80)
+            print(
+                "Arquivo .env não encontrado e variáveis de ambiente necessárias não configuradas!"
+            )
+            print(
+                "Você precisa configurar as seguintes variáveis para executar o servidor MCP:"
+            )
             for var in REQUIRED_VARS:
                 print(f"- {var}")
             print("\nVocê deseja criar um arquivo .env de exemplo? (s/n)")
@@ -183,12 +200,14 @@ def setup_environment():
             if choice in ["s", "sim", "y", "yes"]:
                 success = create_env_file_template()
                 if success:
-                    print("Arquivo .env de exemplo criado. Por favor, edite-o com suas configurações e execute novamente.")
+                    print(
+                        "Arquivo .env de exemplo criado. Por favor, edite-o com suas configurações e execute novamente."
+                    )
                 else:
                     print("Não foi possível criar o arquivo .env de exemplo.")
-            print("="*80 + "\n")
+            print("=" * 80 + "\n")
         return False
-    
+
     # Se chegou aqui, o ambiente está configurado corretamente
     logger.info("Ambiente configurado com sucesso!")
-    return True 
+    return True

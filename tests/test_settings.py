@@ -1,8 +1,6 @@
 import os
-import pytest
 from unittest.mock import patch
 
-from synapstor.embeddings.types import EmbeddingProviderType
 from synapstor.settings import (
     EmbeddingProviderSettings,
     QdrantSettings,
@@ -75,10 +73,7 @@ class TestEmbeddingProviderSettings:
         """Testa se os valores padrão são definidos corretamente quando nenhuma variável de ambiente é fornecida."""
         with patch.dict(os.environ, {}, clear=True):
             settings = EmbeddingProviderSettings()
-            assert (
-                settings.model_name
-                == "sentence-transformers/all-MiniLM-L6-v2"
-            )
+            assert settings.model_name == "sentence-transformers/all-MiniLM-L6-v2"
 
     @patch.dict(
         os.environ,

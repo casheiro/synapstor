@@ -149,4 +149,4 @@ O indexador aplica as seguintes regras de filtragem:
 - `qdrant-client`: Cliente Python oficial para o Qdrant
 - `sentence-transformers`: Biblioteca para geração de embeddings
 - `pathspec`: Para processamento de regras no estilo .gitignore
-- `tqdm`: Para barras de progresso interativas 
+- `tqdm`: Para barras de progresso interativas

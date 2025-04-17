@@ -65,7 +65,7 @@ Durante a configuração do Synapstor via `synapstor-ctl configure`, você pode 
 
 Para usar estes templates manualmente:
 
-1. **Windows (Batch)**: 
+1. **Windows (Batch)**:
    - Copie `start-synapstor.bat` para qualquer local (ex: Desktop)
    - Dê um duplo clique para executar
 
@@ -126,4 +126,4 @@ Write-Host ""
 
 - Estes scripts assumem que o Synapstor já está instalado e disponível no PATH do sistema
 - Para servidores de produção, considere usar sistemas de gerenciamento de processos como systemd (Linux) ou serviços do Windows em vez destes scripts
-- Você pode combinar estes scripts com arquivos `.env` para configurações mais complexas 
+- Você pode combinar estes scripts com arquivos `.env` para configurações mais complexas

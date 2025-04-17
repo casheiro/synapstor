@@ -29,7 +29,7 @@ def main():
     print("Iniciando servidor MCP...")
     try:
         from synapstor.server import mcp
-        
+
         print(f"Iniciando servidor MCP com transporte: {args.transport}")
         mcp.run(transport=args.transport)
     except ImportError as e:

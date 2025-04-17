@@ -41,7 +41,7 @@ class EmbeddingProvider(ABC):
     def get_vector_name(self) -> str:
         """Retorna o nome do vetor para a coleção Qdrant."""
         pass
-        
+
     @abstractmethod
     def get_vector_size(self) -> int:
         """Retorna o tamanho do vetor para a coleção Qdrant."""
@@ -57,7 +57,7 @@ class FastEmbedProvider(EmbeddingProvider):
     def __init__(self, model_name: str):
         self.model_name = model_name
         self.embedding_model = TextEmbedding(model_name)
-    
+
     # Implementações dos métodos da interface
 ```
 
@@ -152,7 +152,7 @@ class EmbeddingProviderType(Enum):
 # Nova implementação em openai.py
 class OpenAIProvider(EmbeddingProvider):
     # Implementação dos métodos
-    
+
 # Atualização da factory
 def create_embedding_provider(settings: EmbeddingProviderSettings) -> EmbeddingProvider:
     if settings.provider_type == EmbeddingProviderType.FASTEMBED:
@@ -167,4 +167,4 @@ def create_embedding_provider(settings: EmbeddingProviderSettings) -> EmbeddingP
 
 - `fastembed`: Biblioteca para geração eficiente de embeddings
 - `pydantic`: Para gerenciamento de configurações
-- `asyncio`: Para operações assíncronas 
+- `asyncio`: Para operações assíncronas

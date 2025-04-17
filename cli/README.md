@@ -208,4 +208,4 @@ synapstor-ctl stop
 - Qdrant Client
 - FastEmbed (ou outro provedor de embeddings configurado)
 - psutil
-- dotenv 
+- dotenv

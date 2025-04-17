@@ -22,12 +22,12 @@ async def embedding_provider():
 @pytest_asyncio.fixture
 async def qdrant_connector(embedding_provider):
     """Fixture para o conector Qdrant.
-    
+
     Esta fixture cria uma coleção de teste temporária e a remove após o teste.
     """
     # Gerar um nome de coleção único para os testes
     collection_name = f"test_collection_{uuid.uuid4().hex[:8]}"
-    
+
     # Configurar o Qdrant com a coleção de teste
     # Não vamos mais usar o objeto de configurações, mas sim passando os parâmetros diretamente
     connector = QdrantConnector(
@@ -36,10 +36,10 @@ async def qdrant_connector(embedding_provider):
         collection_name=collection_name,
         embedding_provider=embedding_provider,
     )
-    
+
     # Verificar se a coleção existe e criá-la se necessário
     await connector._ensure_collection_exists(connector._default_collection_name)
-    
+
     # Retornar o conector para uso nos testes
     try:
         yield connector
@@ -47,7 +47,9 @@ async def qdrant_connector(embedding_provider):
         # Limpar após os testes
         try:
             if connector._default_collection_name:
-                await connector._client.delete_collection(connector._default_collection_name)
+                await connector._client.delete_collection(
+                    connector._default_collection_name
+                )
         except Exception:
             # Ignorar erros na limpeza
-            pass 
+            pass

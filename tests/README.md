@@ -46,9 +46,9 @@ async def test_store_and_search(qdrant_connector):
         metadata={"source": "test", "importance": "high"},
     )
     await qdrant_connector.store(test_entry)
-    
+
     results = await qdrant_connector.search("fox jumps")
-    
+
     assert len(results) == 1
     assert results[0].content == test_entry.content
 ```
@@ -122,4 +122,4 @@ pytest tests/test_qdrant_integration.py
 pytest tests/test_qdrant_integration.py::test_store_and_search
 ```
 
-Os testes são configurados para funcionar com código assíncrono através do marcador `pytest.mark.asyncio`. 
+Os testes são configurados para funcionar com código assíncrono através do marcador `pytest.mark.asyncio`.

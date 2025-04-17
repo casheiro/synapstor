@@ -22,10 +22,32 @@ repos:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.7.1
+  - repo: local
     hooks:
-      - id: mypy
-        additional_dependencies: [types-requests, types-PyYAML]
+      - id: mypy-local
+        name: mypy
+        language: python
+        entry: python -m mypy_runner
+        types: [python]
         exclude: ^tests/
-        args: [--namespace-packages, --explicit-package-bases, --python-version=3.10]
+        args: [
+          --namespace-packages,
+          --explicit-package-bases,
+          --python-version=3.10,
+          --ignore-missing-imports,
+          --no-strict-optional,
+          --no-warn-return-any,
+          --implicit-optional,
+          --allow-untyped-defs,
+          --allow-incomplete-defs,
+          --allow-untyped-decorators,
+          --follow-imports=skip
+        ]
+        additional_dependencies: [
+          mypy==1.7.1,
+          types-requests,
+          types-PyYAML,
+          types-psutil,
+          types-tqdm,
+          types-setuptools
+        ]

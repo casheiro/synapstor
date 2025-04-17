@@ -106,4 +106,4 @@ qdrant_client.upsert(
 
 - **Consistência**: Garante que entidades únicas tenham IDs únicos
 - **Idempotência**: Permite operações repetidas sem efeitos colaterais (reindexações)
-- **Rastreabilidade**: Facilita o acompanhamento de documentos entre diferentes processos 
+- **Rastreabilidade**: Facilita o acompanhamento de documentos entre diferentes processos

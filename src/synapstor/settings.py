@@ -64,7 +64,7 @@ class QdrantSettings(BaseSettings):
     )
     read_only: bool = Field(default=False, validation_alias="QDRANT_READ_ONLY")
 
-    def get_qdrant_location(self) -> str:
+    def get_qdrant_location(self) -> Optional[str]:
         """
         Obtém a localização do Qdrant, seja a URL ou o caminho local.
         """

@@ -70,7 +70,7 @@ def setup_tools(server) -> List[str]:
 async def minha_ferramenta(ctx: Context, param1: str, param2: int = 0) -> str:
     """
     Descrição detalhada da ferramenta.
-    
+
     :param ctx: O contexto da solicitação.
     :param param1: Descrição do primeiro parâmetro.
     :param param2: Descrição do segundo parâmetro.
@@ -170,4 +170,4 @@ Para contribuir com novos plugins:
 1. Siga o template e as diretrizes de desenvolvimento
 2. Documente adequadamente todos os parâmetros e comportamentos
 3. Adicione exemplos de uso ao README
-4. Garanta que o plugin funcione corretamente em todos os casos de uso 
+4. Garanta que o plugin funcione corretamente em todos os casos de uso

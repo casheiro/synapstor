@@ -522,10 +522,10 @@ Contribuições são bem-vindas! Para contribuir para o Synapstor:
    # Clone seu fork
    git clone https://github.com/seu-usuario/synapstor.git
    cd synapstor
-   
+
    # Instale as dependências de desenvolvimento
    pip install -e ".[dev,test]"
-   
+
    # Configure o pre-commit
    pre-commit install
    ```
