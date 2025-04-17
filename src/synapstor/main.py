@@ -6,9 +6,9 @@ from synapstor.env_loader import setup_environment
 
 def main():
     """
-    Main entry point for the synapstor script defined
-    in pyproject.toml. It runs the MCP server with a specific transport
-    protocol.
+    Ponto de entrada principal para o script synapstor definido
+    no pyproject.toml. Ele executa o servidor MCP com um protocolo
+    de transporte específico.
     """
     # Configura o ambiente antes de iniciar o servidor
     if not setup_environment():

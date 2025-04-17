@@ -36,7 +36,7 @@ Metadata = Dict[str, Any]
 
 class Entry(BaseModel):
     """
-    A single entry in the Qdrant collection.
+    Uma única entrada na coleção Qdrant.
     """
 
     content: str
@@ -45,12 +45,12 @@ class Entry(BaseModel):
 
 class QdrantConnector:
     """
-    Encapsulates the connection to a Qdrant server and all the methods to interact with it.
-    :param qdrant_url: The URL of the Qdrant server.
-    :param qdrant_api_key: The API key to use for the Qdrant server.
-    :param collection_name: The name of the collection to use.
-    :param embedding_provider: The embedding provider to use.
-    :param qdrant_local_path: The path to the storage directory for the Qdrant client, if local mode is used.
+    Encapsula a conexão com um servidor Qdrant e todos os métodos para interagir com ele.
+    :param qdrant_url: A URL do servidor Qdrant.
+    :param qdrant_api_key: A chave de API a ser usada para o servidor Qdrant.
+    :param collection_name: O nome da coleção a ser usada.
+    :param embedding_provider: O provedor de embeddings a ser usado.
+    :param qdrant_local_path: O caminho para o diretório de armazenamento do cliente Qdrant, se o modo local for usado.
     """
 
     def __init__(
@@ -71,18 +71,18 @@ class QdrantConnector:
 
     async def get_collection_names(self) -> list[str]:
         """
-        Get the names of all collections in the Qdrant server.
-        :return: A list of collection names.
+        Obtém os nomes de todas as coleções no servidor Qdrant.
+        :return: Uma lista de nomes de coleções.
         """
         response = await self._client.get_collections()
         return [collection.name for collection in response.collections]
 
     async def store(self, entry: Entry, *, collection_name: Optional[str] = None):
         """
-        Store some information in the Qdrant collection, along with the specified metadata.
-        :param entry: The entry to store in the Qdrant collection.
-        :param collection_name: The name of the collection to store the information in, optional. If not provided,
-                                the default collection is used.
+        Armazena informações na coleção Qdrant, junto com os metadados especificados.
+        :param entry: A entrada a ser armazenada na coleção Qdrant.
+        :param collection_name: O nome da coleção para armazenar as informações, opcional. Se não fornecido,
+                                a coleção padrão é usada.
         """
         collection_name = collection_name or self._default_collection_name
         await self._ensure_collection_exists(collection_name)
@@ -122,12 +122,12 @@ class QdrantConnector:
         self, query: str, *, collection_name: Optional[str] = None, limit: int = 10
     ) -> list[Entry]:
         """
-        Find points in the Qdrant collection. If there are no entries found, an empty list is returned.
-        :param query: The query to use for the search.
-        :param collection_name: The name of the collection to search in, optional. If not provided,
-                                the default collection is used.
-        :param limit: The maximum number of entries to return.
-        :return: A list of entries found.
+        Encontra pontos na coleção Qdrant. Se não houver entradas encontradas, uma lista vazia é retornada.
+        :param query: A consulta a ser usada para a busca.
+        :param collection_name: O nome da coleção para pesquisar, opcional. Se não fornecido,
+                                a coleção padrão é usada.
+        :param limit: O número máximo de entradas a retornar.
+        :return: Uma lista de entradas encontradas.
         """
         collection_name = collection_name or self._default_collection_name
         collection_exists = await self._client.collection_exists(collection_name)
@@ -159,8 +159,8 @@ class QdrantConnector:
 
     async def _ensure_collection_exists(self, collection_name: str):
         """
-        Ensure that the collection exists, creating it if necessary.
-        :param collection_name: The name of the collection to ensure exists.
+        Garante que a coleção existe, criando-a se necessário.
+        :param collection_name: O nome da coleção para garantir que existe.
         """
         collection_exists = await self._client.collection_exists(collection_name)
         if not collection_exists:
