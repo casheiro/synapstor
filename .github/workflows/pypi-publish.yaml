@@ -57,7 +57,7 @@ jobs:
       if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'testpypi'
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        repository-url: https://test.pypi.org/simple/
+        repository-url: https://test.pypi.org/legacy/
         password: ${{ secrets.TEST_PYPI_API_TOKEN }}
 
     - name: Publish to PyPI

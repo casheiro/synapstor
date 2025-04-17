@@ -1,6 +1,6 @@
 # Synapstor 📚🔍
 
-**Versão 0.1.0 | Python 3.10+ | Licença MIT**
+**Versão 0.1.2 | Python 3.10+ | Licença MIT**
 
 > **Synapstor** é uma biblioteca modular para armazenamento e recuperação semântica de informações usando embeddings vetoriais e banco de dados Qdrant.
 >
