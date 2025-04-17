@@ -1,6 +1,6 @@
 # Synapstor
 
-![Synapstor](https://via.placeholder.com/800x200?text=Synapstor)
+![Synapstor](https://2.gravatar.com/userimage/264864229/4e133a67b7d5fff345dd8f2bc4d0743b?size=400)
 
 > Biblioteca modular para armazenamento e recuperação semântica de informações usando embeddings vetoriais.
 
