@@ -1,11 +1,8 @@
-import os
 import uuid
 import pytest
 import pytest_asyncio
-from asyncio import current_task
 
 from synapstor.qdrant import QdrantConnector
-from synapstor.settings import QdrantSettings
 from synapstor.embeddings.fastembed import FastEmbedProvider
 
 
