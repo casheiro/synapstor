@@ -5,13 +5,13 @@ from synapstor.settings import EmbeddingProviderSettings
 
 def create_embedding_provider(settings: EmbeddingProviderSettings) -> EmbeddingProvider:
     """
-    Create an embedding provider based on the specified type.
-    :param settings: The settings for the embedding provider.
-    :return: An instance of the specified embedding provider.
+    Cria um provedor de embeddings baseado no tipo especificado.
+    :param settings: As configurações para o provedor de embeddings.
+    :return: Uma instância do provedor de embeddings especificado.
     """
     if settings.provider_type == EmbeddingProviderType.FASTEMBED:
         from synapstor.embeddings.fastembed import FastEmbedProvider
 
         return FastEmbedProvider(settings.model_name)
     else:
-        raise ValueError(f"Unsupported embedding provider: {settings.provider_type}")
+        raise ValueError(f"Provedor de embeddings não suportado: {settings.provider_type}")

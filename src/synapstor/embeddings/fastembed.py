@@ -9,8 +9,8 @@ from synapstor.embeddings.base import EmbeddingProvider
 
 class FastEmbedProvider(EmbeddingProvider):
     """
-    FastEmbed implementation of the embedding provider.
-    :param model_name: The name of the FastEmbed model to use.
+    Implementação do provedor de embeddings usando FastEmbed.
+    :param model_name: O nome do modelo FastEmbed a ser usado.
     """
 
     def __init__(self, model_name: str):
@@ -18,8 +18,8 @@ class FastEmbedProvider(EmbeddingProvider):
         self.embedding_model = TextEmbedding(model_name)
 
     async def embed_documents(self, documents: List[str]) -> List[List[float]]:
-        """Embed a list of documents into vectors."""
-        # Run in a thread pool since FastEmbed is synchronous
+        """Converte uma lista de documentos em vetores."""
+        # Executa em uma thread pool já que o FastEmbed é síncrono
         loop = asyncio.get_event_loop()
         embeddings = await loop.run_in_executor(
             None, lambda: list(self.embedding_model.passage_embed(documents))
@@ -27,8 +27,8 @@ class FastEmbedProvider(EmbeddingProvider):
         return [embedding.tolist() for embedding in embeddings]
 
     async def embed_query(self, query: str) -> List[float]:
-        """Embed a query into a vector."""
-        # Run in a thread pool since FastEmbed is synchronous
+        """Converte uma consulta em vetor."""
+        # Executa em uma thread pool já que o FastEmbed é síncrono
         loop = asyncio.get_event_loop()
         embeddings = await loop.run_in_executor(
             None, lambda: list(self.embedding_model.query_embed([query]))
@@ -37,14 +37,14 @@ class FastEmbedProvider(EmbeddingProvider):
 
     def get_vector_name(self) -> str:
         """
-        Return the name of the vector for the Qdrant collection.
-        Important: This is compatible with the FastEmbed logic used before 0.6.0.
+        Retorna o nome do vetor para a coleção Qdrant.
+        Importante: Isso é compatível com a lógica do FastEmbed usada antes da versão 0.6.0.
         """
         model_name = self.embedding_model.model_name.split("/")[-1].lower()
         return f"fast-{model_name}"
 
     def get_vector_size(self) -> int:
-        """Get the size of the vector for the Qdrant collection."""
+        """Obtém o tamanho do vetor para a coleção Qdrant."""
         model_description: DenseModelDescription = (
             self.embedding_model._get_model_description(self.model_name)
         )

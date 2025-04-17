@@ -15,7 +15,7 @@ def main():
         print("Erro ao configurar o ambiente. O servidor MCP não pode ser iniciado.")
         sys.exit(1)
 
-    # Parse the command-line arguments to determine the transport protocol.
+    # Analisa os argumentos da linha de comando para determinar o protocolo de transporte.
     parser = argparse.ArgumentParser(description="synapstor")
     parser.add_argument(
         "--transport",
@@ -24,8 +24,8 @@ def main():
     )
     args = parser.parse_args()
 
-    # Import is done here to make sure environment variables are loaded
-    # only after we make the changes.
+    # A importação é feita aqui para garantir que as variáveis de ambiente sejam carregadas
+    # somente após fazermos as alterações.
     print("Iniciando servidor MCP...")
     try:
         from synapstor.server import mcp
