@@ -106,8 +106,17 @@ conda activate synapstor
 git clone https://github.com/casheiro/synapstor.git
 cd synapstor
 
-# Instalar o projeto em modo de desenvolvimento
+# Instalação básica (apenas pacote principal)
 pip install -e .
+
+# Instalação para desenvolvimento (inclui formatadores e linters)
+pip install -e ".[dev]"
+
+# Instalação para testes (inclui pytest e plugins)
+pip install -e ".[test]"
+
+# Instalação completa (desenvolvimento, testes e recursos opcionais)
+pip install -e ".[all]"
 ```
 
 #### Usando venv
@@ -123,8 +132,27 @@ synapstor-env\Scripts\activate  # Windows
 git clone https://github.com/casheiro/synapstor.git
 cd synapstor
 
-# Instalar o projeto em modo de desenvolvimento
+# Instalação básica (apenas pacote principal)
 pip install -e .
+
+# Instalação para desenvolvimento (inclui formatadores e linters)
+pip install -e ".[dev]"
+
+# Instalação para testes (inclui pytest e plugins)
+pip install -e ".[test]"
+
+# Instalação completa (desenvolvimento, testes e recursos opcionais)
+pip install -e ".[all]"
+```
+
+### Instalação via PyPI (para usuários)
+
+```bash
+# Instalação básica
+pip install synapstor
+
+# Com suporte a fastembed (recomendado para embeddings rápidos)
+pip install "synapstor[fastembed]"
 ```
 
 ### Instalação de Dependências de Desenvolvimento
@@ -462,7 +490,7 @@ O Synapstor possui documentação específica para cada módulo:
 O Synapstor inclui uma suíte completa de testes para garantir a qualidade e robustez do código:
 
 ```bash
-# Com ambiente virtual ativado
+# Com ambiente virtual ativado e dependências de teste instaladas (pip install -e ".[test]")
 
 # Executar todos os testes
 pytest
@@ -474,17 +502,46 @@ pytest tests/test_qdrant_integration.py
 pytest --cov=synapstor
 ```
 
-Para mais detalhes sobre os testes, consulte a [documentação de testes](tests/README.md).
+### Integração Contínua
+
+O projeto utiliza GitHub Actions para automatizar testes, verificações de qualidade de código e publicação:
+
+- **Testes Automatizados**: Executa os testes em múltiplas versões do Python (3.10, 3.11, 3.12)
+- **Pre-commit Checks**: Verifica formatação, linting e tipagem estática
+- **Publicação de Pacotes**: Automatiza o processo de publicação no PyPI
+
+Você pode ver os detalhes nas configurações em `.github/workflows/`.
 
 ## 🤝 Contribuição
 
-Contribuições são bem-vindas! Se você deseja contribuir para o Synapstor:
+Contribuições são bem-vindas! Para contribuir para o Synapstor:
 
 1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/nome-da-feature`)
-3. Adicione seus commits (`git commit -m 'Adiciona nova feature'`)
-4. Faça push para a branch (`git push origin feature/nome-da-feature`)
-5. Abra um Pull Request
+2. Configure seu ambiente de desenvolvimento:
+   ```bash
+   # Clone seu fork
+   git clone https://github.com/seu-usuario/synapstor.git
+   cd synapstor
+   
+   # Instale as dependências de desenvolvimento
+   pip install -e ".[dev,test]"
+   
+   # Configure o pre-commit
+   pre-commit install
+   ```
+3. Crie uma branch para sua feature (`git checkout -b feature/nome-da-feature`)
+4. Faça suas alterações seguindo as convenções do projeto
+5. Execute os testes para garantir que tudo está funcionando (`pytest`)
+6. Faça commit e push das alterações (`git push origin feature/nome-da-feature`)
+7. Abra um Pull Request descrevendo suas alterações
+
+### Fluxo de Desenvolvimento
+
+- Mantenha os commits pequenos e focados
+- Escreva testes para novas funcionalidades
+- Siga o estilo de código do projeto (enforçado pelo pre-commit)
+- Mantenha a documentação atualizada
+- Atualize o CHANGELOG.md para novas versões
 
 ## 📄 Licença
 

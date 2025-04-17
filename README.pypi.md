@@ -1,12 +1,6 @@
 # Synapstor 📚🔍
 
-<p align="center">
-  <img src="https://2.gravatar.com/userimage/264864229/4e133a67b7d5fff345dd8f2bc4d0743b?size=400" alt="Synapstor" width="400"/>
-</p>
-
-![Version](https://img.shields.io/badge/versão-0.1.0-blue)
-![Python](https://img.shields.io/badge/python-3.10%2B-blue)
-![License](https://img.shields.io/badge/licença-MIT-green)
+**Versão 0.1.0 | Python 3.10+ | Licença MIT**
 
 > **Synapstor** é uma biblioteca modular para armazenamento e recuperação semântica de informações usando embeddings vetoriais e banco de dados Qdrant.
 >
@@ -30,25 +24,59 @@ Synapstor é uma solução completa para armazenamento e recuperação de inform
 ## 📦 Instalação
 
 ```bash
-# Instalação via pip
+# Instalação básica via pip
 pip install synapstor
 
-# Usar com FastEmbed (recomendado)
+# Com suporte a embeddings rápidos (recomendado)
 pip install "synapstor[fastembed]"
+
+# Para desenvolvimento (formatadores, linters)
+pip install "synapstor[dev]"
+
+# Para testes
+pip install "synapstor[test]"
+
+# Instalação completa (todos os recursos e ferramentas)
+pip install "synapstor[all]"
 ```
 
 ## 🚀 Uso Rápido
 
 ### Configuração
 
-Configure o Synapstor através de variáveis de ambiente ou arquivo `.env`:
+Existem várias formas de configurar o Synapstor:
 
-```
-QDRANT_URL=http://localhost:6333
-QDRANT_API_KEY=sua-chave-api
-COLLECTION_NAME=synapstor
-EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
-```
+1. **Variáveis de ambiente**:
+   ```bash
+   # Exportar as variáveis no shell (Linux/macOS)
+   export QDRANT_URL="http://localhost:6333"
+   export QDRANT_API_KEY="sua-chave-api"
+   export COLLECTION_NAME="synapstor"
+   export EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2"
+   
+   # Ou no Windows (PowerShell)
+   $env:QDRANT_URL = "http://localhost:6333"
+   $env:QDRANT_API_KEY = "sua-chave-api"
+   $env:COLLECTION_NAME = "synapstor"
+   $env:EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+   ```
+
+2. **Parâmetros na linha de comando**:
+   ```bash
+   synapstor-ctl server --qdrant-url http://localhost:6333 --qdrant-api-key sua-chave-api --collection-name synapstor --embedding-model "sentence-transformers/all-MiniLM-L6-v2"
+   ```
+
+3. **Programaticamente** (para uso como biblioteca):
+   ```python
+   from synapstor.settings import Settings
+   
+   settings = Settings(
+       qdrant_url="http://localhost:6333",
+       qdrant_api_key="sua-chave-api",
+       collection_name="minha_colecao",
+       embedding_model="sentence-transformers/all-MiniLM-L6-v2"
+   )
+   ```
 
 ### Como servidor MCP
 
@@ -56,8 +84,8 @@ EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 # Iniciar o servidor MCP com a interface centralizada
 synapstor-ctl server
 
-# Ou usando o comando específico
-synapstor-server
+# Com parâmetros de configuração
+synapstor-ctl server --qdrant-url http://localhost:6333 --qdrant-api-key sua-chave-api --collection-name minha_colecao --embedding-model "sentence-transformers/all-MiniLM-L6-v2"
 ```
 
 ### Indexação de projetos
@@ -105,6 +133,4 @@ Para documentação detalhada, exemplos avançados, integração com diferentes 
 
 ---
 
-<p align="center">
-  Desenvolvido com ❤️ pelo time Synapstor by <a href="https://github.com/casheiro">Casheiro®</a>
-</p> 
+Desenvolvido com ❤️ pelo time Synapstor 

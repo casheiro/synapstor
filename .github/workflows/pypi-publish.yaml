@@ -10,6 +10,15 @@ name: PyPI Publish
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Escolha o ambiente de publicação'
+        required: true
+        default: 'testpypi'
+        type: choice
+        options:
+          - testpypi
+          - pypi
   push:
     # Pattern matched against refs/tags
     tags:
@@ -17,6 +26,7 @@ on:
 
 env:
   UV_PUBLISH_TOKEN: '${{ secrets.PYPI_API_TOKEN }}'
+  UV_PUBLISH_TEST_TOKEN: '${{ secrets.TEST_PYPI_API_TOKEN }}'
 
 jobs:
   build:
@@ -24,20 +34,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.10.x'
+        python-version: '3.11'
+        cache: 'pip'
 
     - name: Install dependencies
       run: |
-        python -m pip install uv
-        uv sync
+        python -m pip install --upgrade pip
+        python -m pip install build twine
 
     - name: Build package
-      run: uv build
+      run: |
+        python -m build
+        # Validar o pacote
+        twine check dist/*
 
-    - name: Publish package
-      run: uv publish
+    - name: Publish to TestPyPI
+      if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'testpypi'
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/
+        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+
+    - name: Publish to PyPI
+      if: (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'pypi') || github.event_name == 'push'
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}

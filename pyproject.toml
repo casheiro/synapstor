@@ -45,3 +45,26 @@ package-dir = { "synapstor" = "src/synapstor" }
 
 [project.optional-dependencies]
 fastembed = ["fastembed>=0.6.1"]
+dev = [
+    "pre-commit",
+    "black",
+    "isort",
+    "flake8",
+    "mypy"
+]
+test = [
+    "pytest>=7.4.3",
+    "pytest-cov>=2.12.1",
+    "pytest-asyncio>=0.21.0"
+]
+all = [
+    "fastembed>=0.6.1",
+    "pre-commit",
+    "black",
+    "isort",
+    "flake8",
+    "mypy",
+    "pytest>=7.4.3",
+    "pytest-cov>=2.12.1",
+    "pytest-asyncio>=0.21.0"
+]
