@@ -55,13 +55,10 @@ jobs:
 
     - name: Publish to TestPyPI
       if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'testpypi'
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        repository-url: https://test.pypi.org/legacy/
-        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+      run: |
+        python -m twine upload --repository testpypi dist/* --verbose -u __token__ -p ${{ secrets.TEST_PYPI_API_TOKEN }}
 
     - name: Publish to PyPI
       if: (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'pypi') || github.event_name == 'push'
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        password: ${{ secrets.PYPI_API_TOKEN }}
+      run: |
+        python -m twine upload dist/* --verbose -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}
