@@ -7,57 +7,57 @@ from synapstor.embeddings.fastembed import FastEmbedProvider
 
 @pytest.mark.asyncio
 class TestFastEmbedProviderIntegration:
-    """Integration tests for FastEmbedProvider."""
+    """Testes de integração para o FastEmbedProvider."""
 
     async def test_initialization(self):
-        """Test that the provider can be initialized with a valid model."""
+        """Testa se o provedor pode ser inicializado com um modelo válido."""
         provider = FastEmbedProvider("sentence-transformers/all-MiniLM-L6-v2")
         assert provider.model_name == "sentence-transformers/all-MiniLM-L6-v2"
         assert isinstance(provider.embedding_model, TextEmbedding)
 
     async def test_embed_documents(self):
-        """Test that documents can be embedded."""
+        """Testa se os documentos podem ser convertidos em embeddings."""
         provider = FastEmbedProvider("sentence-transformers/all-MiniLM-L6-v2")
         documents = ["This is a test document.", "This is another test document."]
 
         embeddings = await provider.embed_documents(documents)
 
-        # Check that we got the right number of embeddings
+        # Verifica se obtivemos o número correto de embeddings
         assert len(embeddings) == len(documents)
 
-        # Check that embeddings have the expected shape
-        # The exact dimension depends on the model, but should be consistent
+        # Verifica se os embeddings têm o formato esperado
+        # A dimensão exata depende do modelo, mas deve ser consistente
         assert len(embeddings[0]) > 0
         assert all(len(embedding) == len(embeddings[0]) for embedding in embeddings)
 
-        # Check that embeddings are different for different documents
-        # Convert to numpy arrays for easier comparison
+        # Verifica se os embeddings são diferentes para documentos diferentes
+        # Converte para arrays numpy para facilitar a comparação
         embedding1 = np.array(embeddings[0])
         embedding2 = np.array(embeddings[1])
         assert not np.array_equal(embedding1, embedding2)
 
     async def test_embed_query(self):
-        """Test that queries can be embedded."""
+        """Testa se as consultas podem ser convertidas em embeddings."""
         provider = FastEmbedProvider("sentence-transformers/all-MiniLM-L6-v2")
         query = "This is a test query."
 
         embedding = await provider.embed_query(query)
 
-        # Check that embedding has the expected shape
+        # Verifica se o embedding tem o formato esperado
         assert len(embedding) > 0
 
-        # Embed the same query again to check consistency
+        # Converte a mesma consulta novamente para verificar a consistência
         embedding2 = await provider.embed_query(query)
         assert len(embedding) == len(embedding2)
 
-        # The embeddings should be identical for the same input
+        # Os embeddings devem ser idênticos para a mesma entrada
         np.testing.assert_array_almost_equal(np.array(embedding), np.array(embedding2))
 
     async def test_get_vector_name(self):
-        """Test that the vector name is generated correctly."""
+        """Testa se o nome do vetor é gerado corretamente."""
         provider = FastEmbedProvider("sentence-transformers/all-MiniLM-L6-v2")
         vector_name = provider.get_vector_name()
 
-        # Check that the vector name follows the expected format
+        # Verifica se o nome do vetor segue o formato esperado
         assert vector_name.startswith("fast-")
         assert "minilm" in vector_name.lower()
