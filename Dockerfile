@@ -2,26 +2,26 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Instala dependências essenciais
+# Install essential dependencies
 RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Clona o repositório do Synapstor
-# Substitua o URL do repositório pelo correto quando disponível
+# Clone the Synapstor repository
+# Replace the repository URL with the correct one when available
 RUN git clone https://github.com/casheiro/synapstor.git .
 
-# Instala o pacote em modo de desenvolvimento
+# Install the package in development mode
 RUN pip install --no-cache-dir -e .
 
-# Expõe a porta padrão para transporte SSE
+# Expose the default port for SSE transport
 EXPOSE 8000
 
-# Define variáveis de ambiente com valores padrão que podem ser sobrescritos em tempo de execução
+# Define environment variables with default values that can be overridden at runtime
 ENV QDRANT_URL=""
 ENV QDRANT_API_KEY=""
 ENV COLLECTION_NAME="synapstor"
 ENV EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2"
 
-# Executa o servidor com transporte SSE usando o synapstor-ctl (interface recomendada)
+# Run the server with SSE transport using synapstor-ctl (recommended interface)
 CMD ["synapstor-ctl", "server", "--transport", "sse"]
