@@ -1,4 +1,4 @@
 #!/bin/bash
 
-echo "Iniciando servidor Synapstor..."
+echo "Starting Synapstor server..."
 synapstor-server

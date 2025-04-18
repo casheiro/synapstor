@@ -1,6 +1,19 @@
-# CLI do Synapstor
+# CLI do Synapstor | Synapstor CLI
+
+## Índice | Table of Contents
+- [Português](#português)
+- [English](#english)
+
+---
+
+<a name="português"></a>
+# Português
 
 Interface de linha de comando para gerenciamento do Synapstor, uma ferramenta para indexação e busca de conteúdo de código.
+
+## Suporte Bilíngue
+
+O Synapstor agora oferece suporte bilíngue completo em inglês e português. Para mais informações sobre como usar as versões em inglês ou português dos scripts, consulte o [Guia Bilíngue](README_BILINGUAL.md).
 
 ## Visão Geral
 
@@ -207,5 +220,224 @@ synapstor-ctl stop
 - Python 3.8+
 - Qdrant Client
 - FastEmbed (ou outro provedor de embeddings configurado)
+- psutil
+- dotenv
+
+---
+
+<a name="english"></a>
+# English
+
+Command-line interface for managing Synapstor, a tool for indexing and searching code content.
+
+## Bilingual Support
+
+Synapstor now offers full bilingual support in English and Portuguese. For more information on how to use the English or Portuguese versions of the scripts, see the [Bilingual Guide](README_BILINGUAL.md).
+
+## Overview
+
+The Synapstor CLI offers a suite of tools for:
+
+- **Configuration**: Interactive environment setup
+- **Server Management**: Start, stop, and monitor the Synapstor server
+- **Indexing**: Index projects and files in Qdrant
+- **Search**: Search indexed content through the server
+
+## Available Commands
+
+### `synapstor-ctl`
+
+Manages the Synapstor server as a service:
+
+```bash
+synapstor-ctl [command] [options]
+```
+
+| Command   | Description                                      |
+|-----------|--------------------------------------------------|
+| `start`   | Starts the server in the background              |
+| `stop`    | Stops the running server                         |
+| `status`  | Checks the server status                         |
+| `logs`    | Displays server logs                             |
+| `reindex` | Reindexes a project                              |
+| `setup`   | Runs the initial Synapstor setup                 |
+| `indexer` | Runs the Synapstor indexer                       |
+
+#### Options for `start` command
+
+```bash
+synapstor-ctl start [--transport {stdio,sse}] [--env-file PATH] [--configure]
+```
+
+- `--transport`: Transport protocol (stdio or sse)
+- `--env-file`: Path to the .env file
+- `--configure`: Configures the environment before starting the server
+
+#### Options for `logs` command
+
+```bash
+synapstor-ctl logs [--follow] [--tail N] [--clear]
+```
+
+- `-f, --follow`: Follows logs in real-time
+- `-n, --tail N`: Displays only the last N lines of the log
+- `--clear`: Clears the log file
+
+#### Options for `reindex` command
+
+```bash
+synapstor-ctl reindex --project NAME [--path PATH] [--env-file PATH] [--force]
+```
+
+- `--project`: Name of the project to be indexed (required)
+- `--path`: Path to the project to be indexed
+- `--env-file`: Path to the .env file
+- `--force`: Forces reindexing even if there are no changes
+
+#### Options for `indexer` command
+
+```bash
+synapstor-ctl indexer --project NAME --path PATH [--collection NAME] [--env-file PATH] [--verbose] [--dry-run]
+```
+
+- `--project`: Name of the project to be indexed (required)
+- `--path`: Path to the project to be indexed (required)
+- `--collection`: Name of the collection to store in (optional)
+- `--env-file`: Path to the .env file
+- `--verbose`: Displays detailed information during indexing
+- `--dry-run`: Simulates indexing without sending to Qdrant
+
+### `synapstor-server`
+
+Starts the Synapstor server:
+
+```bash
+synapstor-server [--transport {stdio,sse}] [--env-file PATH] [--create-env] [--configure]
+```
+
+- `--transport`: Transport protocol (stdio or sse, default: stdio)
+- `--env-file`: Path to the .env file (default: .env)
+- `--create-env`: Creates an example .env file if it doesn't exist
+- `--configure`: Configures the environment before starting the server
+
+### `synapstor-reindex`
+
+Reindexing projects in Qdrant:
+
+```bash
+synapstor-reindex --project NAME [--path PATH] [--env-file PATH] [--force]
+```
+
+- `--project`: Name of the project to be indexed
+- `--path`: Path to the project to be indexed
+- `--env-file`: Path to the .env file
+- `--force`: Forces reindexing even if there are no changes
+
+### `synapstor-setup`
+
+Configures the Synapstor environment interactively:
+
+```bash
+synapstor-setup
+```
+
+During setup, you can choose to install startup scripts that facilitate using Synapstor. You can choose where to install these scripts:
+
+1. **Current directory**: Installs in the directory where the command was executed
+2. **User directory**: Installs in `~/.synapstor/bin/` (with option to add to PATH on Unix systems)
+3. **Custom directory**: You can specify any directory
+
+### `synapstor-indexer`
+
+Interface for the original Synapstor indexer:
+
+```bash
+synapstor-indexer [arguments]
+```
+
+## Configuration
+
+Synapstor uses a `.env` file for configuration:
+
+### Required Variables
+
+- `QDRANT_URL`: URL of the Qdrant server
+- `COLLECTION_NAME`: Name of the collection in Qdrant
+- `EMBEDDING_PROVIDER`: Embeddings provider
+- `EMBEDDING_MODEL`: Embeddings model
+
+### Optional Variables
+
+- `QDRANT_API_KEY`: API key for the Qdrant server
+- `QDRANT_LOCAL_PATH`: Path for local Qdrant storage
+- `QDRANT_SEARCH_LIMIT`: Search results limit
+- `LOG_LEVEL`: Log level
+
+## Usage Examples
+
+### Initial Configuration
+
+```bash
+synapstor-setup
+```
+
+### Start the Server
+
+```bash
+synapstor-ctl start
+```
+
+Or, if you created the startup scripts:
+
+```bash
+# Windows
+start-synapstor.bat
+# Or PowerShell
+./Start-Synapstor.ps1
+
+# Linux/macOS
+./start-synapstor.sh
+```
+
+### Check Status
+
+```bash
+synapstor-ctl status
+```
+
+### Index a Project
+
+```bash
+synapstor-ctl indexer --project my-project --path /path/to/project
+```
+
+### Reindex a Project
+
+```bash
+synapstor-ctl reindex --project my-project --path /path/to/project
+```
+
+### Monitor Logs
+
+```bash
+synapstor-ctl logs --follow
+```
+
+### Stop the Server
+
+```bash
+synapstor-ctl stop
+```
+
+## Log and PID Files
+
+- PID: `~/.synapstor/synapstor.pid`
+- Logs: `~/.synapstor/synapstor.log`
+
+## Dependencies
+
+- Python 3.8+
+- Qdrant Client
+- FastEmbed (or another configured embeddings provider)
 - psutil
 - dotenv

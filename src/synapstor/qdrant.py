@@ -7,21 +7,23 @@ from qdrant_client import AsyncQdrantClient, models
 
 from synapstor.embeddings.base import EmbeddingProvider
 
-# Importa o gerador de IDs determinísticos
+# Import the deterministic ID generator
 try:
-    from synapstor.utils.id_generator import gerar_id_determinista
+    from synapstor.utils.id_generator import (
+        gerar_id_determinista as generate_deterministic_id,
+    )
 except ImportError:
-    # Fallback caso ainda não exista o módulo
+    # Fallback if the module doesn't exist yet
     import hashlib
 
-    def gerar_id_determinista(metadata: Dict[str, Any]) -> str:
-        """Versão interna de fallback do gerador de IDs determinísticos"""
-        # Extrai dados para identificação
-        projeto = metadata.get("projeto", "")
-        caminho = metadata.get("caminho_absoluto", "")
+    def generate_deterministic_id(metadata: Dict[str, Any]) -> str:
+        """Internal fallback version of the deterministic ID generator"""
+        # Extract data for identification
+        project = metadata.get("projeto", "")
+        path = metadata.get("caminho_absoluto", "")
 
-        if projeto and caminho:
-            content_hash = f"{projeto}:{caminho}"
+        if project and path:
+            content_hash = f"{project}:{path}"
         else:
             content_hash = ":".join(
                 f"{k}:{v}" for k, v in sorted(metadata.items()) if v
@@ -40,7 +42,7 @@ Metadata = Dict[str, Any]
 
 class Entry(BaseModel):
     """
-    Uma única entrada na coleção Qdrant.
+    A single entry in the Qdrant collection.
     """
 
     content: str
@@ -49,12 +51,12 @@ class Entry(BaseModel):
 
 class QdrantConnector:
     """
-    Encapsula a conexão com um servidor Qdrant e todos os métodos para interagir com ele.
-    :param qdrant_url: A URL do servidor Qdrant.
-    :param qdrant_api_key: A chave de API a ser usada para o servidor Qdrant.
-    :param collection_name: O nome da coleção a ser usada.
-    :param embedding_provider: O provedor de embeddings a ser usado.
-    :param qdrant_local_path: O caminho para o diretório de armazenamento do cliente Qdrant, se o modo local for usado.
+    Encapsulates the connection to a Qdrant server and all methods to interact with it.
+    :param qdrant_url: The URL of the Qdrant server.
+    :param qdrant_api_key: The API key to use for the Qdrant server.
+    :param collection_name: The name of the collection to use.
+    :param embedding_provider: The embedding provider to use.
+    :param qdrant_local_path: The path to the Qdrant client storage directory, if local mode is used.
     """
 
     def __init__(
@@ -75,18 +77,18 @@ class QdrantConnector:
 
     async def get_collection_names(self) -> list[str]:
         """
-        Obtém os nomes de todas as coleções no servidor Qdrant.
-        :return: Uma lista de nomes de coleções.
+        Gets the names of all collections in the Qdrant server.
+        :return: A list of collection names.
         """
         response = await self._client.get_collections()
         return [collection.name for collection in response.collections]
 
     async def store(self, entry: Entry, *, collection_name: Optional[str] = None):
         """
-        Armazena informações na coleção Qdrant, junto com os metadados especificados.
-        :param entry: A entrada a ser armazenada na coleção Qdrant.
-        :param collection_name: O nome da coleção para armazenar as informações, opcional. Se não fornecido,
-                                a coleção padrão é usada.
+        Stores information in the Qdrant collection, along with the specified metadata.
+        :param entry: The entry to store in the Qdrant collection.
+        :param collection_name: The name of the collection to store the information in, optional. If not provided,
+                                the default collection is used.
         """
         collection_name = collection_name or self._default_collection_name
         await self._ensure_collection_exists(collection_name)
@@ -100,22 +102,22 @@ class QdrantConnector:
         vector_name = self._embedding_provider.get_vector_name()
         payload = {"document": entry.content, "metadata": entry.metadata}
 
-        # Gera um ID determinístico se houver metadados suficientes
+        # Generate a deterministic ID if there's enough metadata
         if entry.metadata:
-            # Usa o gerador de IDs determinísticos
-            document_id = gerar_id_determinista(entry.metadata)
+            # Use the deterministic ID generator
+            document_id = generate_deterministic_id(entry.metadata)
         else:
-            # Fallback para UUID se não tiver metadados
+            # Fallback to UUID if no metadata
             document_id = uuid.uuid4().hex
 
-        # Log informativo
-        logger.debug(f"Armazenando documento com ID: {document_id}")
+        # Informative log
+        logger.debug(f"Storing document with ID: {document_id}")
 
         await self._client.upsert(
             collection_name=collection_name,
             points=[
                 models.PointStruct(
-                    id=document_id,  # Usa ID determinístico ou UUID
+                    id=document_id,  # Use deterministic ID or UUID
                     vector={vector_name: embeddings[0]},
                     payload=payload,
                 )
@@ -126,12 +128,12 @@ class QdrantConnector:
         self, query: str, *, collection_name: Optional[str] = None, limit: int = 10
     ) -> list[Entry]:
         """
-        Encontra pontos na coleção Qdrant. Se não houver entradas encontradas, uma lista vazia é retornada.
-        :param query: A consulta a ser usada para a busca.
-        :param collection_name: O nome da coleção para pesquisar, opcional. Se não fornecido,
-                                a coleção padrão é usada.
-        :param limit: O número máximo de entradas a retornar.
-        :return: Uma lista de entradas encontradas.
+        Finds points in the Qdrant collection. If no entries are found, an empty list is returned.
+        :param query: The query to use for the search.
+        :param collection_name: The name of the collection to search in, optional. If not provided,
+                                the default collection is used.
+        :param limit: The maximum number of entries to return.
+        :return: A list of found entries.
         """
         collection_name = collection_name or self._default_collection_name
         collection_exists = await self._client.collection_exists(collection_name)
@@ -163,8 +165,8 @@ class QdrantConnector:
 
     async def _ensure_collection_exists(self, collection_name: str):
         """
-        Garante que a coleção existe, criando-a se necessário.
-        :param collection_name: O nome da coleção para garantir que existe.
+        Ensures that the collection exists, creating it if necessary.
+        :param collection_name: The name of the collection to ensure exists.
         """
         collection_exists = await self._client.collection_exists(collection_name)
         if not collection_exists:

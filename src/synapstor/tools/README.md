@@ -1,5 +1,15 @@
 # Ferramentas do Synapstor
 
+## 🌎 Idioma / Language
+
+- [Português 🇧🇷](#português)
+- [English 🇺🇸](#english)
+
+---
+
+<a name="português"></a>
+# Português 🇧🇷
+
 Este módulo contém ferramentas utilitárias para o Synapstor, incluindo o poderoso indexador semântico que facilita o armazenamento e recuperação de conteúdo no Qdrant.
 
 ## Indexador (`indexer.py`)
@@ -150,3 +160,159 @@ O indexador aplica as seguintes regras de filtragem:
 - `sentence-transformers`: Biblioteca para geração de embeddings
 - `pathspec`: Para processamento de regras no estilo .gitignore
 - `tqdm`: Para barras de progresso interativas
+
+---
+
+<a name="english"></a>
+# English 🇺🇸
+
+This module contains utility tools for Synapstor, including the powerful semantic indexer that facilitates the storage and retrieval of content in Qdrant.
+
+## Indexer (`indexer.py`)
+
+The Indexer is a robust tool for processing and indexing entire projects in Qdrant, enabling efficient semantic searches across source code and documentation.
+
+### Overview
+
+The Indexer was designed for:
+
+- **Batch Processing**: Index complete projects in a single operation
+- **Independence**: Function without depending on the MCP server
+- **Parallelism**: Process multiple files simultaneously
+- **Integration with .gitignore**: Respect exclusion rules already defined in the project
+- **Deterministic IDs**: Avoid duplications in indexed documents
+
+### Main Features
+
+- **Automatic Binary Detection**: Automatically ignores binary files
+- **Intelligent Filtering**: Uses .gitignore rules to avoid indexing unnecessary files
+- **Flexible Configuration**: Supports configuration via arguments or .env file
+- **Visual Feedback**: Displays progress bars and statistics during processing
+- **Resilience**: Error handling and file size limits
+
+### Command Line Usage
+
+```bash
+python -m synapstor.tools.indexer --project <project_name> --path <project_path> [options]
+```
+
+#### Required Arguments
+
+- `--project, -p`: Project name (used as metadata for filtering)
+- `--path, -d`: Path to the project directory to be indexed
+
+#### Optional Arguments
+
+- `--collection, -c`: Collection name in Qdrant (default: "synapstor")
+- `--qdrant-url`: Qdrant server URL (alternative: QDRANT_URL environment variable)
+- `--qdrant-api-key`: Qdrant API key (alternative: QDRANT_API_KEY environment variable)
+- `--embedding-model`: Embedding model to use (default: "sentence-transformers/all-MiniLM-L6-v2")
+- `--vector-name`: Custom name for the vector in Qdrant
+- `--workers, -w`: Number of parallel workers (default: 4)
+- `--max-file-size`: Maximum file size in MB (default: 5)
+- `--verbose, -v`: Detailed mode with more information
+- `--recreate-collection`: Recreates the collection if it already exists
+- `--query, -q`: Performs a search after completing indexing
+
+### Basic Usage Example
+
+```bash
+# Index a Python project
+python -m synapstor.tools.indexer --project my-project --path /path/to/my-project
+
+# Index with custom settings
+python -m synapstor.tools.indexer \
+    --project my-project \
+    --path /path/to/my-project \
+    --collection custom-collection \
+    --workers 8 \
+    --verbose
+```
+
+### Through Synapstor CLI
+
+```bash
+# Using synapstor-indexer
+synapstor-indexer --project my-project --path /path/to/my-project
+
+# Using synapstor-ctl
+synapstor-ctl indexer --project my-project --path /path/to/my-project
+```
+
+### Programmatic Usage
+
+The Indexer can also be used directly in code:
+
+```python
+from synapstor.tools.indexer import DirectIndexer
+
+# Initialize the indexer
+indexer = DirectIndexer(
+    project_name="my-project",
+    project_path="/path/to/project",
+    collection_name="my-collection",
+    max_workers=4
+)
+
+# Run indexing
+indexer.index()
+
+# Perform searches in the collection
+results = indexer.search("How to implement authentication?", limit=5)
+for res in results:
+    print(f"Score: {res['score']}")
+    print(f"File: {res['metadata']['file_name']}")
+    print(f"Excerpt: {res['document'][:200]}...")
+    print("-" * 50)
+```
+
+### Configuration via .env
+
+The Indexer can be configured through a .env file with the following variables:
+
+```
+QDRANT_URL=http://localhost:6333
+QDRANT_API_KEY=your-api-key
+EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+COLLECTION_NAME=synapstor
+```
+
+### Stored Metadata
+
+Each indexed document contains the following metadata:
+
+| Field | Description |
+|-------|-------------|
+| `project` | Project name |
+| `absolute_path` | Absolute path of the file |
+| `relative_path` | Path relative to project root |
+| `file_name` | File name with extension |
+| `extension` | File extension (without dot) |
+| `size_bytes` | File size in bytes |
+| `modification_date` | Last modification date |
+
+### Technical Details
+
+#### Embedding Generation
+
+The indexer uses the `sentence-transformers` library to generate embedding vectors. By default, it uses the "all-MiniLM-L6-v2" model, which offers a good balance between quality and performance.
+
+#### Deterministic IDs
+
+To avoid duplications, the indexer generates deterministic IDs based on the project name and absolute file path. This allows reindexing the same project multiple times without creating duplicate documents.
+
+#### File Filtering
+
+The indexer applies the following filtering rules:
+
+1. Ignores files listed in `.gitignore`
+2. Skips files with known binary extensions (images, executables, etc.)
+3. Ignores files larger than the configured maximum size
+4. Skips files that cannot be decoded as text
+
+## Dependencies
+
+- `qdrant-client`: Official Python client for Qdrant
+- `sentence-transformers`: Library for generating embeddings
+- `pathspec`: For processing .gitignore-style rules
+- `tqdm`: For interactive progress bars

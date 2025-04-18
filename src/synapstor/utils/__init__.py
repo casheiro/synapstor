@@ -1,7 +1,7 @@
 """
-Pacote de utilitários para o Synapstor.
+Utilities package for Synapstor.
 
-Este pacote contém funções auxiliares usadas em diversos componentes do sistema.
+This package contains helper functions used across various components of the system.
 """
 
 from src.synapstor.utils.id_generator import gerar_id_determinista, extrair_id_numerico

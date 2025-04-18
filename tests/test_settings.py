@@ -9,10 +9,10 @@ from synapstor.settings import (
 
 
 class TestQdrantSettings:
-    """Testes para a classe QdrantSettings."""
+    """Tests for the QdrantSettings class."""
 
     def test_default_values(self):
-        """Testa se os valores padrão são definidos corretamente quando nenhuma variável de ambiente é fornecida."""
+        """Tests if default values are correctly defined when no environment variables are provided."""
         with patch.dict(os.environ, {}, clear=True):
             settings = QdrantSettings()
             assert settings.location is None
@@ -28,7 +28,7 @@ class TestQdrantSettings:
         clear=True,
     )
     def test_minimal_config(self):
-        """Testa o carregamento da configuração mínima a partir de variáveis de ambiente."""
+        """Tests loading minimal configuration from environment variables."""
         settings = QdrantSettings()
         assert settings.location == "http://localhost:6333"
         assert settings.collection_name == "test_collection"
@@ -46,7 +46,7 @@ class TestQdrantSettings:
         clear=True,
     )
     def test_full_config(self):
-        """Testa o carregamento da configuração completa a partir de variáveis de ambiente."""
+        """Tests loading full configuration from environment variables."""
         settings = QdrantSettings()
         assert settings.location == "http://qdrant.example.com"
         assert settings.api_key == "test-api-key"
@@ -60,17 +60,17 @@ class TestQdrantSettings:
         clear=True,
     )
     def test_local_qdrant(self):
-        """Testa o carregamento da configuração local do Qdrant."""
+        """Tests loading local Qdrant configuration."""
         settings = QdrantSettings()
         assert settings.location is None
         assert settings.local_path == "/path/to/local/qdrant"
 
 
 class TestEmbeddingProviderSettings:
-    """Testes para a classe EmbeddingProviderSettings."""
+    """Tests for the EmbeddingProviderSettings class."""
 
     def test_default_values(self):
-        """Testa se os valores padrão são definidos corretamente quando nenhuma variável de ambiente é fornecida."""
+        """Tests if default values are correctly defined when no environment variables are provided."""
         with patch.dict(os.environ, {}, clear=True):
             settings = EmbeddingProviderSettings()
             assert settings.model_name == "sentence-transformers/all-MiniLM-L6-v2"
@@ -81,19 +81,19 @@ class TestEmbeddingProviderSettings:
         clear=True,
     )
     def test_custom_model(self):
-        """Testa o carregamento de um modelo personalizado a partir de variável de ambiente."""
+        """Tests loading a custom model from environment variable."""
         settings = EmbeddingProviderSettings()
         assert settings.model_name == "openai/text-embedding-ada-002"
 
 
 class TestToolSettings:
-    """Testes para a classe ToolSettings."""
+    """Tests for the ToolSettings class."""
 
     def test_default_values(self):
-        """Testa se os valores padrão são definidos corretamente quando nenhuma variável de ambiente é fornecida."""
+        """Tests if default values are correctly defined when no environment variables are provided."""
         with patch.dict(os.environ, {}, clear=True):
             settings = ToolSettings()
-            # Verificamos apenas que os valores padrão são strings não vazias
+            # We only check that default values are non-empty strings
             assert isinstance(settings.tool_store_description, str)
             assert len(settings.tool_store_description) > 0
             assert isinstance(settings.tool_find_description, str)
@@ -105,11 +105,11 @@ class TestToolSettings:
         clear=True,
     )
     def test_custom_store_description(self):
-        """Testa o carregamento de uma descrição personalizada da ferramenta de armazenamento a partir de variável de ambiente."""
+        """Tests loading a custom store tool description from environment variable."""
         settings = ToolSettings()
-        # Verificamos que o valor personalizado foi carregado corretamente
+        # We check that the custom value was loaded correctly
         assert settings.tool_store_description == "Custom store description"
-        # Verificamos apenas que o valor padrão é uma string não vazia
+        # We only check that default value is a non-empty string
         assert isinstance(settings.tool_find_description, str)
         assert len(settings.tool_find_description) > 0
 
@@ -119,12 +119,12 @@ class TestToolSettings:
         clear=True,
     )
     def test_custom_find_description(self):
-        """Testa o carregamento de uma descrição personalizada da ferramenta de busca a partir de variável de ambiente."""
+        """Tests loading a custom find tool description from environment variable."""
         settings = ToolSettings()
-        # Verificamos apenas que o valor padrão é uma string não vazia
+        # We only check that default value is a non-empty string
         assert isinstance(settings.tool_store_description, str)
         assert len(settings.tool_store_description) > 0
-        # Verificamos que o valor personalizado foi carregado corretamente
+        # We check that the custom value was loaded correctly
         assert settings.tool_find_description == "Custom find description"
 
     @patch.dict(
@@ -136,7 +136,7 @@ class TestToolSettings:
         clear=True,
     )
     def test_both_custom_descriptions(self):
-        """Testa o carregamento de ambas as descrições personalizadas a partir de variáveis de ambiente."""
+        """Tests loading both custom descriptions from environment variables."""
         settings = ToolSettings()
         assert settings.tool_store_description == "Custom store description"
         assert settings.tool_find_description == "Custom find description"

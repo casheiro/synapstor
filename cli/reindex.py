@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Script para reindexar conteúdo no Qdrant sem duplicação.
+Script to reindex content in Qdrant without duplication.
 
-Este script utiliza identificadores determinísticos para cada documento,
-baseados no nome do projeto e caminho do arquivo, permitindo reindexar
-conteúdo sem criar duplicações.
+This script uses deterministic identifiers for each document,
+based on the project name and file path, allowing content to be
+reindexed without creating duplications.
 """
 
 import argparse
@@ -20,42 +20,42 @@ from dotenv import load_dotenv
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 
-# Verificar dependências
-dependencias_necessarias = {
+# Check dependencies
+required_dependencies = {
     "dotenv": "python-dotenv",
     "qdrant_client": "qdrant-client[fastembed]",
 }
 
-for modulo, pacote in dependencias_necessarias.items():
-    if importlib.util.find_spec(modulo) is None:
-        print(f"Erro: Módulo '{modulo}' não encontrado. Instale-o usando:")
-        print(f"pip install {pacote}")
+for module, package in required_dependencies.items():
+    if importlib.util.find_spec(module) is None:
+        print(f"Error: Module '{module}' not found. Install it using:")
+        print(f"pip install {package}")
         sys.exit(1)
 
 
-def gerar_id_determinista(projeto: str, caminho_absoluto: str) -> int:
+def generate_deterministic_id(project: str, absolute_path: str) -> int:
     """
-    Gera um ID determinístico baseado no nome do projeto e caminho absoluto do arquivo.
+    Generates a deterministic ID based on the project name and absolute path of the file.
 
     Args:
-        projeto: Nome do projeto
-        caminho_absoluto: Caminho absoluto do arquivo
+        project: Project name
+        absolute_path: Absolute path of the file
 
     Returns:
-        Um ID numérico derivado do hash MD5 dos dados
+        A numeric ID derived from the MD5 hash of the data
     """
-    # Criar uma string única que identifica este arquivo neste projeto
-    identificador = f"{projeto}:{caminho_absoluto}"
+    # Create a unique string that identifies this file in this project
+    identifier = f"{project}:{absolute_path}"
 
-    # Gerar hash MD5 do identificador
-    hash_md5 = hashlib.md5(identificador.encode()).hexdigest()
+    # Generate MD5 hash of the identifier
+    hash_md5 = hashlib.md5(identifier.encode()).hexdigest()
 
-    # Converter primeiros 8 caracteres do hash para inteiro
-    # (evitando colisões com probabilidade muito baixa)
+    # Convert first 8 characters of the hash to integer
+    # (avoiding collisions with very low probability)
     return int(hash_md5[:8], 16)
 
 
-def enviar_para_qdrant(
+def send_to_qdrant(
     client: QdrantClient,
     collection_name: str,
     text: str,
@@ -63,32 +63,32 @@ def enviar_para_qdrant(
     dry_run: bool = False,
 ) -> Optional[int]:
     """
-    Envia um documento para o Qdrant usando ID determinístico para evitar duplicações.
+    Sends a document to Qdrant using a deterministic ID to avoid duplications.
 
     Args:
-        client: Cliente Qdrant configurado
-        collection_name: Nome da coleção
-        text: Texto para indexar
-        metadata: Metadados do documento
-        dry_run: Se True, não envia realmente para o Qdrant
+        client: Configured Qdrant client
+        collection_name: Collection name
+        text: Text to index
+        metadata: Document metadata
+        dry_run: If True, doesn't actually send to Qdrant
 
     Returns:
-        ID do documento ou None se falhar
+        Document ID or None if it fails
     """
     try:
-        # Gerar ID determinístico
-        doc_id = gerar_id_determinista(
+        # Generate deterministic ID
+        doc_id = generate_deterministic_id(
             metadata.get("projeto", "unknown"),
             metadata.get("caminho_absoluto", "unknown"),
         )
 
         if dry_run:
             print(
-                f"[DRY RUN] ID gerado: {doc_id} para: {metadata.get('caminho_absoluto')}"
+                f"[DRY RUN] Generated ID: {doc_id} for: {metadata.get('caminho_absoluto')}"
             )
             return doc_id
 
-        # Usar o método upsert para atualizar se existir ou criar se não existir
+        # Use the upsert method to update if it exists or create if it doesn't
         client.upsert(
             collection_name=collection_name,
             points=[
@@ -103,11 +103,11 @@ def enviar_para_qdrant(
         )
         return doc_id
     except Exception as e:
-        print(f"Erro ao enviar para Qdrant: {str(e)}")
+        print(f"Error sending to Qdrant: {str(e)}")
         return None
 
 
-def processar_arquivo(
+def process_file(
     path: str,
     project_name: str,
     client: QdrantClient,
@@ -116,29 +116,29 @@ def processar_arquivo(
     dry_run: bool = False,
 ) -> Optional[int]:
     """
-    Processa um único arquivo e o indexa no Qdrant.
+    Processes a single file and indexes it in Qdrant.
 
     Args:
-        path: Caminho para o arquivo
-        project_name: Nome do projeto
-        client: Cliente Qdrant
-        collection_name: Nome da coleção
-        verbose: Se True, imprime informações adicionais
-        dry_run: Se True, não envia realmente dados para o Qdrant
+        path: Path to the file
+        project_name: Project name
+        client: Qdrant client
+        collection_name: Collection name
+        verbose: If True, prints additional information
+        dry_run: If True, doesn't actually send data to Qdrant
 
     Returns:
-        ID do documento indexado ou None se falhar
+        ID of the indexed document or None if it fails
     """
     try:
         file_path = Path(path)
         if not file_path.is_file():
             if verbose:
-                print(f"Ignorando: {path} (não é um arquivo)")
+                print(f"Ignoring: {path} (not a file)")
             return None
 
-        # Verificar se é um arquivo que queremos indexar
-        # Ignorar arquivos binários, imagens, etc.
-        extensoes_ignoradas = {
+        # Check if it's a file we want to index
+        # Ignore binary files, images, etc.
+        ignored_extensions = {
             ".pyc",
             ".pyo",
             ".so",
@@ -167,20 +167,20 @@ def processar_arquivo(
             ".7z",
         }
 
-        if file_path.suffix.lower() in extensoes_ignoradas:
+        if file_path.suffix.lower() in ignored_extensions:
             if verbose:
-                print(f"Ignorando: {path} (extensão ignorada)")
+                print(f"Ignoring: {path} (ignored extension)")
             return None
 
         try:
             with open(file_path, "r", encoding="utf-8") as f:
-                conteudo = f.read()
+                content = f.read()
         except UnicodeDecodeError:
             if verbose:
-                print(f"Ignorando: {path} (arquivo binário)")
+                print(f"Ignoring: {path} (binary file)")
             return None
 
-        # Criar metadados
+        # Create metadata
         metadata = {
             "projeto": project_name,
             "caminho_absoluto": str(file_path.absolute()),
@@ -189,24 +189,24 @@ def processar_arquivo(
             "tamanho_bytes": file_path.stat().st_size,
         }
 
-        # Enviar para Qdrant
+        # Send to Qdrant
         if verbose:
-            print(f"Processando: {path}")
+            print(f"Processing: {path}")
 
-        return enviar_para_qdrant(
+        return send_to_qdrant(
             client=client,
             collection_name=collection_name,
-            text=conteudo,
+            text=content,
             metadata=metadata,
             dry_run=dry_run,
         )
     except Exception as e:
-        print(f"Erro ao processar arquivo {path}: {str(e)}")
+        print(f"Error processing file {path}: {str(e)}")
         return None
 
 
-def processar_diretorio(
-    diretorio: str,
+def process_directory(
+    directory: str,
     project_name: str,
     client: QdrantClient,
     collection_name: str,
@@ -214,23 +214,23 @@ def processar_diretorio(
     dry_run: bool = False,
 ) -> List[Union[int, None]]:
     """
-    Processa recursivamente todos os arquivos em um diretório.
+    Recursively processes all files in a directory.
 
     Args:
-        diretorio: Caminho para o diretório
-        project_name: Nome do projeto
-        client: Cliente Qdrant
-        collection_name: Nome da coleção
-        verbose: Se True, imprime informações adicionais
-        dry_run: Se True, não envia realmente para o Qdrant
+        directory: Path to the directory
+        project_name: Project name
+        client: Qdrant client
+        collection_name: Collection name
+        verbose: If True, prints additional information
+        dry_run: If True, doesn't actually send to Qdrant
 
     Returns:
-        Lista de IDs dos documentos processados
+        List of processed document IDs
     """
-    resultados = []
+    results = []
 
-    # Diretorios para ignorar
-    diretorios_ignorados = {
+    # Directories to ignore
+    ignored_directories = {
         ".git",
         "__pycache__",
         "node_modules",
@@ -240,91 +240,91 @@ def processar_diretorio(
         ".env",
     }
 
-    for root, dirs, files in os.walk(diretorio):
-        # Filtrar diretórios ignorados
-        dirs[:] = [d for d in dirs if d not in diretorios_ignorados]
+    for root, dirs, files in os.walk(directory):
+        # Filter ignored directories
+        dirs[:] = [d for d in dirs if d not in ignored_directories]
 
         for file in files:
-            arquivo_path = os.path.join(root, file)
-            resultado = processar_arquivo(
-                path=arquivo_path,
+            file_path = os.path.join(root, file)
+            result = process_file(
+                path=file_path,
                 project_name=project_name,
                 client=client,
                 collection_name=collection_name,
                 verbose=verbose,
                 dry_run=dry_run,
             )
-            resultados.append(resultado)
+            results.append(result)
 
-    return resultados
+    return results
 
 
 def main():
-    """Função principal do script de reindexação."""
+    """Main function of the reindexing script."""
     parser = argparse.ArgumentParser(
-        description="Reindexar conteúdo no Qdrant sem duplicação"
+        description="Reindex content in Qdrant without duplication"
     )
 
     parser.add_argument(
         "--project",
         "-p",
         required=True,
-        help="Nome do projeto para identificação dos documentos",
+        help="Project name for document identification",
     )
 
     parser.add_argument(
-        "--path", required=True, help="Caminho para arquivo ou diretório a ser indexado"
+        "--path", required=True, help="Path to file or directory to be indexed"
     )
 
     parser.add_argument(
         "--collection",
         "-c",
         default=os.environ.get("QDRANT_COLLECTION", "documents"),
-        help="Nome da coleção no Qdrant (padrão do env: QDRANT_COLLECTION ou 'documents')",
+        help="Name of the collection in Qdrant (default env: QDRANT_COLLECTION or 'documents')",
     )
 
     parser.add_argument(
         "--url",
         default=os.environ.get("QDRANT_URL", "http://localhost:6333"),
-        help="URL do servidor Qdrant (padrão do env: QDRANT_URL ou 'http://localhost:6333')",
+        help="Qdrant server URL (default env: QDRANT_URL or 'http://localhost:6333')",
     )
 
     parser.add_argument(
         "--api-key",
         default=os.environ.get("QDRANT_API_KEY", ""),
-        help="Chave de API para o Qdrant (padrão do env: QDRANT_API_KEY)",
+        help="API key for Qdrant (default env: QDRANT_API_KEY)",
     )
 
     parser.add_argument(
         "--verbose",
         "-v",
         action="store_true",
-        help="Mostrar informações detalhadas durante o processamento",
+        help="Show additional information during processing",
     )
 
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Executa sem enviar dados ao Qdrant (apenas simula)",
+        help="Executes without sending data to Qdrant (only simulates)",
     )
 
     args = parser.parse_args()
 
-    # Carregar variáveis de ambiente
+    # Load environment variables
     load_dotenv()
 
-    # Verificar se a coleção foi especificada
+    # Check if the collection was specified
     if not args.collection:
-        print("Erro: Nome da coleção não fornecido")
+        print("Error: Collection name not provided")
         parser.print_help()
         sys.exit(1)
 
-    # Verificar se o caminho existe
+    # Check if the path exists
     if not os.path.exists(args.path):
-        print(f"Erro: Caminho não encontrado: {args.path}")
+        print(f"Error: Path not found: {args.path}")
         sys.exit(1)
 
-    # Configurar cliente Qdrant
+    # Configure Qdrant client
     try:
         client_params = {
             "url": args.url,
@@ -335,53 +335,56 @@ def main():
 
         client = QdrantClient(**client_params)
 
-        # Verificar se o cliente está conectado
+        # Check if the client is connected
         client.get_collections()
 
         if args.verbose:
-            print(f"Conectado ao Qdrant em {args.url}")
+            print(f"Connected to Qdrant at {args.url}")
 
     except Exception as e:
-        print(f"Erro ao conectar ao Qdrant: {str(e)}")
+        print(f"Error connecting to Qdrant: {str(e)}")
         sys.exit(1)
 
-    # Verificar se a coleção existe
+    # Check if the collection exists
     try:
         collections = client.get_collections().collections
         collection_names = [col.name for col in collections]
 
         if args.collection not in collection_names:
-            print(f"Aviso: Coleção '{args.collection}' não existe.")
+            print(f"Warning: Collection '{args.collection}' does not exist.")
 
             if not args.dry_run:
-                criar = input("Deseja criar a coleção? (s/n): ").lower() == "s"
-                if criar:
-                    # Criar coleção com configuração básica
+                create = (
+                    input("Do you want to create the collection? (y/n): ").lower()
+                    == "y"
+                )
+                if create:
+                    # Create collection with basic configuration
                     client.create_collection(
                         collection_name=args.collection,
                         vectors_config={
                             "text": models.VectorParams(
-                                size=384,  # Dimensão típica para embeddings
+                                size=384,  # Typical dimension for embeddings
                                 distance=models.Distance.COSINE,
                             )
                         },
                     )
-                    print(f"Coleção '{args.collection}' criada com sucesso.")
+                    print(f"Collection '{args.collection}' created successfully.")
                 else:
-                    print("Operação cancelada.")
+                    print("Operation cancelled.")
                     sys.exit(0)
     except Exception as e:
-        print(f"Erro ao verificar coleções: {str(e)}")
+        print(f"Error checking collections: {str(e)}")
         if not args.dry_run:
             sys.exit(1)
 
-    # Processar o caminho
+    # Process the path
     try:
         if os.path.isfile(args.path):
             if args.verbose:
-                print(f"Processando arquivo: {args.path}")
+                print(f"Processing file: {args.path}")
 
-            resultado = processar_arquivo(
+            result = process_file(
                 path=args.path,
                 project_name=args.project,
                 client=client,
@@ -390,17 +393,17 @@ def main():
                 dry_run=args.dry_run,
             )
 
-            if resultado:
-                print(f"Arquivo processado com sucesso. ID: {resultado}")
+            if result:
+                print(f"File processed successfully. ID: {result}")
             else:
-                print("Falha ao processar arquivo.")
+                print("Failed to process file.")
 
         elif os.path.isdir(args.path):
             if args.verbose:
-                print(f"Processando diretório: {args.path}")
+                print(f"Processing directory: {args.path}")
 
-            resultados = processar_diretorio(
-                diretorio=args.path,
+            results = process_directory(
+                directory=args.path,
                 project_name=args.project,
                 client=client,
                 collection_name=args.collection,
@@ -408,18 +411,18 @@ def main():
                 dry_run=args.dry_run,
             )
 
-            # Contar resultados bem-sucedidos
-            sucesso = [r for r in resultados if r is not None]
+            # Count successful results
+            success = [r for r in results if r is not None]
             print(
-                f"Processamento concluído. {len(sucesso)} de {len(resultados)} arquivos indexados."
+                f"Processing completed. {len(success)} of {len(results)} files indexed."
             )
 
         else:
-            print(f"Erro: O caminho especificado não é válido: {args.path}")
+            print(f"Error: Specified path is not valid: {args.path}")
             sys.exit(1)
 
     except Exception as e:
-        print(f"Erro durante o processamento: {str(e)}")
+        print(f"Error during processing: {str(e)}")
         sys.exit(1)
 
 

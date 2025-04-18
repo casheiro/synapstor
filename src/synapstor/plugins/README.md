@@ -1,5 +1,15 @@
 # Sistema de Plugins do Synapstor
 
+## 🌎 Idioma / Language
+
+- [Português 🇧🇷](#português)
+- [English 🇺🇸](#english)
+
+---
+
+<a name="português"></a>
+# Português 🇧🇷
+
 Este módulo implementa um sistema flexível de plugins que permite estender o Synapstor com novas funcionalidades sem modificar o código principal.
 
 ## Visão Geral
@@ -171,3 +181,180 @@ Para contribuir com novos plugins:
 2. Documente adequadamente todos os parâmetros e comportamentos
 3. Adicione exemplos de uso ao README
 4. Garanta que o plugin funcione corretamente em todos os casos de uso
+
+---
+
+<a name="english"></a>
+# English 🇺🇸
+
+This module implements a flexible plugin system that allows extending Synapstor with new functionalities without modifying the core code.
+
+## Overview
+
+The Synapstor plugin system was designed with the following objectives:
+
+- **Extensibility**: Add new tools without modifying the core code
+- **Modularity**: Each plugin is an independent module with a single responsibility
+- **Simplicity**: Simple and straightforward API for plugin developers
+- **Dynamic Loading**: Plugins are discovered and loaded automatically at startup
+
+## Architecture
+
+### Plugin Loader (`__init__.py`)
+
+The main module implements the plugin discovery and loading mechanism:
+
+```python
+def load_plugin_tools(server_instance: Any) -> List[str]:
+    """
+    Loads all tools from available plugins.
+    """
+    # Discovers and imports files with "tool_" prefix
+    # Calls the setup_tools() function of each plugin
+    # Returns the list of registered tools
+```
+
+### Anatomy of a Plugin
+
+Each plugin is an independent Python module that:
+
+1. Defines one or more tool functions
+2. Implements the `setup_tools()` function to register its tools with the server
+
+## Plugin Development
+
+### Reference Template
+
+The `tool_boilerplate.py` file provides a complete template for plugin development:
+
+```python
+async def my_tool(
+    ctx: Context,
+    input: str,
+    option: int = 1,
+    additional_parameters: Optional[List[str]] = None,
+) -> str:
+    """Tool implementation"""
+    # ...
+
+def setup_tools(server) -> List[str]:
+    """Registers tools with the server"""
+    server.add_tool(
+        my_tool,
+        name="my-tool",
+        description="Tool description"
+    )
+    return ["my-tool"]
+```
+
+### Creating a New Plugin
+
+1. **File Name**: Create a new file with the `tool_` prefix (e.g., `tool_my_tool.py`)
+
+2. **Tool Implementation**: Define your tool functions as asynchronous functions:
+
+```python
+async def my_tool(ctx: Context, param1: str, param2: int = 0) -> str:
+    """
+    Detailed description of the tool.
+
+    :param ctx: The request context.
+    :param param1: Description of the first parameter.
+    :param param2: Description of the second parameter.
+    :return: Result of the operation.
+    """
+    # Implement the tool logic
+    return f"Result: {param1}, {param2}"
+```
+
+3. **Tool Registration**: Implement the `setup_tools` function:
+
+```python
+def setup_tools(server) -> List[str]:
+    """Registers the tools provided by this plugin."""
+    server.add_tool(
+        my_tool,
+        name="my-tool",
+        description="Concise description of the tool."
+    )
+    return ["my-tool"]
+```
+
+## Guidelines and Best Practices
+
+### Naming Conventions
+
+- **Files**: Use the `tool_` prefix followed by a descriptive name (e.g., `tool_changelog.py`)
+- **Functions**: Use `snake_case` for definitions and `kebab-case` for exposure
+- **Parameters**: Clear and self-descriptive names
+
+### Tool Parameters
+
+- **First Parameter**: Should always be `ctx: Context`
+- **Explicit Types**: All parameters should have explicit types
+- **Default Values**: Optional parameters should have default values
+- **Documentation**: Detailed docstrings for each parameter
+
+### Tool Returns
+
+- **Return Types**: `str` for single message, `List[str]` for multiple messages
+- **Formatting**: Formatted text for better readability
+- **Errors**: Return clear and useful error messages
+
+### Logging and Debugging
+
+- **Internal Logging**: Use `logger.info()`, `logger.debug()`, etc.
+- **Client Debug**: Use `await ctx.debug()` for debug messages
+
+## Available Plugins
+
+### Changelog Generator (`tool_changelog.py`)
+
+Automatically generates changelogs from the Git commit history, following the Conventional Commits standard.
+
+```python
+# Changelog generation
+await generate_changelog(ctx, since="v1.0.0", until="HEAD", output_file="CHANGELOG.md")
+# Return: "Changelog successfully generated in: CHANGELOG.md"
+
+# Commit compliance verification
+await verify_commits(ctx, since="v1.0.0", detailed=True)
+# Return: List with statistics and details of commit compliance
+```
+
+Key features:
+- Analysis of commit messages in Conventional Commits format
+- Automatic generation of the next version following SemVer rules
+- Grouping of commits by type (feat, fix, refactor, etc.)
+- Highlighting breaking changes
+- Incremental changelog maintenance (preserves previous versions)
+
+### Example Template (`tool_boilerplate.py`)
+
+Provides a reference model for plugin development.
+
+```python
+# Usage
+await my_tool(ctx, input="example", option=2)
+# Return: "example processed (x2)"
+
+# Auxiliary tool
+await auxiliary_tool(ctx, query="category1")
+# Return: ["Category: category1", "  - item1", "  - item2", "  - item3"]
+```
+
+## Security and Considerations
+
+1. **Input Validation**: Always validate user inputs
+2. **Error Handling**: Use try/except to catch and handle errors
+3. **Resources**: Be mindful of resource usage (memory, CPU, network)
+4. **Dependencies**: Minimize external dependencies and document the necessary ones
+
+## Contributing
+
+To contribute new plugins:
+
+1. Follow the template and development guidelines
+2. Properly document all parameters and behaviors
+3. Add usage examples to the README
+4. Ensure the plugin works correctly in all use cases

@@ -1,6 +1,16 @@
 # Synapstor 📚🔍
 
-**Versão 0.1.2 | Python 3.10+ | Licença MIT**
+**Version 0.1.3 | Python 3.10+ | MIT License**
+
+## 🌎 Idioma / Language
+
+- [Português 🇧🇷](#português)
+- [English 🇺🇸](#english)
+
+---
+
+<a name="português"></a>
+# Português 🇧🇷
 
 > **Synapstor** é uma biblioteca modular para armazenamento e recuperação semântica de informações usando embeddings vetoriais e banco de dados Qdrant.
 >
@@ -133,4 +143,138 @@ Para documentação detalhada, exemplos avançados, integração com diferentes 
 
 ---
 
-Desenvolvido com ❤️ pelo time Synapstor
+<a name="english"></a>
+# English 🇺🇸
+
+> **Synapstor** is a modular library for semantic storage and retrieval of information using vector embeddings and the Qdrant database.
+>
+> **Note**: Synapstor is an unofficial evolution of the mcp-server-qdrant project, expanding its functionality to create a more comprehensive solution for semantic storage and retrieval.
+
+## 🔭 Overview
+
+Synapstor is a complete solution for storing and retrieving information based on vector embeddings. Combining the power of Qdrant (vector database) with modern embedding models, Synapstor allows:
+
+- 🔍 **Semantic search** in documents, code, and other textual content
+- 🧠 **Efficient storage** of information with associated metadata
+- 🔄 **Integration with LLMs** through the MCP (Model Control Protocol)
+- 🛠️ **CLI tools** for indexing and querying data
+
+## 🖥️ Requirements
+
+- **Python**: 3.10 or higher
+- **Qdrant**: Vector database for storing and searching embeddings
+- **Embedding Models**: By default, uses models from the FastEmbed library
+
+## 📦 Installation
+
+```bash
+# Basic installation via pip
+pip install synapstor
+
+# With fast embedding support (recommended)
+pip install "synapstor[fastembed]"
+
+# For development (formatters, linters)
+pip install "synapstor[dev]"
+
+# For testing
+pip install "synapstor[test]"
+
+# Complete installation (all features and tools)
+pip install "synapstor[all]"
+```
+
+## 🚀 Quick Usage
+
+### Configuration
+
+There are several ways to configure Synapstor:
+
+1. **Environment variables**:
+   ```bash
+   # Export variables in shell (Linux/macOS)
+   export QDRANT_URL="http://localhost:6333"
+   export QDRANT_API_KEY="your-api-key"
+   export COLLECTION_NAME="synapstor"
+   export EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2"
+
+   # Or on Windows (PowerShell)
+   $env:QDRANT_URL = "http://localhost:6333"
+   $env:QDRANT_API_KEY = "your-api-key"
+   $env:COLLECTION_NAME = "synapstor"
+   $env:EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+   ```
+
+2. **Command line parameters**:
+   ```bash
+   synapstor-ctl server --qdrant-url http://localhost:6333 --qdrant-api-key your-api-key --collection-name synapstor --embedding-model "sentence-transformers/all-MiniLM-L6-v2"
+   ```
+
+3. **Programmatically** (for use as a library):
+   ```python
+   from synapstor.settings import Settings
+
+   settings = Settings(
+       qdrant_url="http://localhost:6333",
+       qdrant_api_key="your-api-key",
+       collection_name="my_collection",
+       embedding_model="sentence-transformers/all-MiniLM-L6-v2"
+   )
+   ```
+
+### As an MCP server
+
+```bash
+# Start the MCP server with the centralized interface
+synapstor-ctl server
+
+# With configuration parameters
+synapstor-ctl server --qdrant-url http://localhost:6333 --qdrant-api-key your-api-key --collection-name my_collection --embedding-model "sentence-transformers/all-MiniLM-L6-v2"
+```
+
+### Project indexing
+
+```bash
+# Index a project
+synapstor-ctl indexer --project my-project --path /path/to/project
+```
+
+### As a library in Python applications
+
+```python
+from synapstor.qdrant import QdrantConnector, Entry
+from synapstor.embeddings.factory import create_embedding_provider
+from synapstor.settings import EmbeddingProviderSettings
+
+# Initialize components
+settings = EmbeddingProviderSettings()
+embedding_provider = create_embedding_provider(settings)
+
+connector = QdrantConnector(
+    qdrant_url="http://localhost:6333",
+    collection_name="my_collection",
+    embedding_provider=embedding_provider
+)
+
+# Store information
+async def store_data():
+    entry = Entry(
+        content="Content to be stored",
+        metadata={"key": "value"}
+    )
+    await connector.store(entry)
+
+# Search for information
+async def search_data():
+    results = await connector.search("natural language query")
+    for result in results:
+        print(result.content)
+```
+
+## 📚 Complete Documentation
+
+For detailed documentation, advanced examples, integration with different LLMs, Docker deployment, and other information, visit the [GitHub repository](https://github.com/casheiro/synapstor).
+
+---
+
+Developed with ❤️ by the Synapstor team

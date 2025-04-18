@@ -1,8 +1,8 @@
 """
-Sistema de carregamento de plugins para o Synapstor.
+Plugin loading system for Synapstor.
 
-Este módulo permite carregar automaticamente ferramentas adicionais
-de arquivos externos sem modificar o código principal.
+This module allows automatically loading additional tools
+from external files without modifying the main code.
 """
 
 import importlib
@@ -16,39 +16,41 @@ logger = logging.getLogger(__name__)
 
 def load_plugin_tools(server_instance: Any) -> List[str]:
     """
-    Carrega todas as ferramentas dos plugins disponíveis e as registra no servidor.
+    Loads all tools from available plugins and registers them with the server.
 
     Args:
-        server_instance: A instância do servidor QdrantMCPServer onde registrar as ferramentas.
+        server_instance: The QdrantMCPServer instance where tools will be registered.
 
     Returns:
-        List[str]: Lista de nomes das ferramentas registradas.
+        List[str]: List of names of registered tools.
     """
     registered_tools = []
 
-    # Obtém o caminho do diretório de plugins
+    # Get the path to the plugins directory
     plugins_path = Path(__file__).parent
 
-    # Itera sobre todos os módulos no diretório de plugins
+    # Iterate over all modules in the plugins directory
     for _, name, is_pkg in pkgutil.iter_modules([str(plugins_path)]):
-        # Carrega apenas arquivos que começam com "tool_"
+        # Load only files that start with "tool_"
         if name.startswith("tool_"):
             try:
-                # Importa o módulo do plugin
+                # Import the plugin module
                 module = importlib.import_module(f"synapstor.plugins.{name}")
 
-                # Procura pela função setup_tools no módulo
+                # Look for the setup_tools function in the module
                 if hasattr(module, "setup_tools"):
-                    # Chama a função setup_tools passando a instância do servidor
+                    # Call the setup_tools function passing the server instance
                     tool_names = module.setup_tools(server_instance)
                     if isinstance(tool_names, list):
                         registered_tools.extend(tool_names)
                     elif tool_names:
                         registered_tools.append(tool_names)
-                    logger.info(f"Plugin carregado: {name}")
+                    logger.info(f"Plugin loaded: {name}")
                 else:
-                    logger.warning(f"Plugin {name} não possui função setup_tools()!")
+                    logger.warning(
+                        f"Plugin {name} does not have a setup_tools() function!"
+                    )
             except Exception as e:
-                logger.error(f"Erro ao carregar plugin {name}: {e}")
+                logger.error(f"Error loading plugin {name}: {e}")
 
     return registered_tools
