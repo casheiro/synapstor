@@ -11,6 +11,10 @@
 
 Interface de linha de comando para gerenciamento do Synapstor, uma ferramenta para indexação e busca de conteúdo de código.
 
+## Suporte Bilíngue
+
+O Synapstor agora oferece suporte bilíngue completo em inglês e português. Para mais informações sobre como usar as versões em inglês ou português dos scripts, consulte o [Guia Bilíngue](README_BILINGUAL.md).
+
 ## Visão Geral
 
 A CLI do Synapstor oferece um conjunto de ferramentas para:
@@ -225,6 +229,10 @@ synapstor-ctl stop
 # English
 
 Command-line interface for managing Synapstor, a tool for indexing and searching code content.
+
+## Bilingual Support
+
+Synapstor now offers full bilingual support in English and Portuguese. For more information on how to use the English or Portuguese versions of the scripts, see the [Bilingual Guide](README_BILINGUAL.md).
 
 ## Overview
 
