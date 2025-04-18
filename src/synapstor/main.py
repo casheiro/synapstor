@@ -6,16 +6,15 @@ from synapstor.env_loader import setup_environment
 
 def main():
     """
-    Ponto de entrada principal para o script synapstor definido
-    no pyproject.toml. Ele executa o servidor MCP com um protocolo
-    de transporte específico.
+    Main entry point for the synapstor script defined in pyproject.toml.
+    It runs the MCP server with a specific transport protocol.
     """
-    # Configura o ambiente antes de iniciar o servidor
+    # Configure the environment before starting the server
     if not setup_environment():
-        print("Erro ao configurar o ambiente. O servidor MCP não pode ser iniciado.")
+        print("Error configuring the environment. The MCP server cannot be started.")
         sys.exit(1)
 
-    # Analisa os argumentos da linha de comando para determinar o protocolo de transporte.
+    # Parse command line arguments to determine the transport protocol
     parser = argparse.ArgumentParser(description="synapstor")
     parser.add_argument(
         "--transport",
@@ -24,14 +23,14 @@ def main():
     )
     args = parser.parse_args()
 
-    # A importação é feita aqui para garantir que as variáveis de ambiente sejam carregadas
-    # somente após fazermos as alterações.
-    print("Iniciando servidor MCP...")
+    # The import is done here to ensure that environment variables are loaded
+    # only after we have made the changes
+    print("Starting MCP server...")
     try:
         from synapstor.server import mcp
 
-        print(f"Iniciando servidor MCP com transporte: {args.transport}")
+        print(f"Starting MCP server with transport: {args.transport}")
         mcp.run(transport=args.transport)
     except ImportError as e:
-        print(f"❌ Erro ao iniciar o servidor: {e}")
+        print(f"❌ Error starting the server: {e}")
         sys.exit(1)

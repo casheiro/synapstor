@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # of the server. Its API is based on FastAPI.
 class QdrantMCPServer(FastMCP):
     """
-    Um servidor MCP para Qdrant.
+    An MCP server for Qdrant.
     """
 
     def __init__(
@@ -50,7 +50,7 @@ class QdrantMCPServer(FastMCP):
 
     def format_entry(self, entry: Entry) -> str:
         """
-        Sinta-se à vontade para sobrescrever este método na sua subclasse para personalizar o formato da entrada.
+        Feel free to override this method in your subclass to customize the entry format.
         """
         entry_metadata = json.dumps(entry.metadata) if entry.metadata else ""
         return f"<entry><content>{entry.content}</content><metadata>{entry_metadata}</metadata></entry>"
@@ -66,22 +66,22 @@ class QdrantMCPServer(FastMCP):
             metadata: Metadata = None,
         ) -> str:
             """
-            Armazena algumas informações no Qdrant.
-            :param ctx: O contexto para a requisição.
-            :param information: A informação a ser armazenada.
-            :param metadata: Metadados JSON para armazenar com a informação, opcional.
-            :param collection_name: O nome da coleção para armazenar a informação, opcional. Se não fornecido,
-                                    a coleção padrão é usada.
-            :return: Uma mensagem indicando que a informação foi armazenada.
+            Store some information in Qdrant.
+            :param ctx: The context for the request.
+            :param information: The information to store.
+            :param metadata: JSON metadata to store with the information, optional.
+            :param collection_name: The collection name to store the information in, optional. If not provided,
+                                    the default collection is used.
+            :return: A message indicating that the information has been stored.
             """
-            await ctx.debug(f"Armazenando informação {information} no Qdrant")
+            await ctx.debug(f"Storing information {information} in Qdrant")
 
             entry = Entry(content=information, metadata=metadata)
 
             await self.qdrant_connector.store(entry, collection_name=collection_name)
             if collection_name:
-                return f"Lembrado: {information} na coleção {collection_name}"
-            return f"Lembrado: {information}"
+                return f"Remembered: {information} in collection {collection_name}"
+            return f"Remembered: {information}"
 
         async def store_with_default_collection(
             ctx: Context,
@@ -98,17 +98,17 @@ class QdrantMCPServer(FastMCP):
             collection_name: str,
         ) -> List[str]:
             """
-            Encontra memórias no Qdrant.
-            :param ctx: O contexto para a requisição.
-            :param query: A consulta a ser usada para a busca.
-            :param collection_name: O nome da coleção para buscar, opcional. Se não fornecido,
-                                    a coleção padrão é usada.
-            :param limit: O número máximo de entradas a retornar, opcional. O padrão é 10.
-            :return: Uma lista de entradas encontradas.
+            Find memories in Qdrant.
+            :param ctx: The context for the request.
+            :param query: The query to use for the search.
+            :param collection_name: The collection name to search in, optional. If not provided,
+                                    the default collection is used.
+            :param limit: The maximum number of entries to return, optional. Default is 10.
+            :return: A list of found entries.
             """
-            await ctx.debug(f"Encontrando resultados para consulta {query}")
+            await ctx.debug(f"Finding results for query {query}")
             if collection_name:
-                await ctx.debug(f"Substituindo o nome da coleção por {collection_name}")
+                await ctx.debug(f"Replacing collection name with {collection_name}")
 
             entries = await self.qdrant_connector.search(
                 query,
@@ -116,9 +116,9 @@ class QdrantMCPServer(FastMCP):
                 limit=self.qdrant_settings.search_limit,
             )
             if not entries:
-                return [f"Nenhuma informação encontrada para a consulta '{query}'"]
+                return [f"No information found for query '{query}'"]
             content = [
-                f"Resultados para a consulta '{query}'",
+                f"Results for query '{query}'",
             ]
             for entry in entries:
                 content.append(self.format_entry(entry))
@@ -161,14 +161,12 @@ class QdrantMCPServer(FastMCP):
                     description=self.tool_settings.tool_store_description,
                 )
 
-        # Carrega ferramentas adicionais dos plugins
+        # Load additional tools from plugins
         try:
             from synapstor.plugins import load_plugin_tools
 
             plugin_tools = load_plugin_tools(self)
             if plugin_tools:
-                logger.info(
-                    f"Ferramentas carregadas dos plugins: {', '.join(plugin_tools)}"
-                )
+                logger.info(f"Tools loaded from plugins: {', '.join(plugin_tools)}")
         except Exception as e:
-            logger.warning(f"Erro ao carregar plugins: {e}")
+            logger.warning(f"Error loading plugins: {e}")

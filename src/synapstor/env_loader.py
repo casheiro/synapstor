@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Carregador de variáveis de ambiente
+Environment variables loader
 
-Este módulo carrega as variáveis de ambiente a partir do arquivo .env na raiz do projeto.
-Se o arquivo não existir, tenta usar as variáveis de ambiente do sistema.
+This module loads environment variables from the .env file in the project root.
+If the file doesn't exist, it tries to use the system environment variables.
 """
 
 import os
@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 import logging
 
-# Configuração básica do logging
+# Basic logging configuration
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -19,7 +19,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("env_loader")
 
-# Definir variáveis necessárias
+# Define required variables
 REQUIRED_VARS = [
     "QDRANT_URL",
     "QDRANT_API_KEY",
@@ -39,28 +39,28 @@ OPTIONAL_VARS = [
 
 def find_dotenv():
     """
-    Procura pelo arquivo .env na raiz do projeto ou em diretórios acima.
+    Searches for the .env file in the project root or in directories above.
 
     Returns:
-        Path or None: Caminho para o arquivo .env ou None se não encontrado
+        Path or None: Path to the .env file or None if not found
     """
-    # Inicia na pasta onde o script está sendo executado
+    # Start in the folder where the script is being executed
     current_dir = Path.cwd()
 
-    # Procura pelo arquivo .env no diretório atual e nos diretórios pais
+    # Search for the .env file in the current directory and parent directories
     while True:
         env_path = current_dir / ".env"
         if env_path.exists():
             return env_path
 
-        # Verifica se estamos na raiz do sistema
+        # Check if we are at the system root
         parent_dir = current_dir.parent
         if parent_dir == current_dir:
             break
 
         current_dir = parent_dir
 
-    # Tenta a pasta do pacote do projeto
+    # Try the project package folder
     module_dir = Path(__file__).parent.parent.parent
     env_path = module_dir / ".env"
     if env_path.exists():
@@ -71,17 +71,17 @@ def find_dotenv():
 
 def load_dotenv():
     """
-    Carrega o arquivo .env se existir
+    Loads the .env file if it exists
 
     Returns:
-        bool: True se conseguiu carregar o arquivo .env, False caso contrário
+        bool: True if the .env file was successfully loaded, False otherwise
     """
     try:
-        # Tenta importar python-dotenv
+        # Try to import python-dotenv
         try:
             from dotenv import load_dotenv as dotenv_load
         except ImportError:
-            logger.warning("Pacote python-dotenv não encontrado. Tentando instalar...")
+            logger.warning("python-dotenv package not found. Attempting to install...")
             import subprocess
 
             try:
@@ -90,33 +90,33 @@ def load_dotenv():
                 )
                 from dotenv import load_dotenv as dotenv_load
 
-                logger.info("python-dotenv instalado com sucesso!")
+                logger.info("python-dotenv installed successfully!")
             except Exception as e:
-                logger.error(f"Erro ao instalar python-dotenv: {e}")
+                logger.error(f"Error installing python-dotenv: {e}")
                 return False
 
-        # Procura pelo arquivo .env
+        # Search for the .env file
         dotenv_path = find_dotenv()
         if dotenv_path:
-            # Carrega o arquivo .env
+            # Load the .env file
             dotenv_load(dotenv_path=dotenv_path)
-            logger.info(f"Arquivo .env carregado com sucesso: {dotenv_path}")
+            logger.info(f".env file loaded successfully: {dotenv_path}")
             return True
         else:
-            logger.warning("Arquivo .env não encontrado")
+            logger.warning(".env file not found")
             return False
 
     except Exception as e:
-        logger.error(f"Erro ao carregar arquivo .env: {e}")
+        logger.error(f"Error loading .env file: {e}")
         return False
 
 
 def validate_environment():
     """
-    Verifica se todas as variáveis de ambiente necessárias estão configuradas
+    Checks if all required environment variables are configured
 
     Returns:
-        bool: True se todas as variáveis necessárias estão configuradas, False caso contrário
+        bool: True if all required variables are configured, False otherwise
     """
     missing_vars = []
 
@@ -126,7 +126,7 @@ def validate_environment():
 
     if missing_vars:
         logger.error(
-            f"Variáveis de ambiente obrigatórias não configuradas: {', '.join(missing_vars)}"
+            f"Required environment variables not configured: {', '.join(missing_vars)}"
         )
         return False
 
@@ -135,79 +135,79 @@ def validate_environment():
 
 def create_env_file_template():
     """
-    Cria um arquivo .env de exemplo na pasta atual
+    Creates a sample .env file in the current folder
     """
-    template = """# Configuração do Qdrant
-# Opção 1: Qdrant Cloud
-QDRANT_URL=https://seu-servidor-qdrant.cloud.io:6333
-QDRANT_API_KEY=sua_api_key
+    template = """# Qdrant Configuration
+# Option 1: Qdrant Cloud
+QDRANT_URL=https://your-qdrant-server.cloud.io:6333
+QDRANT_API_KEY=your_api_key
 
-# Opção 2: Qdrant Local
+# Option 2: Local Qdrant
 # QDRANT_LOCAL_PATH=./qdrant_data
 
-# Nome da coleção padrão (obrigatório)
-COLLECTION_NAME=nome_da_sua_colecao
+# Default collection name (required)
+COLLECTION_NAME=your_collection_name
 
-# Configuração de embeddings
+# Embeddings configuration
 EMBEDDING_PROVIDER=FASTEMBED
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 
-# Configurações de ferramentas MCP
-TOOL_STORE_DESCRIPTION=Armazena informações para recuperação posterior.
-TOOL_FIND_DESCRIPTION=Encontra informações relacionadas no banco de dados vetorial.
+# MCP tool settings
+TOOL_STORE_DESCRIPTION=Store information for later retrieval.
+TOOL_FIND_DESCRIPTION=Find related information in the vector database.
 
-# Configurações gerais
+# General settings
 LOG_LEVEL=INFO
 """
 
     try:
         with open(".env", "w", encoding="utf-8") as f:
             f.write(template)
-        logger.info("Arquivo .env de exemplo criado com sucesso!")
+        logger.info("Sample .env file created successfully!")
         return True
     except Exception as e:
-        logger.error(f"Erro ao criar arquivo .env de exemplo: {e}")
+        logger.error(f"Error creating sample .env file: {e}")
         return False
 
 
 def setup_environment():
     """
-    Configura o ambiente para o servidor MCP
+    Sets up the environment for the MCP server
 
     Returns:
-        bool: True se o ambiente foi configurado com sucesso, False caso contrário
+        bool: True if the environment was successfully configured, False otherwise
     """
-    # Tenta carregar variáveis do arquivo .env
+    # Try to load variables from .env file
     env_loaded = load_dotenv()
 
-    # Verifica se todas as variáveis necessárias estão configuradas
+    # Check if all required variables are configured
     if not validate_environment():
         if not env_loaded:
             logger.error(
-                "Arquivo .env não encontrado e variáveis de ambiente não configuradas."
+                ".env file not found and environment variables not configured."
             )
             print("\n" + "=" * 80)
             print(
-                "Arquivo .env não encontrado e variáveis de ambiente necessárias não configuradas!"
+                ".env file not found and required environment variables not configured!"
             )
             print(
-                "Você precisa configurar as seguintes variáveis para executar o servidor MCP:"
+                "You need to configure the following variables to run the MCP server:"
             )
             for var in REQUIRED_VARS:
                 print(f"- {var}")
-            print("\nVocê deseja criar um arquivo .env de exemplo? (s/n)")
+            print("\nDo you want to create a sample .env file? (y/n)")
             choice = input().strip().lower()
-            if choice in ["s", "sim", "y", "yes"]:
+            if choice in ["y", "yes"]:
                 success = create_env_file_template()
                 if success:
                     print(
-                        "Arquivo .env de exemplo criado. Por favor, edite-o com suas configurações e execute novamente."
+                        "Sample .env file created. Please edit it with your settings and run again."
                     )
                 else:
-                    print("Não foi possível criar o arquivo .env de exemplo.")
+                    print("Could not create the sample .env file.")
             print("=" * 80 + "\n")
         return False
 
-    # Se chegou aqui, o ambiente está configurado corretamente
-    logger.info("Ambiente configurado com sucesso!")
+    # If we got here, the environment is configured correctly
+    logger.info("Environment configured successfully!")
     return True

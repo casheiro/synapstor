@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 """
-Script para controle do servidor Synapstor como um serviço
-
-Este script permite gerenciar o servidor Synapstor como um serviço em segundo plano,
-oferecendo comandos para iniciar, parar, verificar status e acompanhar logs.
-
-Script for controlling the Synapstor server as a service
+Control script for the Synapstor server as a service
 
 This script allows managing the Synapstor server as a background service,
 offering commands to start, stop, check status, and monitor logs.
@@ -21,15 +16,12 @@ import psutil
 import logging
 from pathlib import Path
 
-# Adiciona o diretório raiz ao path para importar o módulo
 # Adds the root directory to the path to import the module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-# Importa ferramentas existentes
-# Imports existing tools
+# Import existing tools
 from cli.config import ConfiguradorInterativo
 
-# Configuração básica do logging
 # Basic logging configuration
 logging.basicConfig(
     level=logging.INFO,
@@ -38,7 +30,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger("synapstor-ctl")
 
-# Constantes
 # Constants
 DEFAULT_DIR = os.path.expanduser("~/.synapstor")
 PID_FILE = os.path.join(DEFAULT_DIR, "synapstor.pid")
@@ -46,20 +37,12 @@ LOG_FILE = os.path.join(DEFAULT_DIR, "synapstor.log")
 
 
 def ensure_dir_exists():
-    """
-    Garante que o diretório para armazenar PID e logs exista
-
-    Ensures that the directory for storing PID and logs exists
-    """
+    """Ensures that the directory to store PID and logs exists"""
     os.makedirs(DEFAULT_DIR, exist_ok=True)
 
 
 def is_running():
-    """
-    Verifica se o servidor está rodando
-
-    Checks if the server is running
-    """
+    """Checks if the server is running"""
     if not os.path.exists(PID_FILE):
         return False
 
@@ -67,11 +50,9 @@ def is_running():
         with open(PID_FILE, "r") as f:
             pid = int(f.read().strip())
 
-        # Verifica se o processo existe
-        # Checks if the process exists
+        # Check if the process exists
         process = psutil.Process(pid)
-        # Verifica se o nome do processo contém 'synapstor'
-        # Checks if the process name contains 'synapstor'
+        # Check if the process name contains 'synapstor'
         return (
             "synapstor" in process.name().lower() or "python" in process.name().lower()
         )
@@ -80,108 +61,87 @@ def is_running():
 
 
 def start_server(args):
-    """
-    Inicia o servidor em segundo plano
-
-    Starts the server in the background
-    """
+    """Starts the server in the background"""
     if is_running():
-        logger.info("⚠️ O servidor já está em execução")
+        logger.info("⚠️ The server is already running")
         return 0
 
     ensure_dir_exists()
 
-    # Se --configure foi especificado, executa o configurador interativo
-    # If --configure was specified, runs the interactive configurator
+    # If --configure was specified, run the interactive configurator
     if args.configure:
         env_path = Path(args.env_file) if args.env_file else Path.cwd() / ".env"
-        logger.info("🔧 Configurando o Synapstor antes de iniciar o servidor...")
+        logger.info("🔧 Configuring Synapstor before starting the server...")
         configurador = ConfiguradorInterativo(env_path)
 
-        # Verifica dependências
-        # Checks dependencies
+        # Check dependencies
         if not configurador.verificar_dependencias():
-            logger.error("❌ Falha ao verificar ou instalar dependências")
+            logger.error("❌ Failed to check or install dependencies")
             return 1
 
-        # Executa configuração
-        # Runs configuration
+        # Run configuration
         if not configurador.configurar():
             logger.error(
-                "❌ Falha ao configurar o Synapstor. O servidor não será iniciado."
+                "❌ Failed to configure Synapstor. The server will not be started."
             )
             return 1
-        logger.info("✅ Configuração concluída")
+        logger.info("✅ Configuration completed")
 
-    # Prepara os argumentos para o synapstor-server
-    # Prepares the arguments for synapstor-server
+    # Prepare arguments for synapstor-server
     server_cmd = ["synapstor-server"]
 
-    # Adiciona argumentos opcionais
-    # Adds optional arguments
+    # Add optional arguments
     if args.transport:
         server_cmd.extend(["--transport", args.transport])
     if args.env_file:
         server_cmd.extend(["--env-file", args.env_file])
 
     try:
-        # Redireciona a saída para o arquivo de log
-        # Redirects output to the log file
+        # Redirect output to the log file
         with open(LOG_FILE, "a") as log_file:
             process = subprocess.Popen(
                 server_cmd,
                 stdout=log_file,
                 stderr=log_file,
-                start_new_session=True,  # Desvincula do processo pai / Detaches from parent process
+                start_new_session=True,  # Detach from parent process
             )
 
-        # Salva o PID em um arquivo
-        # Saves the PID to a file
+        # Save the PID to a file
         with open(PID_FILE, "w") as f:
             f.write(str(process.pid))
 
-        # Aguarda um momento para verificar se o servidor iniciou corretamente
-        # Waits a moment to check if the server started correctly
+        # Wait a moment to check if the server started correctly
         time.sleep(2)
         if is_running():
-            logger.info(f"✅ Servidor iniciado com PID {process.pid}")
-            logger.info(f"📝 Logs disponíveis em: {LOG_FILE}")
+            logger.info(f"✅ Server started with PID {process.pid}")
+            logger.info(f"📝 Logs available at: {LOG_FILE}")
             return 0
         else:
-            logger.error(
-                "❌ Servidor falhou ao iniciar. Verifique os logs para mais detalhes."
-            )
+            logger.error("❌ Server failed to start. Check the logs for more details.")
             return 1
     except Exception as e:
-        logger.error(f"❌ Erro ao iniciar o servidor: {e}")
+        logger.error(f"❌ Error starting the server: {e}")
         return 1
 
 
 def stop_server():
-    """
-    Para o servidor em execução
-
-    Stops the running server
-    """
+    """Stops the running server"""
     if not is_running():
-        logger.info("⚠️ O servidor não está em execução")
+        logger.info("⚠️ The server is not running")
         return 0
 
     try:
         with open(PID_FILE, "r") as f:
             pid = int(f.read().strip())
 
-        # Envia SIGTERM para o processo
-        # Sends SIGTERM to the process
+        # Send SIGTERM to the process
         os.kill(pid, signal.SIGTERM)
 
-        # Espera até que o processo termine
-        # Waits until the process terminates
-        max_wait = 5  # segundos / seconds
+        # Wait until the process terminates
+        max_wait = 5  # seconds
         for _ in range(max_wait):
             try:
-                # Verifica se o processo existe usando psutil em vez de os.kill(pid, 0)
-                # Checks if the process exists using psutil instead of os.kill(pid, 0)
+                # Check if the process exists using psutil instead of os.kill(pid, 0)
                 if psutil.pid_exists(pid):
                     time.sleep(1)
                 else:
@@ -189,45 +149,37 @@ def stop_server():
             except Exception:
                 break
         else:
-            # Se chegou aqui, o processo não terminou após o tempo máximo
-            # If we got here, the process did not terminate after the maximum time
+            # If we got here, the process didn't terminate after the maximum time
             logger.warning(
-                "⚠️ O servidor não respondeu ao sinal SIGTERM, enviando SIGKILL..."
+                "⚠️ The server did not respond to SIGTERM, sending SIGKILL..."
             )
             try:
-                # Windows não suporta SIGKILL, então verifica se está disponível
-                # Windows does not support SIGKILL, so check if it's available
+                # Windows doesn't support SIGKILL, so check if it's available
                 if hasattr(signal, "SIGKILL"):
                     os.kill(pid, signal.SIGKILL)
                 else:
-                    # Fallback para Windows usar SIGTERM novamente ou outra alternativa
                     # Fallback for Windows to use SIGTERM again or another alternative
                     os.kill(pid, signal.SIGTERM)
             except OSError:
                 pass
 
-        # Remove o arquivo PID
-        # Removes the PID file
+        # Remove the PID file
         os.remove(PID_FILE)
 
-        logger.info("✅ Servidor parado com sucesso")
+        logger.info("✅ Server stopped successfully")
         return 0
     except (FileNotFoundError, ValueError) as e:
-        logger.error(f"❌ Erro ao ler o PID: {e}")
+        logger.error(f"❌ Error reading PID: {e}")
         return 1
     except OSError as e:
-        logger.error(f"❌ Erro ao parar o servidor: {e}")
+        logger.error(f"❌ Error stopping the server: {e}")
         return 1
 
 
 def status_server():
-    """
-    Verifica o status do servidor
-
-    Checks the server status
-    """
+    """Checks the status of the server"""
     if not is_running():
-        logger.info("🔴 O servidor não está em execução")
+        logger.info("🔴 The server is not running")
         return 1
 
     try:
@@ -239,8 +191,7 @@ def status_server():
         memory_mb = process.memory_info().rss / (1024 * 1024)
         cpu_percent = process.cpu_percent(interval=0.5)
 
-        # Formata o uptime em dias, horas, minutos, segundos
-        # Formats uptime in days, hours, minutes, seconds
+        # Format uptime in days, hours, minutes, seconds
         days, remainder = divmod(uptime, 86400)
         hours, remainder = divmod(remainder, 3600)
         minutes, seconds = divmod(remainder, 60)
@@ -254,12 +205,10 @@ def status_server():
             uptime_str += f"{int(minutes)}m "
         uptime_str += f"{int(seconds)}s"
 
-        # Verifica o arquivo .env
-        # Checks the .env file
+        # Check the .env file
         env_file = None
         try:
-            # Tenta obter o comando original para verificar se foi usado --env-file
-            # Tries to get the original command to check if --env-file was used
+            # Try to get the original command to check if --env-file was used
             cmdline = process.cmdline()
             if "--env-file" in cmdline:
                 env_idx = cmdline.index("--env-file")
@@ -268,57 +217,50 @@ def status_server():
         except Exception:
             pass
 
-        # Se não encontrou, assume o padrão
-        # If not found, assumes the default
+        # If not found, assume the default
         if not env_file:
             env_file = str(Path.cwd() / ".env")
 
-        # Procura o arquivo .env mais próximo se não encontrar o especificado
-        # Looks for the nearest .env file if the specified one is not found
+        # Look for the closest .env file if not found
         if env_file and not os.path.exists(env_file):
-            env_file = "Não encontrado"
+            env_file = "Not found"
 
-        # Status detalhado
         # Detailed status
         print("\n" + "=" * 30)
-        print(" SYNAPSTOR - STATUS DO SERVIDOR ")
+        print(" SYNAPSTOR - SERVER STATUS ")
         print("=" * 30)
-        print("Status:         🟢 Em execução")
+        print("Status:         🟢 Running")
         print(f"PID:            {pid}")
-        print(f"Tempo ativo:    {uptime_str}")
-        print(f"Memória:        {memory_mb:.2f} MB")
+        print(f"Uptime:         {uptime_str}")
+        print(f"Memory:         {memory_mb:.2f} MB")
         print(f"CPU:            {cpu_percent:.1f}%")
-        print(f"Arquivo .env:   {env_file}")
-        print(f"Arquivo de log: {LOG_FILE}")
+        print(f".env file:      {env_file}")
+        print(f"Log file:       {LOG_FILE}")
         print("=" * 30)
 
         return 0
     except Exception as e:
-        logger.error(f"❌ Erro ao verificar o status: {e}")
+        logger.error(f"❌ Error checking status: {e}")
         return 1
 
 
 def log_server(args):
-    """
-    Mostra os logs do servidor
-
-    Shows the server logs
-    """
+    """Shows the server logs"""
     if not os.path.exists(LOG_FILE):
-        logger.info("⚠️ Arquivo de log não encontrado")
+        logger.info("⚠️ Log file not found")
         return 1
 
     try:
-        # Se --clear foi especificado, limpa o arquivo de log
+        # If --clear was specified, clear the log file
         if args.clear:
             open(LOG_FILE, "w").close()
-            logger.info("✅ Arquivo de log limpo com sucesso")
+            logger.info("✅ Log file cleared successfully")
             return 0
 
-        # Se --follow foi especificado, usa tail -f
+        # If --follow was specified, use tail -f
         if args.follow:
             if os.name == "nt":  # Windows
-                print("📝 Exibindo logs em tempo real (pressione Ctrl+C para sair):\n")
+                print("📝 Displaying logs in real time (press Ctrl+C to exit):\n")
                 try:
                     process = subprocess.Popen(
                         [
@@ -330,20 +272,20 @@ def log_server(args):
                     )
                     process.wait()
                 except KeyboardInterrupt:
-                    print("\nExibição de logs interrompida pelo usuário")
+                    print("\nLog display interrupted by user")
             else:  # Linux/macOS
-                print("📝 Exibindo logs em tempo real (pressione Ctrl+C para sair):\n")
+                print("📝 Displaying logs in real time (press Ctrl+C to exit):\n")
                 try:
                     process = subprocess.Popen(
                         ["tail", "-f", LOG_FILE], stdout=sys.stdout
                     )
                     process.wait()
                 except KeyboardInterrupt:
-                    print("\nExibição de logs interrompida pelo usuário")
+                    print("\nLog display interrupted by user")
         else:
-            # Se --tail foi especificado, mostra apenas as últimas N linhas
+            # If --tail was specified, show only the last N lines
             if args.tail > 0:
-                print(f"📝 Últimas {args.tail} linhas do log:\n")
+                print(f"📝 Last {args.tail} lines of log:\n")
                 if os.name == "nt":  # Windows
                     process = subprocess.Popen(
                         [
@@ -359,22 +301,22 @@ def log_server(args):
                     )
                 process.wait()
             else:
-                # Mostra o arquivo de log completo
+                # Show the complete log file
                 with open(LOG_FILE, "r") as f:
-                    print("📝 Conteúdo do arquivo de log:\n")
+                    print("📝 Log file content:\n")
                     print(f.read())
 
         return 0
     except Exception as e:
-        logger.error(f"❌ Erro ao exibir logs: {e}")
+        logger.error(f"❌ Error displaying logs: {e}")
         return 1
 
 
 def reindex_project(args):
-    """Inicia a reindexação de um projeto usando o CLI existente"""
+    """Starts project reindexing using the existing CLI"""
     reindex_cmd = ["synapstor-reindex"]
 
-    # Adiciona argumentos
+    # Add arguments
     if args.project:
         reindex_cmd.extend(["--project", args.project])
     if args.path:
@@ -385,47 +327,47 @@ def reindex_project(args):
         reindex_cmd.append("--force")
 
     try:
-        logger.info("🔄 Iniciando reindexação...")
+        logger.info("🔄 Starting reindexing...")
         process = subprocess.Popen(reindex_cmd)
         process.wait()
 
         if process.returncode == 0:
-            logger.info("✅ Reindexação concluída com sucesso")
+            logger.info("✅ Reindexing completed successfully")
         else:
-            logger.error("❌ Falha na reindexação")
+            logger.error("❌ Reindexing failed")
 
         return process.returncode
     except Exception as e:
-        logger.error(f"❌ Erro ao executar reindexação: {e}")
+        logger.error(f"❌ Error executing reindexing: {e}")
         return 1
 
 
 def setup_client(args):
-    """Executa a configuração inicial usando o CLI existente"""
+    """Executes initial setup using the existing CLI"""
     setup_cmd = ["synapstor-setup"]
 
     try:
-        logger.info("🔧 Iniciando configuração do Synapstor...")
+        logger.info("🔧 Starting Synapstor setup...")
         process = subprocess.Popen(setup_cmd)
         process.wait()
 
         if process.returncode == 0:
-            logger.info("✅ Configuração concluída com sucesso")
+            logger.info("✅ Setup completed successfully")
         else:
-            logger.error("❌ Falha na configuração")
+            logger.error("❌ Setup failed")
 
         return process.returncode
     except Exception as e:
-        logger.error(f"❌ Erro ao executar configuração: {e}")
+        logger.error(f"❌ Error executing setup: {e}")
         return 1
 
 
 def run_indexer(args):
-    """Executa o indexador com argumentos específicos"""
-    # Constrói o comando base
+    """Executes the indexer with specific arguments"""
+    # Build the base command
     indexer_cmd = ["synapstor-index"]
 
-    # Adiciona argumentos específicos
+    # Add specific arguments
     if args.project:
         indexer_cmd.extend(["--project", args.project])
     if args.path:
@@ -440,124 +382,124 @@ def run_indexer(args):
         indexer_cmd.append("--dry-run")
 
     try:
-        logger.info("🔄 Iniciando indexador...")
+        logger.info("🔄 Starting indexer...")
         process = subprocess.Popen(indexer_cmd)
         process.wait()
 
         if process.returncode == 0:
-            logger.info("✅ Indexação concluída com sucesso")
+            logger.info("✅ Indexing completed successfully")
         else:
-            logger.error("❌ Falha na indexação")
+            logger.error("❌ Indexing failed")
 
         return process.returncode
     except Exception as e:
-        logger.error(f"❌ Erro ao executar indexador: {e}")
+        logger.error(f"❌ Error executing indexer: {e}")
         return 1
 
 
 def main():
     """
-    Função principal para gerenciamento do serviço Synapstor
+    Main function for managing the Synapstor service
     """
     parser = argparse.ArgumentParser(
-        description="Gerencia o servidor Synapstor como um serviço"
+        description="Manages the Synapstor server as a service"
     )
-    subparsers = parser.add_subparsers(dest="comando", help="Comandos disponíveis")
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    # Subcomando para iniciar o servidor
+    # Subcommand to start the server
     start_parser = subparsers.add_parser(
-        "start", help="Inicia o servidor em segundo plano"
+        "start", help="Starts the server in the background"
     )
     start_parser.add_argument(
         "--transport",
         choices=["stdio", "sse"],
-        help="Protocolo de transporte (stdio ou sse)",
+        help="Transport protocol (stdio or sse)",
     )
-    start_parser.add_argument("--env-file", help="Caminho para o arquivo .env")
+    start_parser.add_argument("--env-file", help="Path to the .env file")
     start_parser.add_argument(
         "--configure",
         action="store_true",
-        help="Configura o ambiente antes de iniciar o servidor",
+        help="Configure the environment before starting the server",
     )
 
-    # Subcomando para parar o servidor
-    subparsers.add_parser("stop", help="Para o servidor em execução")
+    # Subcommand to stop the server
+    subparsers.add_parser("stop", help="Stops the running server")
 
-    # Subcomando para verificar o status
-    subparsers.add_parser("status", help="Verifica o status do servidor")
+    # Subcommand to check status
+    subparsers.add_parser("status", help="Checks the status of the server")
 
-    # Subcomando para exibir logs
-    log_parser = subparsers.add_parser("logs", help="Exibe os logs do servidor")
+    # Subcommand to show logs
+    log_parser = subparsers.add_parser("logs", help="Shows the server logs")
     log_parser.add_argument(
-        "-f", "--follow", action="store_true", help="Acompanha os logs em tempo real"
+        "-f", "--follow", action="store_true", help="Follows logs in real time"
     )
     log_parser.add_argument(
         "-n",
         "--tail",
         type=int,
         default=0,
-        help="Exibe apenas as últimas N linhas do log",
+        help="Shows only the last N lines of log",
     )
-    log_parser.add_argument(
-        "--clear", action="store_true", help="Limpa o arquivo de log"
-    )
+    log_parser.add_argument("--clear", action="store_true", help="Clears the log file")
 
-    # Subcomando para reindexar um projeto
-    reindex_parser = subparsers.add_parser("reindex", help="Reindexar um projeto")
+    # Subcommand to reindex a project
+    reindex_parser = subparsers.add_parser("reindex", help="Reindexes a project")
     reindex_parser.add_argument(
-        "--project", required=True, help="Nome do projeto a ser indexado"
+        "--project", required=True, help="Name of the project to be indexed"
     )
-    reindex_parser.add_argument("--path", help="Caminho do projeto a ser indexado")
-    reindex_parser.add_argument("--env-file", help="Caminho para o arquivo .env")
+    reindex_parser.add_argument("--path", help="Path of the project to be indexed")
+    reindex_parser.add_argument("--env-file", help="Path to the .env file")
     reindex_parser.add_argument(
         "--force",
         action="store_true",
-        help="Força a reindexação mesmo que não haja mudanças",
+        help="Force reindexing even if there are no changes",
     )
 
-    # Subcomando para configuração
-    subparsers.add_parser("setup", help="Executa a configuração inicial do Synapstor")
+    # Subcommand to setup
+    subparsers.add_parser("setup", help="Executes initial setup of Synapstor")
 
-    # Subcomando para o indexador
+    # Subcommand for the indexer
     indexer_parser = subparsers.add_parser(
-        "indexer", help="Executa o indexador do Synapstor"
+        "indexer", help="Executes the Synapstor indexer"
     )
     indexer_parser.add_argument(
-        "--project", required=True, help="Nome do projeto a ser indexado"
+        "--project", required=True, help="Name of the project to be indexed"
     )
     indexer_parser.add_argument(
-        "--path", required=True, help="Caminho do projeto a ser indexado"
+        "--path", required=True, help="Path of the project to be indexed"
     )
     indexer_parser.add_argument(
         "--collection",
-        help="Nome da coleção para armazenar (opcional, usa o padrão do .env se não informado)",
+        help="Name of the collection to store (optional, uses the default from .env if not specified)",
     )
-    indexer_parser.add_argument("--env-file", help="Caminho para o arquivo .env")
+    indexer_parser.add_argument("--env-file", help="Path to the .env file")
     indexer_parser.add_argument(
         "--verbose",
         action="store_true",
-        help="Exibe informações detalhadas durante a indexação",
+        help="Shows detailed information during indexing",
     )
     indexer_parser.add_argument(
-        "--dry-run", action="store_true", help="Simula a indexação sem enviar ao Qdrant"
+        "--dry-run",
+        action="store_true",
+        help="Simulates indexing without sending to Qdrant",
     )
 
     args = parser.parse_args()
 
-    # Executar o comando apropriado
-    if args.comando == "start":
+    # Execute the appropriate command
+    if args.command == "start":
         return start_server(args)
-    elif args.comando == "stop":
+    elif args.command == "stop":
         return stop_server()
-    elif args.comando == "status":
+    elif args.command == "status":
         return status_server()
-    elif args.comando == "logs":
+    elif args.command == "logs":
         return log_server(args)
-    elif args.comando == "reindex":
+    elif args.command == "reindex":
         return reindex_project(args)
-    elif args.comando == "setup":
+    elif args.command == "setup":
         return setup_client(args)
-    elif args.comando == "indexer":
+    elif args.command == "indexer":
         return run_indexer(args)
     else:
         parser.print_help()
