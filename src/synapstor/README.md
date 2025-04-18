@@ -2,6 +2,16 @@
 
 ![Synapstor](https://2.gravatar.com/userimage/264864229/4e133a67b7d5fff345dd8f2bc4d0743b?size=400)
 
+## 🌎 Idioma / Language
+
+- [Português 🇧🇷](#português)
+- [English 🇺🇸](#english)
+
+---
+
+<a name="português"></a>
+# Português 🇧🇷
+
 > Biblioteca modular para armazenamento e recuperação semântica de informações usando embeddings vetoriais.
 
 ## 🔍 Visão Geral
@@ -201,3 +211,208 @@ Contribuições são bem-vindas! Veja o [CONTRIBUTING.md](../CONTRIBUTING.md) pa
 ## 📄 Licença
 
 Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](../LICENSE) para detalhes.
+
+---
+
+<a name="english"></a>
+# English 🇺🇸
+
+> Modular library for semantic storage and retrieval of information using vector embeddings.
+
+## 🔍 Overview
+
+Synapstor is a modular system for storing and retrieving information based on vector embeddings using Qdrant. It provides a simple yet powerful interface for storing content with metadata and retrieving it using natural language queries.
+
+Designed with modularity and extensibility in mind, Synapstor can be used as:
+
+- 🚀 MCP (Model Control Protocol) server for integration with LLMs
+- 🔧 Python library for integration in other projects
+- 🛠️ Command-line tools suite
+
+## 🏗️ Architecture
+
+Synapstor is organized into specialized modules:
+
+```
+src/synapstor/
+├── embeddings/     # Vector embedding generators
+├── plugins/        # Extensible plugin system
+├── tools/          # Utilities and CLI tools
+├── utils/          # Helper functions
+├── qdrant.py       # Connector for Qdrant database
+├── settings.py     # System configurations
+├── mcp_server.py   # MCP server implementation
+└── ...
+```
+
+## 🧩 Main Components
+
+### 🔄 Qdrant Connector (`qdrant.py`)
+
+Interface for the Qdrant vector database, managing storage and retrieval of information.
+
+```python
+from synapstor.qdrant import QdrantConnector, Entry
+
+# Initialize the connector
+connector = QdrantConnector(
+    qdrant_url="http://localhost:6333",
+    qdrant_api_key=None,
+    collection_name="my_collection",
+    embedding_provider=embedding_provider
+)
+
+# Store information
+entry = Entry(
+    content="Content to be stored",
+    metadata={"key": "value"}
+)
+await connector.store(entry)
+
+# Search for information
+results = await connector.search("natural language query")
+```
+
+### 🧠 Embedding Providers (`embeddings/`)
+
+Implementations to generate embedding vectors from text using different models and libraries.
+
+```python
+from synapstor.embeddings.factory import create_embedding_provider
+from synapstor.settings import EmbeddingProviderSettings
+
+# Create embedding provider
+settings = EmbeddingProviderSettings()
+embedding_provider = create_embedding_provider(settings)
+
+# Generate embeddings
+embeddings = await embedding_provider.embed_documents(["Example text"])
+```
+
+### ⚙️ Plugin System (`plugins/`)
+
+Extensible architecture for adding new functionalities without modifying the core code.
+
+```python
+# In a file tool_my_tool.py
+async def my_tool(ctx, parameter: str) -> str:
+    return f"Processed: {parameter}"
+
+def setup_tools(server):
+    server.add_tool(
+        my_tool,
+        name="my-tool",
+        description="Tool description"
+    )
+    return ["my-tool"]
+```
+
+### 🛠️ Tools (`tools/`)
+
+Utilities and command-line tools, including the powerful indexer for batch processing.
+
+```bash
+# Index a complete project
+python -m synapstor.tools.indexer --project my-project --path /path/to/project
+```
+
+### 🔧 Utilities (`utils/`)
+
+Helper functions used in different parts of the system.
+
+```python
+from synapstor.utils import generate_deterministic_id
+
+# Generate deterministic ID to avoid duplications
+metadata = {
+    "project": "my-project",
+    "absolute_path": "/complete/path/file.txt"
+}
+document_id = generate_deterministic_id(metadata)
+```
+
+### 🖥️ MCP Server (`mcp_server.py`)
+
+Implementation of the Model Control Protocol for integration with LLMs.
+
+```python
+from synapstor.mcp_server import QdrantMCPServer
+from synapstor.settings import QdrantSettings, EmbeddingProviderSettings, ToolSettings
+
+# Initialize the server
+server = QdrantMCPServer(
+    tool_settings=ToolSettings(),
+    qdrant_settings=QdrantSettings(),
+    embedding_provider_settings=EmbeddingProviderSettings(),
+    name="synapstor-server"
+)
+
+# Run the server
+server.run()
+```
+
+## ⚡ Quick Usage
+
+### Installation
+
+```bash
+pip install synapstor
+```
+
+### Configuration
+
+Configure Synapstor through environment variables or a `.env` file:
+
+```
+QDRANT_URL=http://localhost:6333
+QDRANT_API_KEY=your-api-key
+COLLECTION_NAME=synapstor
+EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+```
+
+### MCP Server
+
+```bash
+# Start the MCP server
+python -m synapstor
+
+# Or using the CLI
+synapstor-server
+```
+
+### CLI Tools
+
+```bash
+# Index a project
+synapstor-indexer --project my-project --path /path/to/project
+
+# Centralized interface
+synapstor-ctl indexer --project my-project --path /path/to/project
+```
+
+## 🧪 Tests
+
+Synapstor includes comprehensive tests to ensure quality and robustness:
+
+```bash
+# Run all tests
+pytest tests/
+
+# Run specific tests
+pytest tests/test_qdrant_integration.py
+```
+
+## 📦 Main Dependencies
+
+- **qdrant-client**: Python client for the Qdrant vector database
+- **fastembed**: Lightweight and efficient library for generating embeddings
+- **pydantic**: Data validation and configuration
+- **mcp**: Implementation of the Model Control Protocol
+
+## 🤝 Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](../CONTRIBUTING.md) for detailed guidelines.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
