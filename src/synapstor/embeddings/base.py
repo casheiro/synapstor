@@ -3,24 +3,24 @@ from typing import List
 
 
 class EmbeddingProvider(ABC):
-    """Classe base abstrata para provedores de embeddings."""
+    """Abstract base class for embedding providers."""
 
     @abstractmethod
     async def embed_documents(self, documents: List[str]) -> List[List[float]]:
-        """Converte uma lista de documentos em vetores."""
+        """Converts a list of documents into vectors."""
         pass
 
     @abstractmethod
     async def embed_query(self, query: str) -> List[float]:
-        """Converte uma consulta em vetor."""
+        """Converts a query into a vector."""
         pass
 
     @abstractmethod
     def get_vector_name(self) -> str:
-        """Obtém o nome do vetor para a coleção Qdrant."""
+        """Gets the vector name for the Qdrant collection."""
         pass
 
     @abstractmethod
     def get_vector_size(self) -> int:
-        """Obtém o tamanho do vetor para a coleção Qdrant."""
+        """Gets the vector size for the Qdrant collection."""
         pass
