@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Script de configuração inicial do Synapstor
+Initial setup script for Synapstor
 
-Este script é executado quando o usuário executa 'synapstor-setup' após a instalação.
+This script is executed when the user runs 'synapstor-setup' after installation.
 """
 
 import os
@@ -10,70 +10,70 @@ import sys
 import shutil
 from pathlib import Path
 
-# Adiciona o diretório raiz ao path para importar o módulo
+# Adds the root directory to the path to import the module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-# Importa o configurador
+# Import the configurator
 from cli.config import ConfiguradorInterativo
 
 
 def main():
     """
-    Função principal do script de configuração
+    Main function of the setup script
     """
     print("=" * 50)
-    print("INSTALAÇÃO DO SYNAPSTOR")
+    print("SYNAPSTOR INSTALLATION")
     print("=" * 50)
 
-    print("\nIniciando a configuração do Synapstor...")
+    print("\nStarting Synapstor setup...")
 
-    # Obtém o diretório atual
-    diretorio_atual = Path.cwd()
+    # Get the current directory
+    current_directory = Path.cwd()
 
-    # Define o caminho do arquivo .env
-    env_path = diretorio_atual / ".env"
+    # Define the path of the .env file
+    env_path = current_directory / ".env"
 
-    # Cria o configurador
+    # Create the configurator
     configurador = ConfiguradorInterativo(env_path)
 
-    # Verifica dependências
+    # Check dependencies
     if not configurador.verificar_dependencias():
-        print("\n❌ Falha ao verificar ou instalar dependências.")
+        print("\n❌ Failed to check or install dependencies.")
         return 1
 
-    # Pergunta se deseja criar um script para iniciar facilmente o servidor
-    print("\nDeseja criar scripts para iniciar facilmente o servidor? (s/n)")
-    criar_scripts = input().strip().lower() in ["s", "sim", "y", "yes"]
+    # Ask if you want to create a script to easily start the server
+    print("\nDo you want to create scripts to easily start the server? (y/n)")
+    create_scripts = input().strip().lower() in ["y", "yes"]
 
-    if criar_scripts:
-        # Oferece opções para onde instalar os scripts
-        print("\nOnde deseja instalar os scripts? (Escolha uma opção)")
-        print(" 1. Diretório atual")
-        print(" 2. Diretório de usuário (~/.synapstor/bin)")
-        print(" 3. Outro diretório (personalizado)")
+    if create_scripts:
+        # Offers options for where to install the scripts
+        print("\nWhere do you want to install the scripts? (Choose an option)")
+        print(" 1. Current directory")
+        print(" 2. User directory (~/.synapstor/bin)")
+        print(" 3. Other directory (custom)")
 
-        opcao = input("\nOpção: ").strip()
+        option = input("\nOption: ").strip()
 
-        # Define o diretório de destino com base na opção escolhida
-        destino = None
+        # Define the destination directory based on the chosen option
+        destination = None
 
-        if opcao == "1":
-            destino = diretorio_atual
-            print(f"\nScripts serão instalados em: {destino}")
-        elif opcao == "2":
-            # Criar diretório ~/.synapstor/bin se não existir
+        if option == "1":
+            destination = current_directory
+            print(f"\nScripts will be installed in: {destination}")
+        elif option == "2":
+            # Create directory ~/.synapstor/bin if it doesn't exist
             user_dir = Path.home() / ".synapstor" / "bin"
             user_dir.mkdir(parents=True, exist_ok=True)
-            destino = user_dir
-            print(f"\nScripts serão instalados em: {destino}")
+            destination = user_dir
+            print(f"\nScripts will be installed in: {destination}")
 
-            # Perguntar se deseja adicionar ao PATH (apenas em sistemas Unix-like)
+            # Ask if you want to add to PATH (only on Unix-like systems)
             if os.name != "nt":
-                print("\nDeseja adicionar este diretório ao seu PATH? (s/n)")
-                add_to_path = input().strip().lower() in ["s", "sim", "y", "yes"]
+                print("\nDo you want to add this directory to your PATH? (y/n)")
+                add_to_path = input().strip().lower() in ["y", "yes"]
 
                 if add_to_path:
-                    # Detecta o shell do usuário
+                    # Detect the user's shell
                     shell_file = None
                     shell = os.environ.get("SHELL", "")
 
@@ -84,94 +84,92 @@ def main():
 
                     if shell_file:
                         try:
-                            # Adiciona ao path no arquivo de configuração do shell
+                            # Add to path in the shell configuration file
                             with open(shell_file, "a") as f:
-                                f.write("\n# Adicionado pelo instalador do Synapstor\n")
-                                f.write(f'export PATH="$PATH:{destino}"\n')
-                            print(f"✅ Adicionado ao PATH em {shell_file}")
+                                f.write("\n# Added by the Synapstor installer\n")
+                                f.write(f'export PATH="$PATH:{destination}"\n')
+                            print(f"✅ Added to PATH in {shell_file}")
                         except Exception as e:
-                            print(f"⚠️ Não foi possível adicionar ao PATH: {e}")
+                            print(f"⚠️ Could not add to PATH: {e}")
                     else:
-                        print(
-                            "⚠️ Não foi possível determinar o arquivo de configuração do shell."
-                        )
-                        print(f'Adicione manualmente: export PATH="$PATH:{destino}"')
+                        print("⚠️ Could not determine the shell configuration file.")
+                        print(f'Manually add: export PATH="$PATH:{destination}"')
 
-        elif opcao == "3":
-            custom_dir = input("\nDigite o caminho completo para o diretório: ").strip()
-            destino = Path(custom_dir)
+        elif option == "3":
+            custom_dir = input("\nEnter the full path to the directory: ").strip()
+            destination = Path(custom_dir)
 
-            # Tenta criar o diretório se ele não existir
+            # Try to create the directory if it doesn't exist
             try:
-                destino.mkdir(parents=True, exist_ok=True)
-                print(f"\nScripts serão instalados em: {destino}")
+                destination.mkdir(parents=True, exist_ok=True)
+                print(f"\nScripts will be installed in: {destination}")
             except Exception as e:
-                print(f"\n⚠️ Erro ao criar diretório: {e}")
-                print("Continuando com o diretório atual...")
-                destino = diretorio_atual
+                print(f"\n⚠️ Error creating directory: {e}")
+                print("Continuing with the current directory...")
+                destination = current_directory
         else:
-            # Opção inválida, usa o diretório atual
-            print("\n⚠️ Opção inválida. Usando o diretório atual.")
-            destino = diretorio_atual
+            # Invalid option, use the current directory
+            print("\n⚠️ Invalid option. Using the current directory.")
+            destination = current_directory
 
-        # Cria scripts para diferentes sistemas operacionais
+        # Create scripts for different operating systems
         try:
-            # Caminhos para os templates
+            # Paths for templates
             template_dir = Path(__file__).parent / "templates"
 
-            # Lista de scripts a serem copiados
+            # List of scripts to be copied
             scripts = [
-                ("start-synapstor.bat", destino / "start-synapstor.bat"),
-                ("Start-Synapstor.ps1", destino / "Start-Synapstor.ps1"),
-                ("start-synapstor.sh", destino / "start-synapstor.sh"),
+                ("start-synapstor.bat", destination / "start-synapstor.bat"),
+                ("Start-Synapstor.ps1", destination / "Start-Synapstor.ps1"),
+                ("start-synapstor.sh", destination / "start-synapstor.sh"),
             ]
 
-            # Copia cada script do template para o destino
-            for origem_nome, destino_caminho in scripts:
-                origem_caminho = template_dir / origem_nome
+            # Copy each script from the template to the destination
+            for source_name, destination_path in scripts:
+                source_path = template_dir / source_name
                 try:
-                    shutil.copy2(origem_caminho, destino_caminho)
+                    shutil.copy2(source_path, destination_path)
 
-                    # Torna o script shell executável (somente em sistemas Unix-like)
-                    if origem_nome.endswith(".sh") and os.name != "nt":
+                    # Make the shell script executable (only on Unix-like systems)
+                    if source_name.endswith(".sh") and os.name != "nt":
                         try:
-                            os.chmod(destino_caminho, 0o755)
+                            os.chmod(destination_path, 0o755)
                         except Exception:
                             pass
                 except Exception as e:
-                    print(f"\n⚠️ Erro ao copiar {origem_nome}: {e}")
+                    print(f"\n⚠️ Error copying {source_name}: {e}")
 
-            print("\n✅ Scripts de inicialização criados com sucesso!")
+            print("\n✅ Startup scripts created successfully!")
         except Exception as e:
-            print(f"\n⚠️ Ocorreu um erro ao criar os scripts: {e}")
+            print(f"\n⚠️ An error occurred while creating the scripts: {e}")
 
-    # Executa a configuração interativa
-    print("\nVamos configurar o Synapstor...")
+    # Run the interactive configuration
+    print("\nLet's configure Synapstor...")
     if configurador.configurar():
-        print("\n✅ Configuração concluída com sucesso!")
-        print(f"Arquivo .env foi criado em: {env_path.absolute()}")
+        print("\n✅ Configuration completed successfully!")
+        print(f".env file was created at: {env_path.absolute()}")
 
-        if criar_scripts:
-            print("\nVocê pode iniciar o servidor com um dos scripts criados:")
+        if create_scripts:
+            print("\nYou can start the server with one of the created scripts:")
 
-            if opcao == "1" or opcao == "3":
-                print("  - Windows: start-synapstor.bat ou Start-Synapstor.ps1")
+            if option == "1" or option == "3":
+                print("  - Windows: start-synapstor.bat or Start-Synapstor.ps1")
                 print("  - Linux/macOS: ./start-synapstor.sh")
-            elif opcao == "2":
+            elif option == "2":
                 print(
-                    f"  - Windows: {destino}/start-synapstor.bat ou {destino}/Start-Synapstor.ps1"
+                    f"  - Windows: {destination}/start-synapstor.bat or {destination}/Start-Synapstor.ps1"
                 )
-                print(f"  - Linux/macOS: {destino}/start-synapstor.sh")
-                print(f"\nCaminho completo do diretório: {destino}")
+                print(f"  - Linux/macOS: {destination}/start-synapstor.sh")
+                print(f"\nFull directory path: {destination}")
         else:
-            print("\nVocê pode iniciar o servidor com:")
+            print("\nYou can start the server with:")
             print("  synapstor-server")
 
-        print("\nPara indexar projetos, use:")
-        print("  synapstor-indexer --project meu-projeto --path /caminho/do/projeto")
+        print("\nTo index projects, use:")
+        print("  synapstor-indexer --project my-project --path /path/to/project")
         return 0
     else:
-        print("\n❌ Falha ao completar a configuração.")
+        print("\n❌ Failed to complete the configuration.")
         return 1
 
 
