@@ -107,19 +107,19 @@ class ConfiguradorInterativo:
         """
         valores = {}
 
-        # Descrições para cada variável
-        # Descriptions for each variable
+        # Descrições para cada variável (português/inglês)
+        # Descriptions for each variable (Portuguese/English)
         descricoes = {
-            "QDRANT_URL": "URL do servidor Qdrant (ex: http://localhost:6333 ou https://seu-servidor-qdrant.cloud:6333)",
-            "QDRANT_API_KEY": "Chave API do servidor Qdrant (deixe em branco para não usar autenticação)",
-            "COLLECTION_NAME": "Nome da coleção no Qdrant (ex: synapstor)",
-            "QDRANT_LOCAL_PATH": "Caminho para armazenamento local do Qdrant (opcional, deixe em branco para usar o servidor na URL)",
-            "EMBEDDING_PROVIDER": "Provedor de embeddings [FASTEMBED]",
-            "EMBEDDING_MODEL": "Modelo de embeddings (ex: sentence-transformers/all-MiniLM-L6-v2)",
-            "QDRANT_SEARCH_LIMIT": "Limite de resultados de busca (ex: 10)",
-            "TOOL_STORE_DESCRIPTION": "Descrição da ferramenta 'store'",
-            "TOOL_FIND_DESCRIPTION": "Descrição da ferramenta 'find'",
-            "LOG_LEVEL": "Nível de log [INFO, DEBUG, WARNING, ERROR]",
+            "QDRANT_URL": "URL do servidor Qdrant (ex: http://localhost:6333 ou https://seu-servidor-qdrant.cloud:6333) | Qdrant server URL (e.g. http://localhost:6333 or https://your-qdrant-server.cloud:6333)",
+            "QDRANT_API_KEY": "Chave API do servidor Qdrant (deixe em branco para não usar autenticação) | Qdrant server API key (leave blank for no authentication)",
+            "COLLECTION_NAME": "Nome da coleção no Qdrant (ex: synapstor) | Collection name in Qdrant (e.g. synapstor)",
+            "QDRANT_LOCAL_PATH": "Caminho para armazenamento local do Qdrant (opcional, deixe em branco para usar o servidor na URL) | Path for local Qdrant storage (optional, leave blank to use the server in the URL)",
+            "EMBEDDING_PROVIDER": "Provedor de embeddings [FASTEMBED] | Embeddings provider [FASTEMBED]",
+            "EMBEDDING_MODEL": "Modelo de embeddings (ex: sentence-transformers/all-MiniLM-L6-v2) | Embeddings model (e.g. sentence-transformers/all-MiniLM-L6-v2)",
+            "QDRANT_SEARCH_LIMIT": "Limite de resultados de busca (ex: 10) | Search results limit (e.g. 10)",
+            "TOOL_STORE_DESCRIPTION": "Descrição da ferramenta 'store' | Description of the 'store' tool",
+            "TOOL_FIND_DESCRIPTION": "Descrição da ferramenta 'find' | Description of the 'find' tool",
+            "LOG_LEVEL": "Nível de log [INFO, DEBUG, WARNING, ERROR] | Log level [INFO, DEBUG, WARNING, ERROR]",
         }
 
         # Valores padrão para cada variável
