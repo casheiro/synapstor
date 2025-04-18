@@ -6,6 +6,12 @@ Script para reindexar conteúdo no Qdrant sem duplicação.
 Este script utiliza identificadores determinísticos para cada documento,
 baseados no nome do projeto e caminho do arquivo, permitindo reindexar
 conteúdo sem criar duplicações.
+
+Script for reindexing content in Qdrant without duplication.
+
+This script uses deterministic identifiers for each document,
+based on the project name and file path, allowing content to be reindexed
+without creating duplications.
 """
 
 import argparse
@@ -21,6 +27,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.http import models
 
 # Verificar dependências
+# Check dependencies
 dependencias_necessarias = {
     "dotenv": "python-dotenv",
     "qdrant_client": "qdrant-client[fastembed]",
@@ -43,15 +50,28 @@ def gerar_id_determinista(projeto: str, caminho_absoluto: str) -> int:
 
     Returns:
         Um ID numérico derivado do hash MD5 dos dados
+
+    Generates a deterministic ID based on the project name and absolute file path.
+
+    Args:
+        projeto: Project name
+        caminho_absoluto: Absolute file path
+
+    Returns:
+        A numeric ID derived from the MD5 hash of the data
     """
     # Criar uma string única que identifica este arquivo neste projeto
+    # Create a unique string that identifies this file in this project
     identificador = f"{projeto}:{caminho_absoluto}"
 
     # Gerar hash MD5 do identificador
+    # Generate MD5 hash of the identifier
     hash_md5 = hashlib.md5(identificador.encode()).hexdigest()
 
     # Converter primeiros 8 caracteres do hash para inteiro
     # (evitando colisões com probabilidade muito baixa)
+    # Convert first 8 characters of hash to integer
+    # (avoiding collisions with very low probability)
     return int(hash_md5[:8], 16)
 
 
@@ -74,9 +94,22 @@ def enviar_para_qdrant(
 
     Returns:
         ID do documento ou None se falhar
+
+    Sends a document to Qdrant using a deterministic ID to avoid duplications.
+
+    Args:
+        client: Configured Qdrant client
+        collection_name: Collection name
+        text: Text to index
+        metadata: Document metadata
+        dry_run: If True, doesn't actually send to Qdrant
+
+    Returns:
+        Document ID or None if it fails
     """
     try:
         # Gerar ID determinístico
+        # Generate deterministic ID
         doc_id = gerar_id_determinista(
             metadata.get("projeto", "unknown"),
             metadata.get("caminho_absoluto", "unknown"),
@@ -89,6 +122,7 @@ def enviar_para_qdrant(
             return doc_id
 
         # Usar o método upsert para atualizar se existir ou criar se não existir
+        # Use the upsert method to update if it exists or create if it doesn't
         client.upsert(
             collection_name=collection_name,
             points=[
@@ -128,6 +162,19 @@ def processar_arquivo(
 
     Returns:
         ID do documento indexado ou None se falhar
+
+    Processes a single file and indexes it in Qdrant.
+
+    Args:
+        path: Path to the file
+        project_name: Project name
+        client: Qdrant client
+        collection_name: Collection name
+        verbose: If True, prints additional information
+        dry_run: If True, doesn't actually send data to Qdrant
+
+    Returns:
+        ID of the indexed document or None if it fails
     """
     try:
         file_path = Path(path)
@@ -138,6 +185,8 @@ def processar_arquivo(
 
         # Verificar se é um arquivo que queremos indexar
         # Ignorar arquivos binários, imagens, etc.
+        # Check if it's a file we want to index
+        # Ignore binary files, images, etc.
         extensoes_ignoradas = {
             ".pyc",
             ".pyo",
@@ -181,6 +230,7 @@ def processar_arquivo(
             return None
 
         # Criar metadados
+        # Create metadata
         metadata = {
             "projeto": project_name,
             "caminho_absoluto": str(file_path.absolute()),
@@ -190,6 +240,7 @@ def processar_arquivo(
         }
 
         # Enviar para Qdrant
+        # Send to Qdrant
         if verbose:
             print(f"Processando: {path}")
 

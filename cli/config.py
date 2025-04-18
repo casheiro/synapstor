@@ -3,6 +3,10 @@
 Módulo de configuração interativa para o Synapstor
 
 Este módulo fornece uma interface de linha de comando para configurar o Synapstor.
+
+Interactive configuration module for Synapstor
+
+This module provides a command-line interface for configuring Synapstor.
 """
 
 import os
@@ -13,9 +17,11 @@ from typing import Dict, Optional, List
 from synapstor.env_loader import REQUIRED_VARS, OPTIONAL_VARS
 
 # Adiciona o diretório raiz ao path para importar o módulo
+# Adds the root directory to the path to import the module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Configuração básica do logging
+# Basic logging configuration
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -27,6 +33,8 @@ logger = logging.getLogger("synapstor-config")
 class ConfiguradorInterativo:
     """
     Interface interativa para configurar o Synapstor
+
+    Interactive interface for configuring Synapstor
     """
 
     def __init__(self, env_path: Optional[Path] = None):
@@ -35,6 +43,11 @@ class ConfiguradorInterativo:
 
         Args:
             env_path: Caminho para o arquivo .env. Se None, será usado .env na pasta atual.
+
+        Initializes the configurator with an optional path to the .env file
+
+        Args:
+            env_path: Path to the .env file. If None, .env in the current folder will be used.
         """
         self.env_path = env_path or Path.cwd() / ".env"
         self.config_values: Dict[str, str] = {}
@@ -45,6 +58,11 @@ class ConfiguradorInterativo:
 
         Returns:
             Dict[str, str]: Dicionário com as variáveis lidas do arquivo
+
+        Reads an existing .env file
+
+        Returns:
+            Dict[str, str]: Dictionary with variables read from the file
         """
         if not self.env_path.exists():
             return {}
@@ -77,10 +95,20 @@ class ConfiguradorInterativo:
 
         Returns:
             Dict[str, str]: Dicionário com os valores informados pelo usuário
+
+        Interactively requests values for variables
+
+        Args:
+            variaveis: List of variables to be requested
+            existentes: Dictionary with existing values
+
+        Returns:
+            Dict[str, str]: Dictionary with values provided by the user
         """
         valores = {}
 
         # Descrições para cada variável
+        # Descriptions for each variable
         descricoes = {
             "QDRANT_URL": "URL do servidor Qdrant (ex: http://localhost:6333 ou https://seu-servidor-qdrant.cloud:6333)",
             "QDRANT_API_KEY": "Chave API do servidor Qdrant (deixe em branco para não usar autenticação)",
@@ -95,6 +123,7 @@ class ConfiguradorInterativo:
         }
 
         # Valores padrão para cada variável
+        # Default values for each variable
         padroes = {
             "QDRANT_URL": "http://localhost:6333",
             "COLLECTION_NAME": "synapstor",
@@ -128,6 +157,7 @@ class ConfiguradorInterativo:
             novo_valor = input(prompt)
 
             # Se o usuário não inserir nada, use o valor padrão
+            # If the user doesn't enter anything, use the default value
             valores[var] = novo_valor or padrao
 
         return valores
@@ -141,6 +171,14 @@ class ConfiguradorInterativo:
 
         Returns:
             bool: True se o arquivo foi salvo com sucesso, False caso contrário
+
+        Saves the values to the .env file
+
+        Args:
+            valores: Dictionary with values to be saved
+
+        Returns:
+            bool: True if the file was successfully saved, False otherwise
         """
         try:
             with open(self.env_path, "w", encoding="utf-8") as f:
@@ -148,11 +186,13 @@ class ConfiguradorInterativo:
                 f.write("# Arquivo gerado automaticamente\n\n")
 
                 # Escreve as variáveis obrigatórias primeiro
+                # Writes the required variables first
                 f.write("# Configuração do Qdrant (obrigatório)\n")
                 for var in REQUIRED_VARS:
                     f.write(f"{var}={valores.get(var, '')}\n")
 
                 # Escreve as variáveis opcionais
+                # Writes the optional variables
                 f.write("\n# Configurações opcionais\n")
                 for var in OPTIONAL_VARS:
                     if var in valores and valores[var]:
@@ -171,17 +211,25 @@ class ConfiguradorInterativo:
 
         Returns:
             bool: True se a configuração foi concluída com sucesso, False caso contrário
+
+        Executes the interactive configuration
+
+        Returns:
+            bool: True if the configuration was successfully completed, False otherwise
         """
         # Lê valores existentes se o arquivo já existir
+        # Reads existing values if the file already exists
         valores_existentes = self._ler_env_existente()
 
         # Solicita valores obrigatórios
+        # Requests required values
         print("\nVamos configurar as variáveis obrigatórias:")
         valores_obrigatorios = self._solicitar_valores(
             REQUIRED_VARS, valores_existentes
         )
 
         # Pergunta se deseja configurar valores opcionais
+        # Asks if you want to configure optional values
         print("\nDeseja configurar variáveis opcionais? (s/n)")
         configura_opcionais = input().strip().lower() in ["s", "sim", "y", "yes"]
 
@@ -196,9 +244,11 @@ class ConfiguradorInterativo:
             }
 
         # Combina todos os valores
+        # Combines all values
         todos_valores = {**valores_obrigatorios, **valores_opcionais}
 
-        # Salva o arquivo .env
+        # Salva os valores no arquivo .env
+        # Saves the values to the .env file
         return self._salvar_env(todos_valores)
 
     def verificar_dependencias(self) -> bool:

@@ -4,6 +4,11 @@ Script para controle do servidor Synapstor como um serviço
 
 Este script permite gerenciar o servidor Synapstor como um serviço em segundo plano,
 oferecendo comandos para iniciar, parar, verificar status e acompanhar logs.
+
+Script for controlling the Synapstor server as a service
+
+This script allows managing the Synapstor server as a background service,
+offering commands to start, stop, check status, and monitor logs.
 """
 
 import os
@@ -17,12 +22,15 @@ import logging
 from pathlib import Path
 
 # Adiciona o diretório raiz ao path para importar o módulo
+# Adds the root directory to the path to import the module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Importa ferramentas existentes
+# Imports existing tools
 from cli.config import ConfiguradorInterativo
 
 # Configuração básica do logging
+# Basic logging configuration
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -31,18 +39,27 @@ logging.basicConfig(
 logger = logging.getLogger("synapstor-ctl")
 
 # Constantes
+# Constants
 DEFAULT_DIR = os.path.expanduser("~/.synapstor")
 PID_FILE = os.path.join(DEFAULT_DIR, "synapstor.pid")
 LOG_FILE = os.path.join(DEFAULT_DIR, "synapstor.log")
 
 
 def ensure_dir_exists():
-    """Garante que o diretório para armazenar PID e logs exista"""
+    """
+    Garante que o diretório para armazenar PID e logs exista
+
+    Ensures that the directory for storing PID and logs exists
+    """
     os.makedirs(DEFAULT_DIR, exist_ok=True)
 
 
 def is_running():
-    """Verifica se o servidor está rodando"""
+    """
+    Verifica se o servidor está rodando
+
+    Checks if the server is running
+    """
     if not os.path.exists(PID_FILE):
         return False
 
@@ -51,8 +68,10 @@ def is_running():
             pid = int(f.read().strip())
 
         # Verifica se o processo existe
+        # Checks if the process exists
         process = psutil.Process(pid)
         # Verifica se o nome do processo contém 'synapstor'
+        # Checks if the process name contains 'synapstor'
         return (
             "synapstor" in process.name().lower() or "python" in process.name().lower()
         )
@@ -61,7 +80,11 @@ def is_running():
 
 
 def start_server(args):
-    """Inicia o servidor em segundo plano"""
+    """
+    Inicia o servidor em segundo plano
+
+    Starts the server in the background
+    """
     if is_running():
         logger.info("⚠️ O servidor já está em execução")
         return 0
@@ -69,17 +92,20 @@ def start_server(args):
     ensure_dir_exists()
 
     # Se --configure foi especificado, executa o configurador interativo
+    # If --configure was specified, runs the interactive configurator
     if args.configure:
         env_path = Path(args.env_file) if args.env_file else Path.cwd() / ".env"
         logger.info("🔧 Configurando o Synapstor antes de iniciar o servidor...")
         configurador = ConfiguradorInterativo(env_path)
 
         # Verifica dependências
+        # Checks dependencies
         if not configurador.verificar_dependencias():
             logger.error("❌ Falha ao verificar ou instalar dependências")
             return 1
 
         # Executa configuração
+        # Runs configuration
         if not configurador.configurar():
             logger.error(
                 "❌ Falha ao configurar o Synapstor. O servidor não será iniciado."
@@ -88,9 +114,11 @@ def start_server(args):
         logger.info("✅ Configuração concluída")
 
     # Prepara os argumentos para o synapstor-server
+    # Prepares the arguments for synapstor-server
     server_cmd = ["synapstor-server"]
 
     # Adiciona argumentos opcionais
+    # Adds optional arguments
     if args.transport:
         server_cmd.extend(["--transport", args.transport])
     if args.env_file:
@@ -98,19 +126,22 @@ def start_server(args):
 
     try:
         # Redireciona a saída para o arquivo de log
+        # Redirects output to the log file
         with open(LOG_FILE, "a") as log_file:
             process = subprocess.Popen(
                 server_cmd,
                 stdout=log_file,
                 stderr=log_file,
-                start_new_session=True,  # Desvincula do processo pai
+                start_new_session=True,  # Desvincula do processo pai / Detaches from parent process
             )
 
         # Salva o PID em um arquivo
+        # Saves the PID to a file
         with open(PID_FILE, "w") as f:
             f.write(str(process.pid))
 
         # Aguarda um momento para verificar se o servidor iniciou corretamente
+        # Waits a moment to check if the server started correctly
         time.sleep(2)
         if is_running():
             logger.info(f"✅ Servidor iniciado com PID {process.pid}")
@@ -127,7 +158,11 @@ def start_server(args):
 
 
 def stop_server():
-    """Para o servidor em execução"""
+    """
+    Para o servidor em execução
+
+    Stops the running server
+    """
     if not is_running():
         logger.info("⚠️ O servidor não está em execução")
         return 0
@@ -137,13 +172,16 @@ def stop_server():
             pid = int(f.read().strip())
 
         # Envia SIGTERM para o processo
+        # Sends SIGTERM to the process
         os.kill(pid, signal.SIGTERM)
 
         # Espera até que o processo termine
-        max_wait = 5  # segundos
+        # Waits until the process terminates
+        max_wait = 5  # segundos / seconds
         for _ in range(max_wait):
             try:
                 # Verifica se o processo existe usando psutil em vez de os.kill(pid, 0)
+                # Checks if the process exists using psutil instead of os.kill(pid, 0)
                 if psutil.pid_exists(pid):
                     time.sleep(1)
                 else:
@@ -152,20 +190,24 @@ def stop_server():
                 break
         else:
             # Se chegou aqui, o processo não terminou após o tempo máximo
+            # If we got here, the process did not terminate after the maximum time
             logger.warning(
                 "⚠️ O servidor não respondeu ao sinal SIGTERM, enviando SIGKILL..."
             )
             try:
                 # Windows não suporta SIGKILL, então verifica se está disponível
+                # Windows does not support SIGKILL, so check if it's available
                 if hasattr(signal, "SIGKILL"):
                     os.kill(pid, signal.SIGKILL)
                 else:
                     # Fallback para Windows usar SIGTERM novamente ou outra alternativa
+                    # Fallback for Windows to use SIGTERM again or another alternative
                     os.kill(pid, signal.SIGTERM)
             except OSError:
                 pass
 
         # Remove o arquivo PID
+        # Removes the PID file
         os.remove(PID_FILE)
 
         logger.info("✅ Servidor parado com sucesso")
@@ -179,7 +221,11 @@ def stop_server():
 
 
 def status_server():
-    """Verifica o status do servidor"""
+    """
+    Verifica o status do servidor
+
+    Checks the server status
+    """
     if not is_running():
         logger.info("🔴 O servidor não está em execução")
         return 1
@@ -194,6 +240,7 @@ def status_server():
         cpu_percent = process.cpu_percent(interval=0.5)
 
         # Formata o uptime em dias, horas, minutos, segundos
+        # Formats uptime in days, hours, minutes, seconds
         days, remainder = divmod(uptime, 86400)
         hours, remainder = divmod(remainder, 3600)
         minutes, seconds = divmod(remainder, 60)
@@ -208,9 +255,11 @@ def status_server():
         uptime_str += f"{int(seconds)}s"
 
         # Verifica o arquivo .env
+        # Checks the .env file
         env_file = None
         try:
             # Tenta obter o comando original para verificar se foi usado --env-file
+            # Tries to get the original command to check if --env-file was used
             cmdline = process.cmdline()
             if "--env-file" in cmdline:
                 env_idx = cmdline.index("--env-file")
@@ -220,14 +269,17 @@ def status_server():
             pass
 
         # Se não encontrou, assume o padrão
+        # If not found, assumes the default
         if not env_file:
             env_file = str(Path.cwd() / ".env")
 
         # Procura o arquivo .env mais próximo se não encontrar o especificado
+        # Looks for the nearest .env file if the specified one is not found
         if env_file and not os.path.exists(env_file):
             env_file = "Não encontrado"
 
         # Status detalhado
+        # Detailed status
         print("\n" + "=" * 30)
         print(" SYNAPSTOR - STATUS DO SERVIDOR ")
         print("=" * 30)
@@ -247,7 +299,11 @@ def status_server():
 
 
 def log_server(args):
-    """Mostra os logs do servidor"""
+    """
+    Mostra os logs do servidor
+
+    Shows the server logs
+    """
     if not os.path.exists(LOG_FILE):
         logger.info("⚠️ Arquivo de log não encontrado")
         return 1

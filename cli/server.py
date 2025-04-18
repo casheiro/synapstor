@@ -4,6 +4,11 @@ Script wrapper para o servidor Synapstor
 
 Este script serve como interface de linha de comando para o servidor,
 permitindo acessá-lo através do comando `synapstor-server` com opções adicionais.
+
+Wrapper script for the Synapstor server
+
+This script serves as a command-line interface for the server,
+allowing access through the `synapstor-server` command with additional options.
 """
 
 import os
@@ -12,6 +17,7 @@ import argparse
 from pathlib import Path
 
 # Adiciona o diretório raiz ao path para importar o módulo
+# Adds the root directory to the path to import the module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
@@ -23,6 +29,13 @@ def main():
     - Escolha do protocolo de transporte
     - Seleção de arquivo .env personalizado
     - Criação de arquivo .env se não existir
+
+    Main function to start the server
+
+    Provides additional options such as:
+    - Transport protocol selection
+    - Custom .env file selection
+    - Creation of .env file if it doesn't exist
     """
     parser = argparse.ArgumentParser(description="Inicia o servidor Synapstor")
     parser.add_argument(
@@ -48,6 +61,7 @@ def main():
     args = parser.parse_args()
 
     # Se o arquivo .env não existir e --create-env foi especificado, cria o arquivo
+    # If the .env file doesn't exist and --create-env was specified, creates the file
     if args.create_env and not os.path.exists(args.env_file):
         from synapstor.env_loader import create_env_file_template
 
@@ -57,6 +71,7 @@ def main():
         return 0
 
     # Se --configure foi especificado, executa o configurador interativo
+    # If --configure was specified, runs the interactive configurator
     if args.configure:
         from cli.config import ConfiguradorInterativo
 
@@ -69,11 +84,15 @@ def main():
         print("✅ Configuração concluída. Iniciando o servidor...")
 
     # Importa e executa o servidor MCP
+    # Imports and runs the MCP server
     try:
         # Configura os argumentos para o servidor principal
+        # Configures the arguments for the main server
         if "--env-file" in sys.argv:
             # O módulo principal não aceita --env-file, então o removemos
             # mas o arquivo .env já foi selecionado durante a execução
+            # The main module doesn't accept --env-file, so we remove it
+            # but the .env file has already been selected during execution
             sys.argv.remove("--env-file")
             if args.env_file in sys.argv:
                 sys.argv.remove(args.env_file)
@@ -85,6 +104,7 @@ def main():
             sys.argv.remove("--configure")
 
         # Executa o servidor principal
+        # Runs the main server
         from synapstor.main import main as mcp_main
 
         return mcp_main()
