@@ -8,17 +8,17 @@ from synapstor.qdrant import Entry, QdrantConnector
 
 @pytest.fixture
 async def embedding_provider():
-    """Fixture para fornecer um provedor de embeddings FastEmbed."""
+    """Fixture to provide a FastEmbed embedding provider."""
     return FastEmbedProvider(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
 
 @pytest.fixture
 async def qdrant_connector(embedding_provider):
-    """Fixture para fornecer um QdrantConnector com cliente Qdrant em memória."""
-    # Use um nome de coleção aleatório para evitar conflitos entre testes
+    """Fixture to provide a QdrantConnector with in-memory Qdrant client."""
+    # Use a random collection name to avoid conflicts between tests
     collection_name = f"test_collection_{uuid.uuid4().hex}"
 
-    # Cria o conector com Qdrant em memória
+    # Create connector with in-memory Qdrant
     connector = QdrantConnector(
         qdrant_url=":memory:",
         qdrant_api_key=None,
@@ -31,18 +31,18 @@ async def qdrant_connector(embedding_provider):
 
 @pytest.mark.asyncio
 async def test_store_and_search(qdrant_connector):
-    """Testa o armazenamento de uma entrada e depois a busca por ela."""
-    # Armazena uma entrada de teste
+    """Tests storing an entry and then searching for it."""
+    # Store a test entry
     test_entry = Entry(
         content="The quick brown fox jumps over the lazy dog",
         metadata={"source": "test", "importance": "high"},
     )
     await qdrant_connector.store(test_entry)
 
-    # Busca pela entrada
+    # Search for the entry
     results = await qdrant_connector.search("fox jumps")
 
-    # Verifica os resultados
+    # Verify results
     assert len(results) == 1
     assert results[0].content == test_entry.content
     assert results[0].metadata == test_entry.metadata
@@ -50,18 +50,18 @@ async def test_store_and_search(qdrant_connector):
 
 @pytest.mark.asyncio
 async def test_search_empty_collection(qdrant_connector):
-    """Testa a busca em uma coleção vazia."""
-    # Busca em uma coleção vazia
+    """Tests searching in an empty collection."""
+    # Search in an empty collection
     results = await qdrant_connector.search("test query")
 
-    # Verifica os resultados
+    # Verify results
     assert len(results) == 0
 
 
 @pytest.mark.asyncio
 async def test_multiple_entries(qdrant_connector):
-    """Testa o armazenamento e busca de múltiplas entradas."""
-    # Armazena múltiplas entradas
+    """Tests storing and searching multiple entries."""
+    # Store multiple entries
     entries = [
         Entry(
             content="Python is a programming language",
@@ -74,17 +74,17 @@ async def test_multiple_entries(qdrant_connector):
     for entry in entries:
         await qdrant_connector.store(entry)
 
-    # Busca por entradas relacionadas a programação
+    # Search for programming-related entries
     programming_results = await qdrant_connector.search("Python programming")
     assert len(programming_results) > 0
     assert any("Python" in result.content for result in programming_results)
 
-    # Busca por entradas relacionadas a pontos turísticos
+    # Search for landmark-related entries
     landmark_results = await qdrant_connector.search("Eiffel Tower Paris")
     assert len(landmark_results) > 0
     assert any("Eiffel" in result.content for result in landmark_results)
 
-    # Busca por entradas relacionadas a IA
+    # Search for AI-related entries
     ai_results = await qdrant_connector.search(
         "artificial intelligence machine learning"
     )
@@ -94,17 +94,17 @@ async def test_multiple_entries(qdrant_connector):
 
 @pytest.mark.asyncio
 async def test_ensure_collection_exists(qdrant_connector):
-    """Testa se a coleção é criada caso não exista."""
-    # A coleção não deve existir ainda
+    """Tests if the collection is created if it doesn't exist."""
+    # The collection should not exist yet
     assert not await qdrant_connector._client.collection_exists(
         qdrant_connector._default_collection_name
     )
 
-    # Armazenar uma entrada deve criar a coleção
+    # Storing an entry should create the collection
     test_entry = Entry(content="Test content")
     await qdrant_connector.store(test_entry)
 
-    # Agora a coleção deve existir
+    # Now the collection should exist
     assert await qdrant_connector._client.collection_exists(
         qdrant_connector._default_collection_name
     )
@@ -112,8 +112,8 @@ async def test_ensure_collection_exists(qdrant_connector):
 
 @pytest.mark.asyncio
 async def test_metadata_handling(qdrant_connector):
-    """Testa se os metadados são armazenados e recuperados corretamente."""
-    # Armazena entradas com diferentes metadados
+    """Tests if metadata is stored and retrieved correctly."""
+    # Store entries with different metadata
     metadata1 = {"source": "book", "author": "Jane Doe", "year": 2023}
     metadata2 = {"source": "article", "tags": ["science", "research"]}
 
@@ -124,12 +124,12 @@ async def test_metadata_handling(qdrant_connector):
         Entry(content="Content with list in metadata", metadata=metadata2)
     )
 
-    # Busca e verifica se os metadados foram preservados
+    # Search and verify if metadata was preserved
     results = await qdrant_connector.search("metadata")
 
     assert len(results) == 2
 
-    # Verifica se ambos os objetos de metadados estão presentes nos resultados
+    # Verify if both metadata objects are present in the results
     found_metadata1 = False
     found_metadata2 = False
 
@@ -149,11 +149,11 @@ async def test_metadata_handling(qdrant_connector):
 
 @pytest.mark.asyncio
 async def test_entry_without_metadata(qdrant_connector):
-    """Testa o armazenamento e recuperação de entradas sem metadados."""
-    # Armazena uma entrada sem metadados
+    """Tests storing and retrieving entries without metadata."""
+    # Store an entry without metadata
     await qdrant_connector.store(Entry(content="Entry without metadata"))
 
-    # Busca e verifica
+    # Search and verify
     results = await qdrant_connector.search("without metadata")
 
     assert len(results) == 1
@@ -163,40 +163,40 @@ async def test_entry_without_metadata(qdrant_connector):
 
 @pytest.mark.asyncio
 async def test_custom_collection_store_and_search(qdrant_connector):
-    """Testa o armazenamento e busca em uma coleção personalizada."""
-    # Define um nome de coleção personalizado
+    """Tests storing and searching in a custom collection."""
+    # Define a custom collection name
     custom_collection = f"custom_collection_{uuid.uuid4().hex}"
 
-    # Armazena uma entrada de teste na coleção personalizada
+    # Store a test entry in the custom collection
     test_entry = Entry(
         content="This is stored in a custom collection",
         metadata={"custom": True},
     )
     await qdrant_connector.store(test_entry, collection_name=custom_collection)
 
-    # Busca na coleção personalizada
+    # Search in the custom collection
     results = await qdrant_connector.search(
         "custom collection", collection_name=custom_collection
     )
 
-    # Verifica os resultados
+    # Verify results
     assert len(results) == 1
     assert results[0].content == test_entry.content
     assert results[0].metadata == test_entry.metadata
 
-    # Verifica se a entrada não está na coleção padrão
+    # Verify the entry is not in the default collection
     default_results = await qdrant_connector.search("custom collection")
     assert len(default_results) == 0
 
 
 @pytest.mark.asyncio
 async def test_multiple_collections(qdrant_connector):
-    """Testa o uso de múltiplas coleções com o mesmo conector."""
-    # Define dois nomes de coleções personalizadas
+    """Tests using multiple collections with the same connector."""
+    # Define two custom collection names
     collection_a = f"collection_a_{uuid.uuid4().hex}"
     collection_b = f"collection_b_{uuid.uuid4().hex}"
 
-    # Armazena entradas em diferentes coleções
+    # Store entries in different collections
     entry_a = Entry(
         content="This belongs to collection A", metadata={"collection": "A"}
     )
@@ -209,17 +209,17 @@ async def test_multiple_collections(qdrant_connector):
     await qdrant_connector.store(entry_b, collection_name=collection_b)
     await qdrant_connector.store(entry_default)
 
-    # Busca na coleção A
+    # Search in collection A
     results_a = await qdrant_connector.search("belongs", collection_name=collection_a)
     assert len(results_a) == 1
     assert results_a[0].content == entry_a.content
 
-    # Busca na coleção B
+    # Search in collection B
     results_b = await qdrant_connector.search("belongs", collection_name=collection_b)
     assert len(results_b) == 1
     assert results_b[0].content == entry_b.content
 
-    # Busca na coleção padrão
+    # Search in the default collection
     results_default = await qdrant_connector.search("belongs")
     assert len(results_default) == 1
     assert results_default[0].content == entry_default.content
@@ -227,12 +227,12 @@ async def test_multiple_collections(qdrant_connector):
 
 @pytest.mark.asyncio
 async def test_nonexistent_collection_search(qdrant_connector):
-    """Testa a busca em uma coleção que não existe."""
-    # Busca em uma coleção que não existe
+    """Tests searching in a non-existent collection."""
+    # Search in a collection that doesn't exist
     nonexistent_collection = f"nonexistent_{uuid.uuid4().hex}"
     results = await qdrant_connector.search(
         "test query", collection_name=nonexistent_collection
     )
 
-    # Verifica os resultados
+    # Verify results
     assert len(results) == 0

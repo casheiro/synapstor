@@ -7,29 +7,29 @@ from synapstor.embeddings.fastembed import FastEmbedProvider
 
 
 def pytest_configure(config):
-    """Configuração global para os testes."""
-    # Configuração para corrigir os avisos de asyncio
+    """Global configuration for tests."""
+    # Configuration to fix asyncio warnings
     config.option.asyncio_mode = "auto"
     pytest.asyncio_default_fixture_loop_scope = "function"
 
 
 @pytest_asyncio.fixture
 async def embedding_provider():
-    """Fixture para o provedor de embeddings."""
+    """Fixture for the embedding provider."""
     return FastEmbedProvider(embedding_model="sentence-transformers/all-MiniLM-L6-v2")
 
 
 @pytest_asyncio.fixture
 async def qdrant_connector(embedding_provider):
-    """Fixture para o conector Qdrant.
+    """Fixture for the Qdrant connector.
 
-    Esta fixture cria uma coleção de teste temporária e a remove após o teste.
+    This fixture creates a temporary test collection and removes it after the test.
     """
-    # Gerar um nome de coleção único para os testes
+    # Generate a unique collection name for tests
     collection_name = f"test_collection_{uuid.uuid4().hex[:8]}"
 
-    # Configurar o Qdrant com a coleção de teste
-    # Não vamos mais usar o objeto de configurações, mas sim passando os parâmetros diretamente
+    # Configure Qdrant with the test collection
+    # We no longer use the configuration object, but pass parameters directly
     connector = QdrantConnector(
         qdrant_url="http://localhost:6333",
         qdrant_api_key=None,
@@ -37,19 +37,19 @@ async def qdrant_connector(embedding_provider):
         embedding_provider=embedding_provider,
     )
 
-    # Verificar se a coleção existe e criá-la se necessário
+    # Check if the collection exists and create it if necessary
     await connector._ensure_collection_exists(connector._default_collection_name)
 
-    # Retornar o conector para uso nos testes
+    # Return the connector for use in tests
     try:
         yield connector
     finally:
-        # Limpar após os testes
+        # Clean up after tests
         try:
             if connector._default_collection_name:
                 await connector._client.delete_collection(
                     connector._default_collection_name
                 )
         except Exception:
-            # Ignorar erros na limpeza
+            # Ignore errors during cleanup
             pass
