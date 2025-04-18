@@ -6,19 +6,19 @@ from pydantic_settings import BaseSettings
 from synapstor.embeddings.types import EmbeddingProviderType
 
 DEFAULT_TOOL_STORE_DESCRIPTION = (
-    "Guarde a memória para uso posterior, quando você for solicitado a lembrar algo."
+    "Store memory for later use, when you are asked to remember something."
 )
 DEFAULT_TOOL_FIND_DESCRIPTION = (
-    "Busque memórias no Qdrant. Use esta ferramenta quando precisar: \n"
-    " - Encontrar memórias pelo seu conteúdo \n"
-    " - Acessar memórias para análise adicional \n"
-    " - Obter algumas informações pessoais sobre o usuário"
+    "Search memories in Qdrant. Use this tool when you need: \n"
+    " - Find memories by their content \n"
+    " - Access memories for additional analysis \n"
+    " - Get some personal information about the user"
 )
 
 
 class ToolSettings(BaseSettings):
     """
-    Configuração para todas as ferramentas.
+    Configuration for all tools.
     """
 
     tool_store_description: str = Field(
@@ -33,7 +33,7 @@ class ToolSettings(BaseSettings):
 
 class EmbeddingProviderSettings(BaseSettings):
     """
-    Configuração para o provedor de embeddings.
+    Configuration for the embedding provider.
     """
 
     provider_type: EmbeddingProviderType = Field(
@@ -48,7 +48,7 @@ class EmbeddingProviderSettings(BaseSettings):
 
 class QdrantSettings(BaseSettings):
     """
-    Configuração para o conector Qdrant.
+    Configuration for the Qdrant connector.
     """
 
     location: Optional[str] = Field(default=None, validation_alias="QDRANT_URL")
@@ -66,6 +66,6 @@ class QdrantSettings(BaseSettings):
 
     def get_qdrant_location(self) -> Optional[str]:
         """
-        Obtém a localização do Qdrant, seja a URL ou o caminho local.
+        Gets the Qdrant location, either the URL or the local path.
         """
         return self.location or self.local_path
