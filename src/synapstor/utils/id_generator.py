@@ -1,8 +1,8 @@
 """
-Utilitário para geração de IDs determinísticos no Synapstor.
+Utility for generating deterministic IDs in Synapstor.
 
-Este módulo fornece funções para gerar IDs consistentes baseados em metadados,
-permitindo atualização de documentos sem duplicação.
+This module provides functions to generate consistent IDs based on metadata,
+allowing document updates without duplication.
 """
 
 import hashlib
@@ -11,58 +11,58 @@ from typing import Dict, Any
 
 def gerar_id_determinista(metadata: Dict[str, Any]) -> str:
     """
-    Gera um ID determinístico baseado nos metadados do documento.
+    Generates a deterministic ID based on document metadata.
 
-    O ID é gerado usando uma combinação de projeto e caminho absoluto,
-    garantindo que o mesmo arquivo sempre tenha o mesmo ID.
+    The ID is generated using a combination of project and absolute path,
+    ensuring that the same file always has the same ID.
 
     Args:
-        metadata: Dicionário de metadados contendo pelo menos 'projeto' e 'caminho_absoluto'
-                 ou outros identificadores únicos
+        metadata: Dictionary of metadata containing at least 'projeto' and 'caminho_absoluto'
+                 or other unique identifiers
 
     Returns:
-        String hexadecimal que representa um ID único e determinístico
+        Hexadecimal string representing a unique and deterministic ID
     """
-    # Extrai dados para identificação
+    # Extract identification data
     projeto = metadata.get("projeto", "")
     caminho = metadata.get("caminho_absoluto", "")
 
-    # Se não tiver projeto e caminho, tenta usar outros identificadores
+    # If there's no project and path, try to use other identifiers
     if not (projeto and caminho):
         content_hash = ""
-        # Tenta usar nome_arquivo se disponível
+        # Try to use nome_arquivo if available
         if "nome_arquivo" in metadata:
             content_hash += f"file:{metadata['nome_arquivo']};"
 
-        # Usa qualquer metadados disponível para criar uma string única
+        # Use any available metadata to create a unique string
         for key in sorted(metadata.keys()):
             if key not in ["projeto", "caminho_absoluto", "nome_arquivo"]:
                 value = str(metadata[key])
                 if value:
                     content_hash += f"{key}:{value};"
     else:
-        # Usa a combinação projeto+caminho_absoluto como identificador principal
+        # Use the project+absolute_path combination as the main identifier
         content_hash = f"{projeto}:{caminho}"
 
-    # Se mesmo assim não tiver nada para hash, retorna None
+    # If there's still nothing for hash, return None
     if not content_hash:
-        raise ValueError("Metadados insuficientes para gerar ID determinístico")
+        raise ValueError("Insufficient metadata to generate deterministic ID")
 
-    # Calcula o hash MD5 da string de identificação
+    # Calculate the MD5 hash of the identification string
     return hashlib.md5(content_hash.encode("utf-8")).hexdigest()
 
 
 def extrair_id_numerico(id_hex: str, digitos: int = 8) -> int:
     """
-    Extrai um ID numérico a partir de um hash hexadecimal.
+    Extracts a numeric ID from a hexadecimal hash.
 
-    Útil para sistemas que preferem IDs numéricos em vez de strings.
+    Useful for systems that prefer numeric IDs instead of strings.
 
     Args:
-        id_hex: Hash hexadecimal
-        digitos: Número de caracteres hexadecimais a usar (padrão 8)
+        id_hex: Hexadecimal hash
+        digitos: Number of hexadecimal characters to use (default 8)
 
     Returns:
-        Valor inteiro extraído do hash
+        Integer value extracted from the hash
     """
     return int(id_hex[:digitos], 16)
