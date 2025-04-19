@@ -73,7 +73,7 @@ Existem várias formas de configurar o Synapstor:
 
 2. **Parâmetros na linha de comando**:
    ```bash
-   synapstor-ctl server --qdrant-url http://localhost:6333 --qdrant-api-key sua-chave-api --collection-name synapstor --embedding-model "sentence-transformers/all-MiniLM-L6-v2"
+   synapstor-ctl start --qdrant-url http://localhost:6333 --qdrant-api-key sua-chave-api --collection-name synapstor --embedding-model "sentence-transformers/all-MiniLM-L6-v2"
    ```
 
 3. **Programaticamente** (para uso como biblioteca):
@@ -92,10 +92,10 @@ Existem várias formas de configurar o Synapstor:
 
 ```bash
 # Iniciar o servidor MCP com a interface centralizada
-synapstor-ctl server
+synapstor-ctl start
 
 # Com parâmetros de configuração
-synapstor-ctl server --qdrant-url http://localhost:6333 --qdrant-api-key sua-chave-api --collection-name minha_colecao --embedding-model "sentence-transformers/all-MiniLM-L6-v2"
+synapstor-ctl start --qdrant-url http://localhost:6333 --qdrant-api-key sua-chave-api --collection-name minha_colecao --embedding-model "sentence-transformers/all-MiniLM-L6-v2"
 ```
 
 ### Indexação de projetos
@@ -207,7 +207,7 @@ There are several ways to configure Synapstor:
 
 2. **Command line parameters**:
    ```bash
-   synapstor-ctl server --qdrant-url http://localhost:6333 --qdrant-api-key your-api-key --collection-name synapstor --embedding-model "sentence-transformers/all-MiniLM-L6-v2"
+   synapstor-ctl start --qdrant-url http://localhost:6333 --qdrant-api-key your-api-key --collection-name synapstor --embedding-model "sentence-transformers/all-MiniLM-L6-v2"
    ```
 
 3. **Programmatically** (for use as a library):
@@ -226,10 +226,10 @@ There are several ways to configure Synapstor:
 
 ```bash
 # Start the MCP server with the centralized interface
-synapstor-ctl server
+synapstor-ctl start
 
 # With configuration parameters
-synapstor-ctl server --qdrant-url http://localhost:6333 --qdrant-api-key your-api-key --collection-name my_collection --embedding-model "sentence-transformers/all-MiniLM-L6-v2"
+synapstor-ctl start --qdrant-url http://localhost:6333 --qdrant-api-key your-api-key --collection-name my_collection --embedding-model "sentence-transformers/all-MiniLM-L6-v2"
 ```
 
 ### Project indexing
