@@ -125,7 +125,7 @@ Modifique os scripts para usar a interface centralizada `synapstor-ctl`:
 #!/usr/bin/env pwsh
 
 Write-Host "Iniciando servidor Synapstor via synapstor-ctl..." -ForegroundColor Cyan
-synapstor-ctl server
+synapstor-ctl start
 Write-Host "Pressione qualquer tecla para continuar..." -NoNewLine
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 Write-Host ""
@@ -258,7 +258,7 @@ Modify the scripts to use the centralized `synapstor-ctl` interface:
 #!/usr/bin/env pwsh
 
 Write-Host "Starting Synapstor server via synapstor-ctl..." -ForegroundColor Cyan
-synapstor-ctl server
+synapstor-ctl start
 Write-Host "Press any key to continue..." -NoNewLine
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 Write-Host ""

@@ -32,7 +32,7 @@ requires = ["setuptools >= 77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project.scripts]
-synapstor-index = "synapstor.tools.indexer:command_line_runner"
+synapstor-indexer = "synapstor.tools.indexer:command_line_runner"
 synapstor-server = "cli.server:main"
 synapstor-reindex = "cli.reindex:main"
 synapstor-setup = "cli.setup:main"

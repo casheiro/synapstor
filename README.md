@@ -184,19 +184,25 @@ Interface centralizada para gerenciar todas as funcionalidades do Synapstor:
 
 ```bash
 # Iniciar o servidor MCP
-synapstor-ctl server
+synapstor-ctl start --transport sse
 
 # Configuração interativa
-synapstor-ctl configure
+synapstor-ctl setup
 
 # Indexar um projeto
-synapstor-ctl indexer --project meu-projeto --path /caminho/do/projeto
+synapstor-ctl indexer --project my-project --path /path/to/project
 
-# Ver status
+# Verificar status
 synapstor-ctl status
 
-# Listar coleções disponíveis
-synapstor-ctl collections list
+# Parar o servidor MCP
+synapstor-ctl stop
+
+# Reindexar um projeto
+synapstor-ctl reindex --project my-project --path /path/to/project
+
+# Exibir logs
+synapstor-ctl logs
 
 # Ajuda sobre comandos disponíveis
 synapstor-ctl --help
@@ -266,7 +272,7 @@ EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 
 ```bash
 # Iniciar o servidor MCP com a interface centralizada
-synapstor-ctl server
+synapstor-ctl start
 
 # Ou usando o comando específico
 synapstor-server
@@ -345,7 +351,7 @@ Configure o Synapstor no arquivo `claude_desktop_config.json`:
 Inicie o servidor com transporte SSE:
 
 ```bash
-synapstor-ctl server --transport sse
+synapstor-ctl start --transport sse
 ```
 
 Acesse via API Anthropic usando o endpoint local do Synapstor como provedor MCP.
@@ -354,7 +360,7 @@ Acesse via API Anthropic usando o endpoint local do Synapstor como provedor MCP.
 
 1. Inicie o servidor MCP:
    ```bash
-   synapstor-ctl server --transport sse
+   synapstor-ctl start --transport sse
    ```
 
 2. Em Cursor, vá para Configurações → Contexto → Adicionar Servidor MCP
@@ -373,7 +379,7 @@ Para integrar com Microsoft Copilot:
    ```bash
    TOOL_STORE_DESCRIPTION="Armazene trechos de código ou documentação" \
    TOOL_FIND_DESCRIPTION="Busque informações relacionadas à consulta" \
-   synapstor-ctl server --transport stdio
+   synapstor-ctl start --transport stdio
    ```
 
 2. Configure o Copilot para usar o Synapstor como provedor de plugins
@@ -732,10 +738,10 @@ Centralized interface to manage all Synapstor functionalities:
 
 ```bash
 # Start the MCP server
-synapstor-ctl server
+synapstor-ctl start
 
 # Interactive configuration
-synapstor-ctl configure
+synapstor-ctl setup
 
 # Index a project
 synapstor-ctl indexer --project my-project --path /path/to/project
@@ -743,8 +749,14 @@ synapstor-ctl indexer --project my-project --path /path/to/project
 # View status
 synapstor-ctl status
 
-# List available collections
-synapstor-ctl collections list
+# Stop the MCP server
+synapstor-ctl stop
+
+# Reindex a project
+synapstor-ctl reindex --project my-project --path /path/to/project
+
+# Show logs
+synapstor-ctl logs
 
 # Help on available commands
 synapstor-ctl --help
@@ -814,7 +826,7 @@ EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 
 ```bash
 # Start the MCP server with the centralized interface
-synapstor-ctl server
+synapstor-ctl start
 
 # Or using the specific command
 synapstor-server
@@ -893,7 +905,7 @@ Configure Synapstor in the `claude_desktop_config.json` file:
 Start the server with SSE transport:
 
 ```bash
-synapstor-ctl server --transport sse
+synapstor-ctl start --transport sse
 ```
 
 Access via Anthropic API using Synapstor's local endpoint as an MCP provider.
@@ -902,7 +914,7 @@ Access via Anthropic API using Synapstor's local endpoint as an MCP provider.
 
 1. Start the MCP server:
    ```bash
-   synapstor-ctl server --transport sse
+   synapstor-ctl start --transport sse
    ```
 
 2. In Cursor, go to Settings → Context → Add MCP Server
@@ -921,7 +933,7 @@ To integrate with Microsoft Copilot:
    ```bash
    TOOL_STORE_DESCRIPTION="Store code snippets or documentation" \
    TOOL_FIND_DESCRIPTION="Find information related to the query" \
-   synapstor-ctl server --transport stdio
+   synapstor-ctl start --transport stdio
    ```
 
 2. Configure Copilot to use Synapstor as a plugin provider

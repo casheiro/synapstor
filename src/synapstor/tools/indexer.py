@@ -67,7 +67,7 @@ except ImportError:
         return hashlib.md5(content_hash.encode("utf-8")).hexdigest()
 
     print(
-        "⚠️ Module synapstor.utils not found, using internal version of gerar_id_determinista"
+        "⚠️\t Module synapstor.utils not found, using internal version of gerar_id_determinista"
     )
 
 
