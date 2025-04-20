@@ -365,7 +365,7 @@ def setup_client(args):
 def run_indexer(args):
     """Executes the indexer with specific arguments"""
     # Build the base command
-    indexer_cmd = ["synapstor-index"]
+    indexer_cmd = ["synapstor-indexer"]
 
     # Add specific arguments
     if args.project:
