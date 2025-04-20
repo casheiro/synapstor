@@ -1,6 +1,6 @@
 [project]
 name = "synapstor"
-version = "0.1.3"
+version = "0.1.4"
 description = "An unofficial evolution of mcp-server-qdrant - Client and server for semantic storage and search"
 readme = "README.pypi.md"
 requires-python = ">=3.10"
