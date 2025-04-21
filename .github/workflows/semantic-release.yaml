@@ -46,7 +46,7 @@ jobs:
 
       # Modo real (para main)
       - name: Executar versionamento
-        if: "!inputs.dry_run"
+        if: ${{!inputs.dry_run}}
         id: release
         run: |
           git config --global user.name "github-actions"

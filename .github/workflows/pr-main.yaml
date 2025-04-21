@@ -8,17 +8,17 @@ on:
 jobs:
   # Etapa 1: Verificar com pre-commit
   lint:
-    uses: ./.github/workflows/jobs/pre-commit.yaml
+    uses: ./.github/workflows/pre-commit.yaml
 
   # Etapa 2: Executar testes
   test:
-    uses: ./.github/workflows/jobs/test.yaml
+    uses: ./.github/workflows/test.yaml
 
   # Etapa 3: Simular semantic-release
   version-preview:
     needs: [lint, test]
     if: success()
-    uses: ./.github/workflows/jobs/semantic-release.yaml
+    uses: ./.github/workflows/semantic-release.yaml
     with:
       dry_run: true
 
@@ -26,7 +26,7 @@ jobs:
   publish-test:
     needs: [version-preview]
     if: success()
-    uses: ./.github/workflows/jobs/pypi-publish.yaml
+    uses: ./.github/workflows/pypi-publish.yaml
     with:
       environment: 'testpypi'
     secrets:
