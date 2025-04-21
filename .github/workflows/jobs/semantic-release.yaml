@@ -1,0 +1,57 @@
+name: Semantic Release Job
+
+on:
+  workflow_call:
+    inputs:
+      dry_run:
+        type: boolean
+        default: false
+        description: "Executar em modo simulação"
+    outputs:
+      version:
+        description: "Nova versão gerada"
+        value: ${{ jobs.semrel.outputs.version }}
+      changed:
+        description: "Indica se houve mudança na versão"
+        value: ${{ jobs.semrel.outputs.changed }}
+
+jobs:
+  semrel:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      changed: ${{ steps.release.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Instalar semantic-release
+        run: pip install python-semantic-release
+
+      # Modo dry-run (para PRs)
+      - name: Simular versionamento
+        if: inputs.dry_run
+        id: preview
+        run: |
+          semantic-release version --no-commit --no-push --no-tag --no-build
+          VERSION=$(semantic-release --noop)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "changed=true" >> $GITHUB_OUTPUT
+          echo "Preview da versão: $VERSION"
+
+      # Modo real (para main)
+      - name: Executar versionamento
+        if: "!inputs.dry_run"
+        id: release
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          RESULT=$(semantic-release publish)
+          VERSION=$(semantic-release --noop)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "changed=true" >> $GITHUB_OUTPUT

@@ -1,0 +1,26 @@
+name: Pre-commit Job
+
+on:
+  workflow_call:
+    outputs:
+      success:
+        description: "Indica se o linting passou"
+        value: ${{ jobs.precommit.outputs.success }}
+
+jobs:
+  precommit:
+    runs-on: ubuntu-latest
+    outputs:
+      success: ${{ steps.lint-result.outputs.success }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Instalar pre-commit
+        run: pip install pre-commit
+      - name: Executar pre-commit
+        run: pre-commit run --all-files
+      - id: lint-result
+        run: echo "success=true" >> $GITHUB_OUTPUT

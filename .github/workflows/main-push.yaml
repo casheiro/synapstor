@@ -1,0 +1,23 @@
+name: Push para Main
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  # Etapa 1: Gerar nova versão com semantic-release
+  release:
+    uses: ./.github/workflows/jobs/semantic-release.yaml
+    with:
+      dry_run: false
+
+  # Etapa 2: Publicar no PyPI
+  publish-prod:
+    needs: [release]
+    if: needs.release.outputs.changed == 'true'
+    uses: ./.github/workflows/jobs/pypi-publish.yaml
+    with:
+      environment: 'pypi'
+    secrets:
+      TEST_PYPI_API_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}

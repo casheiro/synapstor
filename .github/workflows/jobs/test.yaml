@@ -1,0 +1,26 @@
+name: Test Job
+
+on:
+  workflow_call:
+    outputs:
+      success:
+        description: "Indica se os testes passaram"
+        value: ${{ jobs.test.outputs.success }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    outputs:
+      success: ${{ steps.test-result.outputs.success }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Instalar dependências
+        run: pip install -e ".[test]"
+      - name: Executar testes
+        run: pytest
+      - id: test-result
+        run: echo "success=true" >> $GITHUB_OUTPUT
