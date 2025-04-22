@@ -80,6 +80,8 @@ version_pattern = [
 ]
 branch = "main"
 prerelease_branches = ["feature/*", "dev", "develop"]
+major_on_zero = false  # Incrementa MAJOR mesmo em versões 0.x.x
+check_build_status = false
 upload_to_pypi = false  # O PyPI será gerenciado pelo workflow de PyPI
 upload_to_release = true
 build_command = "python -m build"

@@ -40,7 +40,11 @@ jobs:
           commit: false
           tag: false
           vcs_release: false
+          build_metadata: "pre.${{ github.run_number }}"
+          prerelease_token: "rc"
           force: "patch"
+          root_options: -v
+          directory: .
 
       - name: Capturar versão simulada
         if: inputs.dry_run
@@ -48,6 +52,28 @@ jobs:
           echo "version=${{ steps.preview.outputs.version }}" >> $GITHUB_OUTPUT
           echo "changed=${{ steps.preview.outputs.released }}" >> $GITHUB_OUTPUT
           echo "Preview da versão: ${{ steps.preview.outputs.version }}"
+
+      # Gerar CHANGELOG mesmo em modo dry-run
+      - name: Gerar CHANGELOG para pré-release
+        if: inputs.dry_run && !contains(github.ref, 'main')
+        run: |
+          echo "Gerando CHANGELOG para pré-release..."
+          python -m pip install python-semantic-release
+          python -m semantic_release changelog --unreleased
+          if [ -f "CHANGELOG.md" ]; then
+            echo "CHANGELOG gerado com sucesso"
+            cat CHANGELOG.md | head -20
+          else
+            echo "CHANGELOG não foi gerado"
+            touch CHANGELOG.md
+            echo "# CHANGELOG" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "## Próxima versão (Pre-release)" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "### Novos recursos" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "* Versão de pré-lançamento ${{ steps.preview.outputs.version }}" >> CHANGELOG.md
+          fi
 
       # Modo real (para main)
       - name: Executar versionamento
