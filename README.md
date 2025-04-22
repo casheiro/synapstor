@@ -559,6 +559,69 @@ Contribuições são bem-vindas! Para contribuir para o Synapstor:
 - Mantenha a documentação atualizada
 - Atualize o CHANGELOG.md para novas versões
 
+## 📝 Conventional Commits e CHANGELOG Automático
+
+O Synapstor utiliza o padrão [Conventional Commits](https://www.conventionalcommits.org/pt-br/) para automatizar a geração de versões e do CHANGELOG.
+
+### Estrutura das Mensagens de Commit
+
+Cada mensagem de commit deve seguir o seguinte formato:
+
+```
+<tipo>(<escopo opcional>): <descrição>
+
+<corpo opcional>
+
+<rodapé opcional>
+```
+
+#### Tipos de Commits
+
+- `feat`: Nova funcionalidade
+- `fix`: Correção de bug
+- `docs`: Alterações na documentação
+- `style`: Formatação, ponto e vírgula ausente, etc; sem alteração de código
+- `refactor`: Refatoração de código sem alterar funcionalidade
+- `test`: Adicionando testes ausentes ou corrigindo testes existentes
+- `chore`: Alterações no processo de build, ferramentas auxiliares, etc
+- `perf`: Mudanças que melhoram performance
+
+#### Commits de Breaking Change
+
+Para indicar uma mudança que quebra compatibilidade, adicione um `!` após o tipo/escopo ou adicione `BREAKING CHANGE:` no corpo ou rodapé:
+
+```
+feat!: alteração que quebra compatibilidade
+
+# OU
+
+feat: nova funcionalidade
+
+BREAKING CHANGE: explica o que quebra e por quê
+```
+
+### Geração de Versão Automática
+
+O semantic-release usa estas convenções para determinar automaticamente:
+
+1. **MAJOR** (1.0.0): Quando há commits com `BREAKING CHANGE`
+2. **MINOR** (0.1.0): Quando há commits do tipo `feat`
+3. **PATCH** (0.0.1): Quando há commits do tipo `fix`
+
+### Exemplos Práticos
+
+```
+feat: adiciona opção de busca por metadados
+fix: corrige problema na indexação de arquivos grandes
+docs: atualiza documentação da API
+feat(server): adiciona novo endpoint para estatísticas
+fix!: remove suporte a Python 3.9
+```
+
+### CHANGELOG
+
+O CHANGELOG.md é gerado automaticamente quando uma nova versão é criada. Este arquivo contém todas as alterações relevantes organizadas por versão, facilitando o acompanhamento da evolução do projeto.
+
 ## 📄 Licença
 
 Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
@@ -1112,6 +1175,69 @@ Contributions are welcome! To contribute to Synapstor:
 - Follow the project's code style (enforced by pre-commit)
 - Keep documentation up to date
 - Update CHANGELOG.md for new versions
+
+## 📝 Conventional Commits and Automated CHANGELOG
+
+Synapstor uses the [Conventional Commits](https://www.conventionalcommits.org/) pattern to automate version generation and CHANGELOG updates.
+
+### Commit Message Structure
+
+Each commit message should follow this format:
+
+```
+<type>(<optional scope>): <description>
+
+<optional body>
+
+<optional footer>
+```
+
+#### Commit Types
+
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Formatting, missing semicolons, etc; no code change
+- `refactor`: Code refactoring without changing functionality
+- `test`: Adding missing tests or fixing existing tests
+- `chore`: Changes to build process, auxiliary tools, etc
+- `perf`: Performance improvements
+
+#### Breaking Change Commits
+
+To indicate a breaking change, add a `!` after the type/scope or add `BREAKING CHANGE:` in the body or footer:
+
+```
+feat!: breaking change
+
+# OR
+
+feat: new feature
+
+BREAKING CHANGE: explain what breaks and why
+```
+
+### Automated Version Generation
+
+Semantic-release uses these conventions to automatically determine:
+
+1. **MAJOR** (1.0.0): When there are commits with `BREAKING CHANGE`
+2. **MINOR** (0.1.0): When there are commits of type `feat`
+3. **PATCH** (0.0.1): When there are commits of type `fix`
+
+### Practical Examples
+
+```
+feat: add metadata search option
+fix: resolve large file indexing issue
+docs: update API documentation
+feat(server): add new endpoint for statistics
+fix!: remove support for Python 3.9
+```
+
+### CHANGELOG
+
+The CHANGELOG.md is automatically generated when a new version is created. This file contains all relevant changes organized by version, making it easy to track the project's evolution.
 
 ## 📄 License
 
