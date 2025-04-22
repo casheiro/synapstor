@@ -27,40 +27,41 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: ${{ github.head_ref || github.ref_name }}
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-      - name: Instalar semantic-release
-        run: |
-          pip install python-semantic-release==7.34.6
-          semantic-release --version
 
       # Modo dry-run (para PRs)
       - name: Simular versionamento
         if: inputs.dry_run
         id: preview
+        uses: python-semantic-release/python-semantic-release@v9.21.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: true
+          push: false
+          commit: false
+          tag: false
+          vcs_release: false
+          force: "patch"
+
+      - name: Capturar versão simulada
+        if: inputs.dry_run
         run: |
-          echo "Simulando em branch: $(git branch --show-current)"
-          # Forçar a branch como 'main' temporariamente para a simulação
-          CURRENT_BRANCH=$(git branch --show-current)
-          git checkout -b temp-main
-          semantic-release version --no-commit --no-push --no-tag --skip-build --verbose
-          VERSION=$(semantic-release --noop)
-          git checkout $CURRENT_BRANCH
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "changed=true" >> $GITHUB_OUTPUT
-          echo "Preview da versão: $VERSION"
+          echo "version=${{ steps.preview.outputs.version }}" >> $GITHUB_OUTPUT
+          echo "changed=${{ steps.preview.outputs.released }}" >> $GITHUB_OUTPUT
+          echo "Preview da versão: ${{ steps.preview.outputs.version }}"
 
       # Modo real (para main)
       - name: Executar versionamento
         if: ${{!inputs.dry_run}}
         id: release
+        uses: python-semantic-release/python-semantic-release@v9.21.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: false
+          git_committer_name: "github-actions"
+          git_committer_email: "github-actions@github.com"
+
+      - name: Capturar versão real
+        if: ${{!inputs.dry_run}}
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
-          echo "Executando em branch: $(git branch --show-current)"
-          RESULT=$(semantic-release publish --verbose)
-          VERSION=$(semantic-release --noop)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "changed=true" >> $GITHUB_OUTPUT
+          echo "version=${{ steps.release.outputs.version }}" >> $GITHUB_OUTPUT
+          echo "changed=${{ steps.release.outputs.released }}" >> $GITHUB_OUTPUT
