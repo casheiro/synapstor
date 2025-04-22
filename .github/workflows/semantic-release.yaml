@@ -38,7 +38,7 @@ jobs:
         if: inputs.dry_run
         id: preview
         run: |
-          semantic-release version --no-commit --no-push --no-tag --no-build
+          semantic-release version --no-commit --no-push --no-tag --skip-build
           VERSION=$(semantic-release --noop)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "changed=true" >> $GITHUB_OUTPUT
