@@ -32,15 +32,22 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
       - name: Instalar semantic-release
-        run: pip install python-semantic-release
+        run: |
+          pip install python-semantic-release==7.34.6
+          semantic-release --version
 
       # Modo dry-run (para PRs)
       - name: Simular versionamento
         if: inputs.dry_run
         id: preview
         run: |
-          semantic-release version --no-commit --no-push --no-tag --skip-build --prerelease
+          echo "Simulando em branch: $(git branch --show-current)"
+          # Forçar a branch como 'main' temporariamente para a simulação
+          CURRENT_BRANCH=$(git branch --show-current)
+          git checkout -b temp-main
+          semantic-release version --no-commit --no-push --no-tag --skip-build --verbose
           VERSION=$(semantic-release --noop)
+          git checkout $CURRENT_BRANCH
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "changed=true" >> $GITHUB_OUTPUT
           echo "Preview da versão: $VERSION"
@@ -52,7 +59,8 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          RESULT=$(semantic-release publish)
+          echo "Executando em branch: $(git branch --show-current)"
+          RESULT=$(semantic-release publish --verbose)
           VERSION=$(semantic-release --noop)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "changed=true" >> $GITHUB_OUTPUT
