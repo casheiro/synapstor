@@ -79,6 +79,7 @@ version_pattern = [
     "README.pypi.md:Version {version} |"
 ]
 branch = "main"
+prerelease_branches = ["feature/*", "dev", "develop"]
 upload_to_pypi = false  # O PyPI será gerenciado pelo workflow de PyPI
 upload_to_release = true
 build_command = "python -m build"
