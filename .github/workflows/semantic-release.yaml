@@ -59,21 +59,30 @@ jobs:
         run: |
           echo "Gerando CHANGELOG para pré-release..."
           python -m pip install python-semantic-release
-          python -m semantic_release changelog --unreleased
-          if [ -f "CHANGELOG.md" ]; then
-            echo "CHANGELOG gerado com sucesso"
-            cat CHANGELOG.md | head -20
-          else
-            echo "CHANGELOG não foi gerado"
-            touch CHANGELOG.md
+
+          # Forçar versão para branch de feature
+          VERSION_ATUAL=$(grep -oP 'version = "\K[^"]+' pyproject.toml)
+          NOVA_VERSAO="${VERSION_ATUAL}-rc.1"
+
+          # Verificar se o arquivo CHANGELOG.md existe
+          if [ ! -f "CHANGELOG.md" ]; then
+            # Criar CHANGELOG manualmente
             echo "# CHANGELOG" > CHANGELOG.md
             echo "" >> CHANGELOG.md
-            echo "## Próxima versão (Pre-release)" >> CHANGELOG.md
+            echo "## ${NOVA_VERSAO} ($(date +%Y-%m-%d))" >> CHANGELOG.md
             echo "" >> CHANGELOG.md
-            echo "### Novos recursos" >> CHANGELOG.md
+            echo "### Correções de bugs" >> CHANGELOG.md
             echo "" >> CHANGELOG.md
-            echo "* Versão de pré-lançamento ${{ steps.preview.outputs.version }}" >> CHANGELOG.md
+            echo "* Preparação para pré-release em TestPyPI" >> CHANGELOG.md
+          else
+            # Mostrar o conteúdo atual
+            echo "CHANGELOG já existe. Conteúdo atual:"
+            cat CHANGELOG.md | head -20
           fi
+
+          echo "Nova versão: ${NOVA_VERSAO}"
+          echo "version=${NOVA_VERSAO}" >> $GITHUB_OUTPUT
+          echo "changed=true" >> $GITHUB_OUTPUT
 
       # Modo real (para main)
       - name: Executar versionamento

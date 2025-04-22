@@ -8,6 +8,10 @@ on:
         required: true
         default: "testpypi"
         description: "Ambiente para publicação (testpypi ou pypi)"
+      version:
+        type: string
+        required: false
+        description: "Versão para publicação (se diferente da versão no pyproject.toml)"
     secrets:
       TEST_PYPI_API_TOKEN:
         required: true
@@ -25,6 +29,17 @@ jobs:
           cache: 'pip'
       - name: Instalar dependências
         run: pip install build twine
+
+      # Atualizar versão temporária para pre-release se necessário
+      - name: Atualizar versão para pre-release
+        if: inputs.version != ''
+        run: |
+          echo "Atualizando versão para ${{ inputs.version }}"
+          # Atualiza a versão no pyproject.toml
+          sed -i "s/^version = \".*\"/version = \"${{ inputs.version }}\"/" pyproject.toml
+          # Atualiza a versão no arquivo Python
+          sed -i "s/__version__ = \".*\"/__version__ = \"${{ inputs.version }}\"/" src/synapstor/__init__.py || echo "Arquivo de versão não encontrado no Python"
+
       - name: Construir pacote
         run: python -m build
       - name: Publicar no TestPyPI
