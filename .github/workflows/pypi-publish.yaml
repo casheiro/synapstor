@@ -11,7 +11,7 @@ on:
       version:
         type: string
         required: false
-        description: "Versão para publicação (se diferente da versão no pyproject.toml)"
+        description: "Versão para publicação (não usado mais, apenas mantido por compatibilidade)"
     secrets:
       TEST_PYPI_API_TOKEN:
         required: true
@@ -30,25 +30,33 @@ jobs:
       - name: Instalar dependências
         run: pip install build twine
 
-      # Atualizar versão temporária para pre-release se necessário
-      - name: Atualizar versão para pre-release
-        if: inputs.version != ''
+      # Mostrar versão atual
+      - name: Verificar versão atual
         run: |
-          echo "Atualizando versão para ${{ inputs.version }}"
-          # Atualiza a versão no pyproject.toml
-          sed -i "s/^version = \".*\"/version = \"${{ inputs.version }}\"/" pyproject.toml
-          # Atualiza a versão no arquivo Python
-          sed -i "s/__version__ = \".*\"/__version__ = \"${{ inputs.version }}\"/" src/synapstor/__init__.py || echo "Arquivo de versão não encontrado no Python"
+          echo "Versão atual no pyproject.toml:"
+          grep "^version =" pyproject.toml
+
+          if [ -f "src/synapstor/__init__.py" ]; then
+            echo "Versão atual no __init__.py:"
+            grep "__version__ =" src/synapstor/__init__.py
+          fi
 
       - name: Construir pacote
         run: python -m build
+
+      - name: Verificar arquivos gerados
+        run: |
+          echo "Arquivos na pasta dist:"
+          ls -la dist/
+
       - name: Publicar no TestPyPI
         if: inputs.environment == 'testpypi'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-          skip_existing: true
+          skip-existing: true
+
       - name: Publicar no PyPI
         if: inputs.environment == 'pypi'
         uses: pypa/gh-action-pypi-publish@release/v1

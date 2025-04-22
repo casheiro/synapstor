@@ -60,9 +60,25 @@ jobs:
           echo "Gerando CHANGELOG para pré-release..."
           python -m pip install python-semantic-release
 
-          # Forçar versão para branch de feature
+          # Forçar versão para branch de feature com timestamp único
           VERSION_ATUAL=$(grep -oP 'version = "\K[^"]+' pyproject.toml)
-          NOVA_VERSAO="${VERSION_ATUAL}-rc.1"
+          BUILD_NUMBER="${GITHUB_RUN_NUMBER:-1}"
+          TIMESTAMP=$(date +"%Y%m%d%H%M")
+          NOVA_VERSAO="${VERSION_ATUAL}-rc.${BUILD_NUMBER}.${TIMESTAMP}"
+
+          echo "Versão atual: ${VERSION_ATUAL}"
+          echo "Nova versão (com timestamp): ${NOVA_VERSAO}"
+
+          # Atualizar versão no pyproject.toml para garantir que o build use a nova versão
+          sed -i "s/^version = \".*\"/version = \"${NOVA_VERSAO}\"/" pyproject.toml
+
+          # Atualizar versão no __init__.py se existir
+          if [ -f "src/synapstor/__init__.py" ]; then
+            sed -i "s/__version__ = \".*\"/__version__ = \"${NOVA_VERSAO}\"/" src/synapstor/__init__.py
+            echo "Versão atualizada em src/synapstor/__init__.py"
+          fi
+
+          cat pyproject.toml | grep version
 
           # Criar ou atualizar CHANGELOG
           echo "# CHANGELOG" > CHANGELOG.md
@@ -89,7 +105,7 @@ jobs:
           echo "### Observações" >> CHANGELOG.md
           echo "" >> CHANGELOG.md
           echo "* Esta é uma versão de pré-lançamento gerada automaticamente." >> CHANGELOG.md
-          echo "* Você pode instalar esta versão com: `pip install --pre -i https://test.pypi.org/simple/ synapstor`" >> CHANGELOG.md
+          echo "* Você pode instalar esta versão com: \`pip install --pre -i https://test.pypi.org/simple/ synapstor==${NOVA_VERSAO}\`" >> CHANGELOG.md
 
           # Verificar se o arquivo foi criado e mostrar seu conteúdo
           if [ -f "CHANGELOG.md" ]; then
