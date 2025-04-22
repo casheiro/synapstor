@@ -64,20 +64,45 @@ jobs:
           VERSION_ATUAL=$(grep -oP 'version = "\K[^"]+' pyproject.toml)
           NOVA_VERSAO="${VERSION_ATUAL}-rc.1"
 
-          # Verificar se o arquivo CHANGELOG.md existe
-          if [ ! -f "CHANGELOG.md" ]; then
-            # Criar CHANGELOG manualmente
-            echo "# CHANGELOG" > CHANGELOG.md
-            echo "" >> CHANGELOG.md
-            echo "## ${NOVA_VERSAO} ($(date +%Y-%m-%d))" >> CHANGELOG.md
-            echo "" >> CHANGELOG.md
-            echo "### Correções de bugs" >> CHANGELOG.md
-            echo "" >> CHANGELOG.md
-            echo "* Preparação para pré-release em TestPyPI" >> CHANGELOG.md
+          # Criar ou atualizar CHANGELOG
+          echo "# CHANGELOG" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "## ${NOVA_VERSAO} ($(date +%Y-%m-%d))" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+
+          # Obter commits desde o último tag (ou os 10 mais recentes se não houver tags)
+          echo "### Alterações" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+
+          # Tentar obter os commits mais recentes
+          if git describe --tags --abbrev=0 2>/dev/null; then
+            LAST_TAG=$(git describe --tags --abbrev=0)
+            echo "* Commits desde $LAST_TAG:" >> CHANGELOG.md
+            git log $LAST_TAG..HEAD --pretty=format:"  - %s" | grep -v "Merge" >> CHANGELOG.md || echo "  - Preparação para pré-release em TestPyPI" >> CHANGELOG.md
           else
-            # Mostrar o conteúdo atual
-            echo "CHANGELOG já existe. Conteúdo atual:"
-            cat CHANGELOG.md | head -20
+            echo "* Commits recentes:" >> CHANGELOG.md
+            git log -n 10 --pretty=format:"  - %s" | grep -v "Merge" >> CHANGELOG.md || echo "  - Preparação para pré-release em TestPyPI" >> CHANGELOG.md
+          fi
+
+          echo "" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "### Observações" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          echo "* Esta é uma versão de pré-lançamento gerada automaticamente." >> CHANGELOG.md
+          echo "* Você pode instalar esta versão com: `pip install --pre -i https://test.pypi.org/simple/ synapstor`" >> CHANGELOG.md
+
+          # Verificar se o arquivo foi criado e mostrar seu conteúdo
+          if [ -f "CHANGELOG.md" ]; then
+            echo "============ CHANGELOG GERADO ============"
+            cat CHANGELOG.md
+            echo "=========================================="
+
+            # Contar linhas para verificar se o arquivo realmente tem conteúdo
+            LINHAS=$(wc -l < CHANGELOG.md)
+            echo "CHANGELOG.md criado com $LINHAS linhas."
+          else
+            echo "ERRO: CHANGELOG.md não foi criado!"
+            ls -la
           fi
 
           echo "Nova versão: ${NOVA_VERSAO}"
