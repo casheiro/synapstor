@@ -1,6 +1,6 @@
 [project]
 name = "synapstor"
-version = "0.1.4"
+dynamic = ["version"]
 description = "An unofficial evolution of mcp-server-qdrant - Client and server for semantic storage and search"
 readme = "README.pypi.md"
 requires-python = ">=3.10"
@@ -70,12 +70,13 @@ all = [
 ]
 
 [tool.semantic_release]
-version_variable = ["pyproject.toml:version"]
 branch = "main"
-prerelease_branches = ["feature/*", "dev", "develop"]
-upload_to_pypi = false  # O PyPI será gerenciado pelo workflow de PyPI
+version_variable = "src/synapstor/__init__.py:__version__"
+upload_to_pypi = false
 upload_to_release = true
 build_command = "python -m build"
 commit_message = "chore(release): {version} [skip ci]"
 changelog_file = "CHANGELOG.md"
-commit_parser = "angular"
+
+[tool.setuptools.dynamic]
+version = {attr = "synapstor.__version__"}
