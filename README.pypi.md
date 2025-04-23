@@ -1,6 +1,6 @@
 # Synapstor 📚🔍
 
-**Version 0.1.4 | Python 3.10+ | MIT License**
+**Python 3.10+ | MIT License**
 
 ## 🌎 Idioma / Language
 

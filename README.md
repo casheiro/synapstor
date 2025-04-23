@@ -4,7 +4,7 @@
   <img src="https://2.gravatar.com/userimage/264864229/4e133a67b7d5fff345dd8f2bc4d0743b?size=400" alt="Synapstor" width="400"/>
 </p>
 
-![Version](https://img.shields.io/badge/versão-0.1.4-blue)
+![Version](https://img.shields.io/pypi/v/synapstor)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/licença-MIT-green)
 

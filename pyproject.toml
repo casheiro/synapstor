@@ -70,14 +70,7 @@ all = [
 ]
 
 [tool.semantic_release]
-version_variable = [
-    "pyproject.toml:version",
-    "src/synapstor/__init__.py:__version__"
-]
-version_pattern = [
-    "README.md:versão-{version}-blue",
-    "README.pypi.md:Version {version} |"
-]
+version_variable = ["pyproject.toml:version"]
 branch = "main"
 prerelease_branches = ["feature/*", "dev", "develop"]
 upload_to_pypi = false  # O PyPI será gerenciado pelo workflow de PyPI
