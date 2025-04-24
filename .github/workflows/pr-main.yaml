@@ -6,29 +6,29 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  # Etapa 1: Verificar com pre-commit
+  # 1 - Pre-commit
   lint:
     uses: ./.github/workflows/pre-commit.yaml
 
-  # Etapa 2: Executar testes
+  # 2 - Testes
   test:
     uses: ./.github/workflows/test.yaml
 
-  # Etapa 3: Simular semantic-release
+  # 3 - Pré-visualizar versão (commitizen em dry-run)
   version-preview:
     needs: [lint, test]
-    if: success()
-    uses: ./.github/workflows/semantic-release.yaml
+    uses: ./.github/workflows/commitizen-release.yaml
     with:
       dry_run: true
+    secrets: inherit
 
-  # Etapa 4: Publicar no TestPyPI
+  # 4 - Publicar no TestPyPI
   publish-test:
     needs: [version-preview]
-    if: success()
+    if: ${{ needs.version-preview.outputs.changed == 'true' && success() }}
     uses: ./.github/workflows/pypi-publish.yaml
     with:
       environment: 'testpypi'
     secrets:
       TEST_PYPI_API_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
-      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+      PYPI_API_TOKEN:      ${{ secrets.PYPI_API_TOKEN }}

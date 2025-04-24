@@ -50,7 +50,8 @@ dev = [
     "black",
     "isort",
     "flake8",
-    "mypy"
+    "mypy",
+    "commitizen"
 ]
 test = [
     "pytest>=7.4.3",
@@ -66,17 +67,21 @@ all = [
     "mypy",
     "pytest>=7.4.3",
     "pytest-cov>=2.12.1",
-    "pytest-asyncio>=0.21.0"
+    "pytest-asyncio>=0.21.0",
+    "commitizen"
 ]
 
-[tool.semantic_release]
-branch = "main"
-version_variable = "src/synapstor/__init__.py:__version__"
-upload_to_pypi = false
-upload_to_release = true
-build_command = "python -m build"
-commit_message = "chore(release): {version} [skip ci]"
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.1.4"
+tag_format = "v$version"
+version_files = [
+  "src/synapstor/__init__.py:__version__"
+]
 changelog_file = "CHANGELOG.md"
+template = ".github/changelog_template.j2"
+changelog_incremental = false
+update_changelog_on_bump = true
 
 [tool.setuptools.dynamic]
 version = {attr = "synapstor.__version__"}

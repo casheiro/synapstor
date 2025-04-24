@@ -7,7 +7,7 @@ on:
 jobs:
   # Etapa 1: Gerar nova versão com semantic-release
   release:
-    uses: ./.github/workflows/semantic-release.yaml
+    uses: ./.github/workflows/commitizen-release.yaml
     with:
       dry_run: false
 
