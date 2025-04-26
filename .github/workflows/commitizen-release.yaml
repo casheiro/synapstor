@@ -38,10 +38,14 @@ jobs:
         id: bump_preview
         env: { CZ_PREVIEW: 1 }
         run: |
-          NEXT=$(cz bump --dry-run --increment auto --changelog | tail -n1 | awk '{print $NF}')
+          NEXT=$(cz bump --dry-run --changelog | tail -n1 | awk '{print $NF}')
           echo "version=$NEXT"   >> $GITHUB_OUTPUT
           echo "changed=true"    >> $GITHUB_OUTPUT
           echo "Preview version: $NEXT"
+
+      # ─────────────── Validate Conventional Commits ───────────────
+      - name: Validate Conventional Commits
+        run: cz check
 
       # ─────────────── Release real (main) ────────────────
       - name: Bump + changelog + tag
@@ -52,6 +56,6 @@ jobs:
         run: |
           git config user.name  "github-actions"
           git config user.email "github-actions@github.com"
-          cz bump --yes --changelog --push --increment auto
+          cz bump --yes --changelog --push
           echo "version=$(cz version)"   >> $GITHUB_OUTPUT
           echo "changed=true"            >> $GITHUB_OUTPUT
