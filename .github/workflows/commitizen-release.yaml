@@ -45,7 +45,9 @@ jobs:
 
       # ─────────────── Validate Conventional Commits ───────────────
       - name: Validate Conventional Commits
-        run: cz check
+        run: |
+          git fetch --all
+          cz check --rev-range origin/main...
 
       # ─────────────── Release real (main) ────────────────
       - name: Bump + changelog + tag
