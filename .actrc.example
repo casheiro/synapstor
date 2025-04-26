@@ -1,0 +1,11 @@
+# .actrc
+-s GITHUB_TOKEN=gfaketesttoken
+-s TEST_PYPI_API_TOKEN=faketesttoken
+-s PYPI_API_TOKEN=fakeprodtoken
+-W .github/workflows/commitizen-release.yaml
+-W .github/workflows/main-push.yaml
+-W .github/workflows/pr-main.yaml
+-W .github/workflows/pre-commit.yaml
+-W .github/workflows/test.yaml
+-W .github/workflows/pypi-publish.yaml
+-P ubuntu-latest=ghcr.io/catthehacker/ubuntu:act-latest
