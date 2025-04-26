@@ -52,6 +52,6 @@ jobs:
         run: |
           git config user.name  "github-actions"
           git config user.email "github-actions@github.com"
-          cz bump --yes --changelog --push
+          cz bump --yes --changelog --push --increment auto
           echo "version=$(cz version)"   >> $GITHUB_OUTPUT
           echo "changed=true"            >> $GITHUB_OUTPUT
