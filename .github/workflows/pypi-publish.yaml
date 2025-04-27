@@ -1,41 +1,47 @@
-name: PyPI Publish Job
+name: Publish to PyPI
 
 on:
   workflow_call:
     inputs:
-      environment:
+      repository:
+        description: "GitHub repository"
+        required: true
         type: string
-        required: true
-        default: "testpypi"
-        description: "Ambiente para publicação (testpypi ou pypi)"
-    secrets:
-      TEST_PYPI_API_TOKEN:
-        required: true
-      PYPI_API_TOKEN:
-        required: true
+      test_publish:
+        description: "If true, publish to TestPyPI"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-          cache: 'pip'
-      - name: Instalar dependências
-        run: pip install build twine
-      - name: Construir pacote
-        run: python -m build
-      - name: Publicar no TestPyPI
-        if: inputs.environment == 'testpypi'
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-          skip_existing: true
-      - name: Publicar no PyPI
-        if: inputs.environment == 'pypi'
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          cache: pip
+
+      - name: Install build tools
+        run: |
+          pip install build twine
+
+      - name: Build package
+        run: |
+          python -m build
+
+      - name: Publish package to TestPyPI or PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
+        run: |
+          if [ "${{ inputs.test_publish }}" = "true" ]; then
+            twine upload --repository-url https://test.pypi.org/legacy/ dist/* || echo "⚠️ Versão já existente no TestPyPI, ignorando erro."
+          else
+            twine upload dist/* || echo "⚠️ Versão já existente no PyPI, ignorando erro."

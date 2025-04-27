@@ -3,7 +3,7 @@ name: Commitizen Release Job
 on:
   workflow_call:
     inputs:
-      dry_run:            # true  → preview em PRs
+      dry_run:
         type: boolean
         default: false
     outputs:
@@ -19,41 +19,49 @@ jobs:
       version: ${{ steps.bump.outputs.version || steps.bump_preview.outputs.version }}
       changed: ${{ steps.bump.outputs.changed || steps.bump_preview.outputs.changed }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ github.head_ref || github.ref_name }}
 
-      - uses: actions/setup-python@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
           cache: pip
 
-      - name: Install Commitizen
-        run: pip install -e ".[dev]"      # commitizen vem na extra dev
+      - name: Install project and Commitizen
+        run: pip install -e ".[dev]"
 
-      # ─────────────── Pré-visualização (PR) ───────────────
+      # Pre-visualização em PRs (dry-run)
       - name: Preview next version
         if: inputs.dry_run
         id: bump_preview
         env: { CZ_PREVIEW: 1 }
         run: |
           NEXT=$(cz bump --dry-run --changelog | tail -n1 | awk '{print $NF}')
-          echo "version=$NEXT"   >> $GITHUB_OUTPUT
-          echo "changed=true"    >> $GITHUB_OUTPUT
+          echo "version=$NEXT" >> $GITHUB_OUTPUT
+          echo "changed=true" >> $GITHUB_OUTPUT
           echo "Preview version: $NEXT"
 
-      # ─────────────── Validate Conventional Commits ───────────────
+      # Validação convencional
       - name: Validate Conventional Commits
         run: |
           git fetch --all
-          if git show-ref --verify --quiet refs/remotes/origin/main; then
-            cz check --rev-range $(git merge-base origin/main HEAD)..HEAD
+          if git rev-parse --verify origin/main; then
+            if git merge-base origin/main HEAD > /dev/null; then
+              cz check --rev-range $(git merge-base origin/main HEAD)..HEAD
+            else
+              echo "\u26a0\ufe0f No merge base found. Checking HEAD only."
+              cz check --rev-range HEAD~1..HEAD
+            fi
           else
+            echo "\u26a0\ufe0f No origin/main yet. Checking HEAD only."
             cz check --rev-range HEAD~1..HEAD
-          fi
-      # ─────────────── Release real (main) ────────────────
-      - name: Bump + changelog + tag
+
+      # Bump real + changelog + tag
+      - name: Bump, changelog and push tag
         if: ${{ !inputs.dry_run }}
         id: bump
         env:
@@ -61,6 +69,21 @@ jobs:
         run: |
           git config user.name  "github-actions"
           git config user.email "github-actions@github.com"
-          cz bump --yes --changelog --push
-          echo "version=$(cz version)"   >> $GITHUB_OUTPUT
-          echo "changed=true"            >> $GITHUB_OUTPUT
+
+          cz bump --yes --changelog
+          git push origin --tags
+
+          echo "version=$(cz version)" >> $GITHUB_OUTPUT
+          echo "changed=true" >> $GITHUB_OUTPUT
+
+      # Cria Release GitHub
+      - name: Create GitHub Release
+        if: ${{ !inputs.dry_run }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.bump.outputs.version }}
+          name: "Release v${{ steps.bump.outputs.version }}"
+          body: |
+            Versão publicada automaticamente pelo workflow 🚀
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
