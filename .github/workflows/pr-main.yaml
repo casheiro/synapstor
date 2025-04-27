@@ -30,3 +30,6 @@ jobs:
     with:
       repository: ${{ github.repository }}
       test_publish: true
+    permissions:
+      id-token: write
+      contents: read
