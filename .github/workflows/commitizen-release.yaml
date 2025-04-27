@@ -48,17 +48,15 @@ jobs:
       # Validação convencional
       - name: Validate Conventional Commits
         run: |
-          git fetch --all
-          if git rev-parse --verify origin/main; then
-            if git merge-base origin/main HEAD > /dev/null; then
-              cz check --rev-range $(git merge-base origin/main HEAD)..HEAD
-            else
-              echo "\u26a0\ufe0f No merge base found. Checking HEAD only."
-              cz check --rev-range HEAD~1..HEAD
-            fi
+          git fetch origin main:main || true
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "Verificando commits do PR..."
+            git fetch origin ${{ github.base_ref }}
+            cz check --rev-range origin/${{ github.base_ref }}..HEAD
           else
-            echo "\u26a0\ufe0f No origin/main yet. Checking HEAD only."
+            echo "Verificando último commit..."
             cz check --rev-range HEAD~1..HEAD
+          fi
 
       # Bump real + changelog + tag
       - name: Bump, changelog and push tag
