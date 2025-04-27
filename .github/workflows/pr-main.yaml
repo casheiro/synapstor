@@ -33,3 +33,6 @@ jobs:
     permissions:
       id-token: write
       contents: read
+    secrets:
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      TEST_PYPI_TOKEN: ${{ secrets.TEST_PYPI_TOKEN }}

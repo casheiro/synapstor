@@ -12,6 +12,11 @@ on:
         required: false
         default: false
         type: boolean
+    secrets:
+      PYPI_TOKEN:
+        required: true
+      TEST_PYPI_TOKEN:
+        required: true
 
 jobs:
   publish:
@@ -39,9 +44,12 @@ jobs:
       - name: Publish package to TestPyPI or PyPI
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
+          TWINE_PASSWORD: ${{ inputs.test_publish == true && secrets.TEST_PYPI_TOKEN || secrets.PYPI_TOKEN }}
         run: |
           if [ "${{ inputs.test_publish }}" = "true" ]; then
+            echo "Publicando no TestPyPI..."
             twine upload --repository-url https://test.pypi.org/legacy/ dist/* || echo "⚠️ Versão já existente no TestPyPI, ignorando erro."
           else
+            echo "Publicando no PyPI..."
             twine upload dist/* || echo "⚠️ Versão já existente no PyPI, ignorando erro."
+          fi
