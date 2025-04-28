@@ -5,7 +5,14 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened]
 
+# Permissões globais do workflow
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
 jobs:
+  # 1 - Pre-commit
   lint:
     uses: ./.github/workflows/pre-commit.yaml
 
@@ -16,9 +23,10 @@ jobs:
     needs: [lint, test]
     uses: ./.github/workflows/version-preview.yaml
 
+  # 4 - Publicar no TestPyPI
   publish-test:
     needs: [version-preview]
-    if: ${{ success() }}
+    if: ${{ needs.version-preview.outputs.changed == 'true' && success() }}
     uses: ./.github/workflows/pypi-publish.yaml
     with:
       repository: ${{ github.repository }}
