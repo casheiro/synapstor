@@ -1,0 +1,107 @@
+name: Gerar Release após Merge
+
+on:
+  pull_request:
+    branches: [main]
+    types: [closed]
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      # Verifica se precisa gerar nova versão
+      - name: Check Version Change
+        id: version_check
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          
+          # Se é o primeiro commit, sempre gera versão
+          if ! git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
+            echo "needs_release=true" >> $GITHUB_OUTPUT
+            echo "is_first_release=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Verifica se há mudanças que exigem nova versão
+          BUMP_TYPE=$(cz bump --dry-run | grep -oP "bump: version \K(major|minor|patch)" || echo "none")
+          if [ "$BUMP_TYPE" != "none" ]; then
+            echo "needs_release=true" >> $GITHUB_OUTPUT
+          else
+            echo "needs_release=false" >> $GITHUB_OUTPUT
+          fi
+
+      # Gera a release apenas se necessário
+      - name: Generate Release
+        id: release
+        if: steps.version_check.outputs.needs_release == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Se é o primeiro commit
+          if [[ "${{ steps.version_check.outputs.is_first_release }}" == "true" ]]; then
+            VERSION="0.1.0"
+            echo "## 🎉 Primeira Release v$VERSION" > changelog.md
+            echo "" >> changelog.md
+            echo "Primeira versão do projeto! 🚀" >> changelog.md
+            git tag "v$VERSION"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          else
+            # Gera nova versão e changelog
+            cz bump --yes --changelog
+            VERSION=$(cz version)
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            
+            # Gera changelog específico para esta versão
+            echo "## 🚀 Release v$VERSION" > changelog.md
+            echo "" >> changelog.md
+            cz changelog --start-rev "v$VERSION^" --end-rev "v$VERSION" >> changelog.md
+          fi
+          
+          git push origin --tags
+
+      # Cria Release no GitHub com changelog (apenas se gerou nova versão)
+      - name: Create GitHub Release
+        if: steps.version_check.outputs.needs_release == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.release.outputs.version }}
+          name: "Release v${{ steps.release.outputs.version }}"
+          body_path: changelog.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Comenta no PR quando não há necessidade de nova versão
+      - name: Comment No Release
+        if: steps.version_check.outputs.needs_release == 'false'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const message = `📝 Merge realizado sem gerar nova versão
+
+            As alterações deste PR não exigem uma nova versão do pacote (commits do tipo chore, docs, etc).
+            O código foi mergeado com sucesso para a main.`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            }); 
