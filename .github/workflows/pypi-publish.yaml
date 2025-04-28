@@ -53,6 +53,7 @@ jobs:
           else
             echo "Publishing to PyPI..."
             twine upload dist/* || echo "⚠️ Version already exists in PyPI, ignoring."
+          fi
 
       - name: Verify Package Upload
         run: |
