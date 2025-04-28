@@ -1,4 +1,4 @@
-name: PR para Main
+name: PR Main Flow
 
 on:
   pull_request:
@@ -6,87 +6,23 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  # 1 - Pre-commit
   lint:
     uses: ./.github/workflows/pre-commit.yaml
 
-  # 2 - Testes
   test:
     uses: ./.github/workflows/test.yaml
 
-  # 3 - Pré-visualizar versão (commitizen em dry-run)
   version-preview:
     needs: [lint, test]
-    uses: ./.github/workflows/commitizen-release.yaml
-    with:
-      dry_run: true
-    secrets: inherit
+    uses: ./.github/workflows/version-preview.yaml
 
-  # 4 - Publicar no TestPyPI
   publish-test:
     needs: [version-preview]
-    if: ${{ needs.version-preview.outputs.changed == 'true' && success() }}
+    if: ${{ success() }}
     uses: ./.github/workflows/pypi-publish.yaml
     with:
       repository: ${{ github.repository }}
       test_publish: true
-    permissions:
-      id-token: write
-      contents: read
     secrets:
       PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
       TEST_PYPI_TOKEN: ${{ secrets.TEST_PYPI_TOKEN }}
-
-  # 5 - Gerar tag e release (apenas se aprovado ou com label 'ready-for-release')
-  tag-and-release:
-    needs: [version-preview]
-    if: contains(github.event.pull_request.labels.*.name, 'ready-for-release')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.head_ref }}
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-          cache: pip
-
-      - name: Instalar dependências
-        run: pip install -e ".[dev]"
-
-      - name: Validar commits convencionais
-        run: |
-          git fetch origin main:main || true
-          cz check --rev-range origin/main..HEAD
-
-      - name: Calcular próxima versão
-        id: cz
-        run: |
-          NEXT_VERSION=$(cz bump --dry-run --changelog --yes | tail -n1 | awk '{print $NF}')
-          echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Criar tag via API do GitHub
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          SHA=$(git rev-parse HEAD)
-          TAG="v${{ steps.cz.outputs.next_version }}"
-          gh api repos/${{ github.repository }}/git/refs \
-            -f ref="refs/tags/$TAG" \
-            -f sha="$SHA"
-
-      - name: Criar release no GitHub
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.cz.outputs.next_version }}
-          name: Release v${{ steps.cz.outputs.next_version }}
-          body: |
-            $(cz changelog --dry-run --yes)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

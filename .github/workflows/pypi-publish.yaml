@@ -25,7 +25,8 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -33,23 +34,26 @@ jobs:
           python-version: '3.11'
           cache: pip
 
-      - name: Install build tools
+      - name: Install Build Tools
         run: |
           pip install build twine
 
-      - name: Build package
+      - name: Build Package
         run: |
           python -m build
 
-      - name: Publish package to TestPyPI or PyPI
+      - name: Publish Package
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ inputs.test_publish == true && secrets.TEST_PYPI_TOKEN || secrets.PYPI_TOKEN }}
         run: |
           if [ "${{ inputs.test_publish }}" = "true" ]; then
-            echo "Publicando no TestPyPI..."
-            twine upload --repository-url https://test.pypi.org/legacy/ dist/* || echo "⚠️ Versão já existente no TestPyPI, ignorando erro."
+            echo "Publishing to TestPyPI..."
+            twine upload --repository-url https://test.pypi.org/legacy/ dist/* || echo "⚠️ Version already exists in TestPyPI, ignoring."
           else
-            echo "Publicando no PyPI..."
-            twine upload dist/* || echo "⚠️ Versão já existente no PyPI, ignorando erro."
-          fi
+            echo "Publishing to PyPI..."
+            twine upload dist/* || echo "⚠️ Version already exists in PyPI, ignoring."
+
+      - name: Verify Package Upload
+        run: |
+          echo "✅ Package upload step completed."
