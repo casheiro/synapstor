@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
@@ -29,26 +29,26 @@ jobs:
         run: |
           # Extrai a versão da tag (remove o 'v' inicial)
           VERSION=${GITHUB_REF#refs/tags/v}
-          
+
           # Função para verificar se a versão existe no PyPI
           check_pypi() {
             # Extrai o nome do pacote do setup.py ou pyproject.toml
             PACKAGE_NAME=$(python -c "from setuptools import setup; setup()" --name 2>/dev/null || python -c "import tomli; print(tomli.load(open('pyproject.toml', 'rb'))['project']['name'])")
-            
+
             # Verifica se a versão existe no PyPI
             STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://pypi.org/pypi/$PACKAGE_NAME/$VERSION/json)
-            
+
             if [ "$STATUS_CODE" = "200" ]; then
               echo "true"
             else
               echo "false"
             fi
           }
-          
+
           # Verifica e define o output
           EXISTS=$(check_pypi)
           echo "exists=$EXISTS" >> $GITHUB_OUTPUT
-          
+
           if [ "$EXISTS" = "true" ]; then
             echo "Versão $VERSION já existe no PyPI. Pulando publicação."
           else

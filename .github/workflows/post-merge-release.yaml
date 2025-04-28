@@ -30,14 +30,14 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          
+
           # Se é o primeiro commit, sempre gera versão
           if ! git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
             echo "needs_release=true" >> $GITHUB_OUTPUT
             echo "is_first_release=true" >> $GITHUB_OUTPUT
             exit 0
           fi
-          
+
           # Verifica se há mudanças que exigem nova versão
           BUMP_TYPE=$(cz bump --dry-run | grep -oP "bump: version \K(major|minor|patch)" || echo "none")
           if [ "$BUMP_TYPE" != "none" ]; then
@@ -66,13 +66,13 @@ jobs:
             cz bump --yes --changelog
             VERSION=$(cz version)
             echo "version=$VERSION" >> $GITHUB_OUTPUT
-            
+
             # Gera changelog específico para esta versão
             echo "## 🚀 Release v$VERSION" > changelog.md
             echo "" >> changelog.md
             cz changelog --start-rev "v$VERSION^" --end-rev "v$VERSION" >> changelog.md
           fi
-          
+
           git push origin --tags
 
       # Cria Release no GitHub com changelog (apenas se gerou nova versão)
@@ -98,7 +98,7 @@ jobs:
 
             As alterações deste PR não exigem uma nova versão do pacote (commits do tipo chore, docs, etc).
             O código foi mergeado com sucesso para a main.`;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

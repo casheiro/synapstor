@@ -31,7 +31,7 @@ jobs:
         run: |
           # Tenta fazer fetch da main, mas não falha se não existir
           git fetch origin main:main || true
-          
+
           echo "Verificando commits do PR..."
           git fetch origin ${{ github.base_ref }} || true
           if git rev-parse --verify origin/${{ github.base_ref }} >/dev/null 2>&1; then
@@ -56,14 +56,14 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          
+
           # Se é o primeiro commit, inicia com 0.1.0
           if ! git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
             VERSION="0.1.0"
           else
             VERSION=$(cz bump --dry-run --changelog | tail -n1 | awk '{print $NF}')
           fi
-          
+
           echo "## Alterações que serão incluídas na versão v$VERSION" > changelog_preview.md
           cz changelog --dry-run >> changelog_preview.md
 
@@ -75,7 +75,7 @@ jobs:
             const fs = require('fs');
             const changelog = fs.readFileSync('changelog_preview.md', 'utf8');
             const message = `🚀 Preview da Release\n\n${changelog}`;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

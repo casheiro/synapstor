@@ -50,7 +50,7 @@ jobs:
         run: |
           # Tenta fazer fetch da main, mas não falha se não existir
           git fetch origin main:main || true
-          
+
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "Verificando commits do PR..."
             git fetch origin ${{ github.base_ref }} || true
@@ -86,7 +86,7 @@ jobs:
             echo "version=$(cz version)" >> $GITHUB_OUTPUT
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
-          
+
           git push origin --tags
 
       # Cria Release GitHub
