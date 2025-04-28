@@ -75,19 +75,6 @@ jobs:
 
           git push origin --tags
 
-      # Cria Release no GitHub com changelog (apenas se gerou nova versão)
-      - name: Create GitHub Release
-        if: steps.version_check.outputs.needs_release == 'true'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.release.outputs.version }}
-          name: "Release v${{ steps.release.outputs.version }}"
-          body_path: changelog.md
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       # Comenta no PR quando não há necessidade de nova versão
       - name: Comment No Release
         if: steps.version_check.outputs.needs_release == 'false'

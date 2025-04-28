@@ -47,11 +47,11 @@ jobs:
         env:
           CZ_PREVIEW: 1
         run: |
-          NEXT=$(cz bump --dry-run --changelog | tail -n1 | awk '{print $NF}')
+          NEXT=$(cz bump --dry-run --changelog --yes | tail -n1 | awk '{print $NF}')
           echo "version=$NEXT" >> $GITHUB_OUTPUT
           echo "Preview da próxima versão: $NEXT"
 
-      # Gera changelog e tag temporária
+      # Gera changelog de preview
       - name: Generate Changelog
         run: |
           git config user.name "github-actions"
@@ -61,11 +61,11 @@ jobs:
           if ! git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
             VERSION="0.1.0"
           else
-            VERSION=$(cz bump --dry-run --changelog | tail -n1 | awk '{print $NF}')
+            VERSION=$(cz bump --dry-run --changelog --yes | tail -n1 | awk '{print $NF}')
           fi
 
           echo "## Alterações que serão incluídas na versão v$VERSION" > changelog_preview.md
-          cz changelog --dry-run >> changelog_preview.md
+          cz changelog --dry-run --yes >> changelog_preview.md
 
       # Comenta no PR com o preview
       - name: Comment PR
