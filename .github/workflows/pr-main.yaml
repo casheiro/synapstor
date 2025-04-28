@@ -26,7 +26,7 @@ jobs:
   # 4 - Publicar no TestPyPI
   publish-test:
     needs: [version-preview]
-    if: ${{ needs.version-preview.outputs.changed == 'true' && success() }}
+    if: ${{ needs.version-preview.outputs.next_version != '' && success() }}
     uses: ./.github/workflows/pypi-publish.yaml
     with:
       repository: ${{ github.repository }}
