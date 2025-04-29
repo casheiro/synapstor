@@ -5,7 +5,7 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened]
 
-# Permissões globais do workflow
+# Global workflow permissions
 permissions:
   contents: write
   pull-requests: write
@@ -19,18 +19,26 @@ jobs:
   test:
     uses: ./.github/workflows/test.yaml
 
+  # Preview of next version
   version-preview:
     needs: [lint, test]
     uses: ./.github/workflows/version-preview.yaml
 
-  # 4 - Publicar no TestPyPI
-  publish-test:
+  # Build and release
+  release:
     needs: [version-preview]
-    if: ${{ needs.version-preview.outputs.next_version != '' && success() }}
-    uses: ./.github/workflows/pypi-publish.yaml
-    with:
-      repository: ${{ github.repository }}
-      test_publish: true
-    secrets:
-      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-      TEST_PYPI_TOKEN: ${{ secrets.TEST_PYPI_TOKEN }}
+    if: ${{ needs.version-preview.outputs.next_version != '' }}
+    uses: ./.github/workflows/release.yaml
+
+  # Final PR status
+  pr-status:
+    needs: [release]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check Release Status
+        if: ${{ needs.release.result != 'success' }}
+        run: |
+          echo "Failure in release and publishing process"
+          echo "Please check the logs for more details"
+          exit 1
