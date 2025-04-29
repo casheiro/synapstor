@@ -28,7 +28,7 @@ dependencies = [
 "Bug Tracker" = "https://github.com/casheiro/synapstor/issues"
 
 [build-system]
-requires = ["setuptools >= 77.0.3"]
+requires = ["setuptools >= 77.0.3", "setuptools_scm >= 6.2"]
 build-backend = "setuptools.build_meta"
 
 [project.scripts]
@@ -50,8 +50,7 @@ dev = [
     "black",
     "isort",
     "flake8",
-    "mypy",
-    "commitizen"
+    "mypy"
 ]
 test = [
     "pytest>=7.4.3",
@@ -67,21 +66,8 @@ all = [
     "mypy",
     "pytest>=7.4.3",
     "pytest-cov>=2.12.1",
-    "pytest-asyncio>=0.21.0",
-    "commitizen"
+    "pytest-asyncio>=0.21.0"
 ]
 
-[tool.commitizen]
-repo_url = "https://github.com/casheiro/synapstor"
-name = "cz_conventional_commits"
-version = "1.0.0"
-tag_format = "v$version"
-version_files = [
-  "src/synapstor/__init__.py:__version__"
-]
-changelog_file = "CHANGELOG.md"
-changelog_incremental = true
-update_changelog_on_bump = true
-
-[tool.setuptools.dynamic]
-version = {attr = "synapstor.__version__"}
+[tool.setuptools_scm]
+version_scheme = "post-release"

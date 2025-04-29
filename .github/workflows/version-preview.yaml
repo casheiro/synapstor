@@ -1,4 +1,4 @@
-name: Version Preview (Standard Release Dry-Run)
+name: Version Preview
 
 on:
   workflow_call:
@@ -15,22 +15,27 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Install Standard Release
-        run: npm install -g standard-version
+      - name: Install Semantic Release
+        run: |
+          npm install -g semantic-release @semantic-release/git @semantic-release/github
 
-      - name: Perform Dry-Run Versioning
+      - name: Preview Next Version
         id: preview
         run: |
-          VERSION=$(standard-version --dry-run | grep "tagging release" | awk '{print $NF}')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Next version will be: $VERSION"
-
-      - name: Generate Dry-Run Changelog
-        run: |
-          standard-version --dry-run --skip.tag --skip.commit
+          VERSION=$(npx semantic-release --dry-run | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+')
+          
+          if [ -z "$VERSION" ]; then
+            echo "Nenhuma mudança que justifique nova versão"
+            echo "version=" >> $GITHUB_OUTPUT
+          else
+            echo "Próxima versão será: v$VERSION"
+            echo "version=v$VERSION" >> $GITHUB_OUTPUT
+          fi

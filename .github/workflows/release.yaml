@@ -1,0 +1,87 @@
+name: Release Automático
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  auto-release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Configurar Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Determinar próxima versão e criar tag
+        id: next-version
+        run: |
+          # Instala semantic-release e plugins necessários
+          npm install -g semantic-release @semantic-release/git @semantic-release/github
+          
+          # Roda o semantic-release para determinar versão e criar tag
+          VERSION=$(npx semantic-release --dry-run | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+')
+          
+          if [ -z "$VERSION" ]; then
+            echo "Nenhuma mudança que justifique nova versão"
+            exit 0
+          fi
+          
+          echo "Próxima versão: v$VERSION"
+          echo "version=v$VERSION" >> $GITHUB_OUTPUT
+          
+          # Cria e pusha a tag
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
+
+      - name: Criar Release no GitHub
+        if: steps.next-version.outputs.version != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.next-version.outputs.version }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish:
+    needs: auto-release
+    if: needs.auto-release.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build package
+        run: python -m build
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: twine upload dist/* 
