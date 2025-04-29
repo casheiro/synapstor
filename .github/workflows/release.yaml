@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Check TestPyPI Token
         run: |
-          if [ -z "${{ secrets.TEST_PYPI_TOKEN }}" ]; then
+          if [ -z "${{ secrets.TEST_PYPI_API_TOKEN }}" ]; then
             echo "::error::TestPyPI token not set in repository secrets"
             exit 1
           fi
@@ -21,7 +21,7 @@ jobs:
 
       - name: Check PyPI Token
         run: |
-          if [ -z "${{ secrets.PYPI_TOKEN }}" ]; then
+          if [ -z "${{ secrets.PYPI_API_TOKEN }}" ]; then
             echo "::error::PyPI token not set in repository secrets"
             exit 1
           fi
@@ -121,7 +121,7 @@ jobs:
         continue-on-error: true # Don't fail if version already exists
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
           TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
         run: |
           # Try to upload with verbose output
@@ -172,7 +172,7 @@ jobs:
         continue-on-error: true # Don't fail if version already exists
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           # Try to upload with verbose output
           twine upload --verbose dist/*
