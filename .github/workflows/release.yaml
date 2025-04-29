@@ -140,7 +140,7 @@ jobs:
 
   cleanup:
     needs: [auto-release, publish-test, publish-prod]
-    if: always() && (needs.auto-release.result == 'success' || needs.publish-test.result == 'failure' || needs.publish-prod.result == 'failure')
+    if: always() && (needs.publish-test.result == 'failure' || needs.publish-prod.result == 'failure')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.5.3
@@ -155,7 +155,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Remove Created Tag
-        if: needs.auto-release.result == 'success'
+        if: needs.auto-release.outputs.version != ''
         run: |
           # Get the version that was created
           VERSION=${{ needs.auto-release.outputs.version }}
@@ -169,7 +169,7 @@ jobs:
           fi
 
       - name: Remove GitHub Release
-        if: needs.auto-release.result == 'success'
+        if: needs.auto-release.outputs.version != ''
         uses: actions/github-script@v7
         with:
           script: |
