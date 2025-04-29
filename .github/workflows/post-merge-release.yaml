@@ -1,0 +1,22 @@
+name: Post Merge Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  generate-release:
+    if: github.event.pull_request.merged == true
+    uses: ./.github/workflows/generate-release.yaml
+    secrets: inherit
+
+  publish-pypi:
+    needs: generate-release
+    uses: ./.github/workflows/pypi-publish.yaml
+    with:
+      repository: ${{ github.repository }}
+      test_publish: false
+    secrets:
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      TEST_PYPI_TOKEN: ${{ secrets.TEST_PYPI_TOKEN }}
