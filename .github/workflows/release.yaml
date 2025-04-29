@@ -79,6 +79,11 @@ jobs:
     needs: [auto-release]
     if: needs.auto-release.result == 'success'
     runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/synapstor
+    permissions:
+      id-token: write  # IMPORTANTE: necessário para trusted publishing
     steps:
       - uses: actions/checkout@v3.5.3
         with:
@@ -92,7 +97,7 @@ jobs:
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install build twine
+          pip install build
 
       - name: Build package
         run: python -m build
@@ -101,7 +106,6 @@ jobs:
         uses: pypa/gh-action-pypi-publish@v1.8.14
         with:
           repository-url: https://test.pypi.org/legacy/
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
           verbose: true
           print-hash: true
 
@@ -109,6 +113,11 @@ jobs:
     needs: [auto-release, publish-test]
     if: needs.auto-release.result == 'success' && needs.publish-test.result == 'success'
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/synapstor
+    permissions:
+      id-token: write  # IMPORTANTE: necessário para trusted publishing
     steps:
       - uses: actions/checkout@v3.5.3
         with:
@@ -122,7 +131,7 @@ jobs:
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install build twine
+          pip install build
 
       - name: Build package
         run: python -m build
@@ -130,7 +139,6 @@ jobs:
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@v1.8.14
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
           verbose: true
           print-hash: true
 
