@@ -23,14 +23,17 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Semantic Release
-        run: |
-          npm install -g semantic-release @semantic-release/git @semantic-release/github
+      - name: Install Standard Release
+        run: npm install -g standard-version
 
       - name: Preview Next Version
         id: preview
         run: |
-          VERSION=$(npx semantic-release --dry-run | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+')
+          # Executa standard-version em dry-run e captura a saída
+          OUTPUT=$(standard-version --dry-run)
+
+          # Extrai a versão da saída
+          VERSION=$(echo "$OUTPUT" | grep -oP "(?<=tagging release v)[0-9]+\.[0-9]+\.[0-9]+")
 
           if [ -z "$VERSION" ]; then
             echo "Nenhuma mudança que justifique nova versão"

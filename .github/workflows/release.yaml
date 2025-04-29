@@ -31,23 +31,25 @@ jobs:
       - name: Determinar próxima versão e criar tag
         id: next-version
         run: |
-          # Instala semantic-release e plugins necessários
-          npm install -g semantic-release @semantic-release/git @semantic-release/github
+          # Instala standard-release
+          npm install -g standard-version
 
-          # Roda o semantic-release para determinar versão e criar tag
-          VERSION=$(npx semantic-release --dry-run | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+')
+          # Roda o standard-version para criar tag e changelog
+          standard-version
+
+          # Extrai a versão da última tag
+          VERSION=$(git describe --abbrev=0 --tags | sed 's/^v//')
 
           if [ -z "$VERSION" ]; then
-            echo "Nenhuma mudança que justifique nova versão"
-            exit 0
+            echo "Erro ao gerar versão"
+            exit 1
           fi
 
           echo "Próxima versão: v$VERSION"
           echo "version=v$VERSION" >> $GITHUB_OUTPUT
 
-          # Cria e pusha a tag
-          git tag "v$VERSION"
-          git push origin "v$VERSION"
+          # Pusha as alterações e a tag
+          git push --follow-tags origin main
 
       - name: Criar Release no GitHub
         if: steps.next-version.outputs.version != ''
