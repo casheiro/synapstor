@@ -1,0 +1,36 @@
+name: Version Preview (Standard Release Dry-Run)
+
+on:
+  workflow_call:
+    outputs:
+      next_version:
+        description: "Next calculated version"
+        value: ${{ jobs.version-preview.outputs.next_version }}
+
+jobs:
+  version-preview:
+    runs-on: ubuntu-latest
+    outputs:
+      next_version: ${{ steps.preview.outputs.version }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Standard Release
+        run: npm install -g standard-version
+
+      - name: Perform Dry-Run Versioning
+        id: preview
+        run: |
+          VERSION=$(standard-version --dry-run | grep "tagging release" | awk '{print $NF}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Next version will be: $VERSION"
+
+      - name: Generate Dry-Run Changelog
+        run: |
+          standard-version --dry-run --skip.tag --skip.commit

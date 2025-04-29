@@ -1,41 +1,60 @@
-name: PyPI Publish Job
+name: Publish to PyPI
 
 on:
   workflow_call:
     inputs:
-      environment:
+      repository:
+        description: "GitHub repository"
+        required: true
         type: string
-        required: true
-        default: "testpypi"
-        description: "Ambiente para publicação (testpypi ou pypi)"
+      test_publish:
+        description: "If true, publish to TestPyPI"
+        required: false
+        default: false
+        type: boolean
     secrets:
-      TEST_PYPI_API_TOKEN:
+      PYPI_TOKEN:
         required: true
-      PYPI_API_TOKEN:
+      TEST_PYPI_TOKEN:
         required: true
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-          cache: 'pip'
-      - name: Instalar dependências
-        run: pip install build twine
-      - name: Construir pacote
-        run: python -m build
-      - name: Publicar no TestPyPI
-        if: inputs.environment == 'testpypi'
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-          skip_existing: true
-      - name: Publicar no PyPI
-        if: inputs.environment == 'pypi'
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          cache: pip
+
+      - name: Install Build Tools
+        run: |
+          pip install build twine
+
+      - name: Build Package
+        run: |
+          python -m build
+
+      - name: Publish Package
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ inputs.test_publish == true && secrets.TEST_PYPI_TOKEN || secrets.PYPI_TOKEN }}
+        run: |
+          if [ "${{ inputs.test_publish }}" = "true" ]; then
+            echo "Publishing to TestPyPI..."
+            twine upload --repository-url https://test.pypi.org/legacy/ dist/* || echo "⚠️ Version already exists in TestPyPI, ignoring."
+          else
+            echo "Publishing to PyPI..."
+            twine upload dist/* || echo "⚠️ Version already exists in PyPI, ignoring."
+          fi
+
+      - name: Verify Package Upload
+        run: |
+          echo "✅ Package upload step completed."

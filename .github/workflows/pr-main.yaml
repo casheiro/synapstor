@@ -1,34 +1,36 @@
-name: PR para Main
+name: PR Main Flow
 
 on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
 
+# Permissões globais do workflow
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
 jobs:
   # 1 - Pre-commit
   lint:
     uses: ./.github/workflows/pre-commit.yaml
 
-  # 2 - Testes
   test:
     uses: ./.github/workflows/test.yaml
 
-  # 3 - Pré-visualizar versão (commitizen em dry-run)
   version-preview:
     needs: [lint, test]
-    uses: ./.github/workflows/commitizen-release.yaml
-    with:
-      dry_run: true
-    secrets: inherit
+    uses: ./.github/workflows/version-preview.yaml
 
   # 4 - Publicar no TestPyPI
   publish-test:
     needs: [version-preview]
-    if: ${{ needs.version-preview.outputs.changed == 'true' && success() }}
+    if: ${{ needs.version-preview.outputs.next_version != '' && success() }}
     uses: ./.github/workflows/pypi-publish.yaml
     with:
-      environment: 'testpypi'
+      repository: ${{ github.repository }}
+      test_publish: true
     secrets:
-      TEST_PYPI_API_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
-      PYPI_API_TOKEN:      ${{ secrets.PYPI_API_TOKEN }}
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      TEST_PYPI_TOKEN: ${{ secrets.TEST_PYPI_TOKEN }}
