@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.1.2](https://github.com/casheiro/synapstor/compare/v1.1.1...v1.1.2) (2025-04-29)
+
+
+### Bug Fixes
+
+* Remove unnecessary whitespace in the release.yaml workflow file to ensure proper formatting and maintain consistency. ([ef66299](https://github.com/casheiro/synapstor/commit/ef662997fe6c8a51ce323420a6fe0b35a6ee289b))
+* Updates the token variable names in the release.yaml file to use TEST_PYPI_API_TOKEN and PYPI_API_TOKEN, ensuring correct verification and use of authentication tokens. ([92a111e](https://github.com/casheiro/synapstor/commit/92a111e1a98a970fc4ad049419135d6a4149730f))
+
 ### [1.1.1](https://github.com/casheiro/synapstor/compare/v1.1.0...v1.1.1) (2025-04-29)
 
 ## 1.1.0 (2025-04-29)
