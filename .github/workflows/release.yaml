@@ -8,27 +8,7 @@ on:
         value: ${{ jobs.auto-release.outputs.version }}
 
 jobs:
-  check-tokens:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check TestPyPI Token
-        run: |
-          if [ -z "${{ secrets.TEST_PYPI_API_TOKEN }}" ]; then
-            echo "::error::TestPyPI token not set in repository secrets"
-            exit 1
-          fi
-          echo "TestPyPI token is set"
-
-      - name: Check PyPI Token
-        run: |
-          if [ -z "${{ secrets.PYPI_API_TOKEN }}" ]; then
-            echo "::error::PyPI token not set in repository secrets"
-            exit 1
-          fi
-          echo "PyPI token is set"
-
   auto-release:
-    needs: check-tokens
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -96,7 +76,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-test:
-    needs: [check-tokens, auto-release]
+    needs: [auto-release]
     if: needs.auto-release.result == 'success'
     runs-on: ubuntu-latest
     steps:
@@ -147,7 +127,7 @@ jobs:
             synapstor
 
   publish-prod:
-    needs: [check-tokens, auto-release, publish-test]
+    needs: [auto-release, publish-test]
     if: needs.auto-release.result == 'success' && needs.publish-test.result == 'success'
     runs-on: ubuntu-latest
     steps:
