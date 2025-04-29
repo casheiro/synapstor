@@ -29,16 +29,16 @@ jobs:
       - name: Preview Next Version
         id: preview
         run: |
-          # Executa standard-version em dry-run e captura a saída
+          # Run standard-version in dry-run mode and capture output
           OUTPUT=$(standard-version --dry-run)
 
-          # Extrai a versão da saída
+          # Extract version from output
           VERSION=$(echo "$OUTPUT" | grep -oP "(?<=tagging release v)[0-9]+\.[0-9]+\.[0-9]+")
 
           if [ -z "$VERSION" ]; then
-            echo "Nenhuma mudança que justifique nova versão"
+            echo "No changes that justify a new version"
             echo "version=" >> $GITHUB_OUTPUT
           else
-            echo "Próxima versão será: v$VERSION"
+            echo "Next version will be: v$VERSION"
             echo "version=v$VERSION" >> $GITHUB_OUTPUT
           fi

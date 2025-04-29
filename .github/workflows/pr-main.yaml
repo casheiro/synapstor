@@ -5,7 +5,7 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened]
 
-# Permissões globais do workflow
+# Global workflow permissions
 permissions:
   contents: write
   pull-requests: write
@@ -19,26 +19,26 @@ jobs:
   test:
     uses: ./.github/workflows/test.yaml
 
-  # Preview da próxima versão
+  # Preview of next version
   version-preview:
     needs: [lint, test]
     uses: ./.github/workflows/version-preview.yaml
 
-  # Build e release
+  # Build and release
   release:
     needs: [version-preview]
     if: ${{ needs.version-preview.outputs.next_version != '' }}
     uses: ./.github/workflows/release.yaml
 
-  # Status final do PR
+  # Final PR status
   pr-status:
     needs: [release]
     runs-on: ubuntu-latest
     if: always()
     steps:
-      - name: Verificar Status do Release
+      - name: Check Release Status
         if: ${{ needs.release.result != 'success' }}
         run: |
-          echo "Falha no processo de release e publicação"
-          echo "Por favor, verifique os logs para mais detalhes"
+          echo "Failure in release and publishing process"
+          echo "Please check the logs for more details"
           exit 1

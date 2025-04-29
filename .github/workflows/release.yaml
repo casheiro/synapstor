@@ -1,10 +1,10 @@
-name: Release Automático
+name: Automatic Release
 
 on:
   workflow_call:
     outputs:
       version:
-        description: "Versão publicada"
+        description: "Published version"
         value: ${{ jobs.auto-release.outputs.version }}
 
 jobs:
@@ -19,6 +19,7 @@ jobs:
       - uses: actions/checkout@v3.5.3
         with:
           fetch-depth: 0
+          ref: ${{ github.head_ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
@@ -26,40 +27,41 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Configurar Git
+      - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Determinar próxima versão e criar tag
+      - name: Determine next version and create tag
         id: next-version
         run: |
-          # Instala standard-release
+          # Install standard-release
           npm install -g standard-version
 
-          # Roda o standard-version para criar tag e changelog
+          # Run standard-version to create tag and changelog
           standard-version
 
-          # Extrai a versão da última tag
+          # Extract version from the latest tag
           VERSION=$(git describe --abbrev=0 --tags | sed 's/^v//')
 
           if [ -z "$VERSION" ]; then
-            echo "Erro ao gerar versão"
+            echo "Error generating version"
             exit 1
           fi
 
-          echo "Próxima versão: v$VERSION"
+          echo "Next version: v$VERSION"
           echo "version=v$VERSION" >> $GITHUB_OUTPUT
 
-          # Pusha as alterações e a tag
-          git push --follow-tags origin main
+          # Push changes and tag to PR branch
+          git push --follow-tags origin HEAD:${{ github.head_ref }}
 
-      - name: Criar Release no GitHub
+      - name: Create GitHub Release
         if: steps.next-version.outputs.version != ''
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.next-version.outputs.version }}
           generate_release_notes: true
+          draft: true  # Create as draft since it hasn't been merged yet
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -85,30 +87,30 @@ jobs:
       - name: Build package
         run: python -m build
 
-      - name: Publicar no TestPyPI
-        continue-on-error: true # Não falha se a versão já existir
+      - name: Publish to TestPyPI
+        continue-on-error: true # Don't fail if version already exists
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
           TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
         run: |
           if ! twine upload dist/* 2>&1 | grep -q "File already exists"; then
-            # Se não encontrou "File already exists" no erro, propaga o erro
+            # If "File already exists" not found in error, propagate error
             twine upload dist/*
           else
-            echo "Versão já existe no TestPyPI - continuando..."
+            echo "Version already exists on TestPyPI - continuing..."
           fi
 
-      - name: Testar instalação do TestPyPI
+      - name: Test TestPyPI installation
         run: |
-          # Cria ambiente virtual para teste
+          # Create virtual environment for testing
           python -m venv test_env
           source test_env/bin/activate
 
-          # Espera um pouco para garantir que o pacote esteja disponível
+          # Wait a bit to ensure package is available
           sleep 30
 
-          # Tenta instalar do TestPyPI
+          # Try to install from TestPyPI
           pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ synapstor
 
   publish-prod:
@@ -133,15 +135,15 @@ jobs:
       - name: Build package
         run: python -m build
 
-      - name: Publicar no PyPI
-        continue-on-error: true # Não falha se a versão já existir
+      - name: Publish to PyPI
+        continue-on-error: true # Don't fail if version already exists
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
           if ! twine upload dist/* 2>&1 | grep -q "File already exists"; then
-            # Se não encontrou "File already exists" no erro, propaga o erro
+            # If "File already exists" not found in error, propagate error
             twine upload dist/*
           else
-            echo "Versão já existe no PyPI - continuando..."
+            echo "Version already exists on PyPI - continuing..."
           fi
