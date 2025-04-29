@@ -98,14 +98,12 @@ jobs:
         run: python -m build
 
       - name: Publish to TestPyPI
-        continue-on-error: true # Don't fail if version already exists
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
-          TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
-        run: |
-          # Try to upload with verbose output
-          twine upload --verbose dist/*
+        uses: pypa/gh-action-pypi-publish@v1.8.14
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          verbose: true
+          print-hash: true
 
   publish-prod:
     needs: [auto-release, publish-test]
@@ -130,13 +128,11 @@ jobs:
         run: python -m build
 
       - name: Publish to PyPI
-        continue-on-error: true # Don't fail if version already exists
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: |
-          # Try to upload with verbose output
-          twine upload --verbose dist/*
+        uses: pypa/gh-action-pypi-publish@v1.8.14
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          verbose: true
+          print-hash: true
 
   cleanup:
     needs: [auto-release, publish-test, publish-prod]
