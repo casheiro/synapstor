@@ -104,10 +104,10 @@ jobs:
           # Cria ambiente virtual para teste
           python -m venv test_env
           source test_env/bin/activate
-          
+
           # Espera um pouco para garantir que o pacote esteja disponível
           sleep 30
-          
+
           # Tenta instalar do TestPyPI
           pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ synapstor
 
