@@ -8,7 +8,27 @@ on:
         value: ${{ jobs.auto-release.outputs.version }}
 
 jobs:
+  check-tokens:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check TestPyPI Token
+        run: |
+          if [ -z "${{ secrets.TEST_PYPI_TOKEN }}" ]; then
+            echo "::error::TestPyPI token not set in repository secrets"
+            exit 1
+          fi
+          echo "TestPyPI token is set"
+
+      - name: Check PyPI Token
+        run: |
+          if [ -z "${{ secrets.PYPI_TOKEN }}" ]; then
+            echo "::error::PyPI token not set in repository secrets"
+            exit 1
+          fi
+          echo "PyPI token is set"
+
   auto-release:
+    needs: check-tokens
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -76,7 +96,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-test:
-    needs: auto-release
+    needs: [check-tokens, auto-release]
     if: needs.auto-release.result == 'success'
     runs-on: ubuntu-latest
     steps:
@@ -104,19 +124,8 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
           TWINE_REPOSITORY_URL: https://test.pypi.org/legacy/
         run: |
-          # Verify token is set
-          if [ -z "$TWINE_PASSWORD" ]; then
-            echo "Error: TestPyPI token not set"
-            exit 1
-          fi
-          
           # Try to upload with verbose output
-          if ! twine upload --verbose dist/* 2>&1 | grep -q "File already exists"; then
-            # If "File already exists" not found in error, propagate error
-            twine upload --verbose dist/*
-          else
-            echo "Version already exists on TestPyPI - continuing..."
-          fi
+          twine upload --verbose dist/*
 
       - name: Test TestPyPI installation
         run: |
@@ -133,10 +142,12 @@ jobs:
             "qdrant-client>=1.3.1" \
             "psutil>=6.0.0" \
             "pytest>=7.4.3" \
+            "sentence-transformers>=2.2.2" \
+            "pydantic-settings>=2.0.0" \
             synapstor
 
   publish-prod:
-    needs: [auto-release, publish-test]
+    needs: [check-tokens, auto-release, publish-test]
     if: needs.auto-release.result == 'success' && needs.publish-test.result == 'success'
     runs-on: ubuntu-latest
     steps:
@@ -163,19 +174,8 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
-          # Verify token is set
-          if [ -z "$TWINE_PASSWORD" ]; then
-            echo "Error: PyPI token not set"
-            exit 1
-          fi
-          
           # Try to upload with verbose output
-          if ! twine upload --verbose dist/* 2>&1 | grep -q "File already exists"; then
-            # If "File already exists" not found in error, propagate error
-            twine upload --verbose dist/*
-          else
-            echo "Version already exists on PyPI - continuing..."
-          fi
+          twine upload --verbose dist/*
 
   cleanup:
     needs: [auto-release, publish-test, publish-prod]
