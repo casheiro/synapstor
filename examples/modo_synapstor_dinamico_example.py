@@ -1,30 +1,30 @@
 #!/usr/bin/env python3
 """
-Exemplo de uso do Modo Synapstor Dinâmico
+Dynamic Synapstor Mode Usage Example
 
-Este arquivo demonstra como o Synapstor (servidor MCP) fornece prompts 
-estruturados que instruem o LLM cliente a executar raciocínio multidisciplinar
-com geração dinâmica de personalidades especializadas.
+This file demonstrates how Synapstor (MCP server) provides structured 
+prompts that instruct the LLM client to execute multidisciplinary reasoning
+with dynamic generation of specialized personalities.
 
-ARQUITETURA:
-- Synapstor (MCP Server): Recupera contexto RAG + constrói prompts estruturados
-- LLM Cliente: Recebe prompt + executa geração de personalidades + debate
+ARCHITECTURE:
+- Synapstor (MCP Server): Retrieves RAG context + builds structured prompts
+- LLM Client: Receives prompt + executes personality generation + debate
 """
 
-def exemplo_prompt_gerado():
+def generated_prompt_example():
     """
-    Exemplo do prompt estruturado que o Synapstor fornece ao LLM cliente.
-    O LLM recebe este prompt e executa as instruções para realizar o debate.
+    Example of the structured prompt that Synapstor provides to the LLM client.
+    The LLM receives this prompt and executes the instructions to conduct the debate.
     """
-    print("🎭 Prompt Estruturado Fornecido pelo Synapstor ao LLM Cliente\n")
+    print("🎭 Structured Prompt Provided by Synapstor to LLM Client\n")
     print("="*80)
     
-    prompt_exemplo = """Modo Synapstor ativado - Raciocínio Multidisciplinar com RAG.
+    prompt_example = """Synapstor Mode activated - Multidisciplinary Reasoning with RAG.
 
-🧠 Tema: Sustentabilidade em Startups de Tecnologia
+🧠 Theme: Sustainability in Technology Startups
 
-📚 Contexto recuperado via Qdrant:
-📊 Total de documentos relevantes encontrados: 4
+📚 Context retrieved via Qdrant:
+📊 Total relevant documents found: 4
 
 📄 Documento 1 (Fonte: sustentabilidade_tech/green_coding.md):
 Green coding practices podem reduzir o consumo energético de aplicações em até 30%. 
@@ -41,86 +41,87 @@ Critérios ESG (Environmental, Social, Governance) se tornaram fundamentais para
 captação de investimento. VCs avaliam não apenas retorno financeiro mas também
 impacto socioambiental das startups...
 
-🎭 PRIMEIRA FASE - Geração de Personalidades:
+🎭 FIRST PHASE - Personality Generation:
 
-Você é um especialista em criar personalidades para debates multidisciplinares.
+You are an expert in creating personalities for multidisciplinary debates.
 
-TEMA: Sustentabilidade em Startups de Tecnologia
+THEME: Sustainability in Technology Startups
 
-INSTRUÇÕES:
-Crie exatamente 4 personalidades especializadas que seriam as mais adequadas para debater sobre "Sustentabilidade em Startups de Tecnologia". 
+INSTRUCTIONS:
+Create exactly 4 specialized personalities that would be most suitable for debating "Sustainability in Technology Startups". 
 
-Para cada personalidade, forneça:
-- Nome (pode ser pessoa real histórica/contemporânea ou arquétipo profissional)
-- Expertise (área específica de conhecimento)
-- Papel (função no debate)
-- Estilo (tom de comunicação)
-- Perspectiva (ângulo único de análise)
+For each personality, provide:
+- Name (can be real historical/contemporary person or professional archetype)
+- Expertise (specific area of knowledge)
+- Role (function in debate)
+- Style (communication tone)
+- Perspective (unique angle of analysis)
 
-CRITÉRIOS:
-- Personalidades devem ser complementares, não redundantes
-- Cubram diferentes aspectos/dimensões do tema
-- Incluam mix de perspectivas teóricas e práticas
-- Considerem aspectos técnicos, éticos, sociais e econômicos quando relevante
-- Sejam especialistas reconhecidos ou arquétipos profissionais relevantes
+CRITERIA:
+- Personalities should be complementary, not redundant
+- Cover different aspects/dimensions of the theme
+- Include mix of theoretical and practical perspectives
+- Consider technical, ethical, social and economic aspects when relevant
+- Be recognized experts or relevant professional archetypes
 
-FORMATO DE RESPOSTA (JSON):
+RESPONSE FORMAT (JSON):
 [
   {
-    "nome": "Nome da Personalidade",
-    "expertise": "Área específica de conhecimento",
-    "papel": "Função no debate",
-    "estilo": "Tom de comunicação",
-    "perspectiva": "Ângulo único de análise"
+    "name": "Personality Name",
+    "expertise": "Specific area of knowledge",
+    "role": "Function in debate",
+    "style": "Communication tone",
+    "perspective": "Unique angle of analysis"
   }
 ]
 
-Responda apenas com o JSON válido, sem texto adicional.
+Respond only with valid JSON, no additional text.
 
-🎯 SEGUNDA FASE - Instruções para o Debate:
+🎯 SECOND PHASE - Debate Instructions:
 
-Após gerar as personalidades na PRIMEIRA FASE, proceda com o debate multidisciplinar:
+After generating personalities in the FIRST PHASE, proceed with multidisciplinary debate:
 
-1. **Apresentação das Personalidades**: Cada personalidade se apresenta brevemente (nome, expertise, perspectiva única)
+1. **Personality Presentation**: Each personality briefly introduces themselves (name, expertise, unique perspective)
 
-2. **Análise Multidisciplinar**: Cada personalidade analisa o tema "Sustentabilidade em Startups de Tecnologia" sob sua ótica especializada:
-   - Use o contexto RAG recuperado como base factual
-   - Explore diferentes dimensões do tema
-   - Identifique pontos de convergência e divergência
-   - Referencie evidências específicas dos documentos
+2. **Multidisciplinary Analysis**: Each personality analyzes the theme "Sustainability in Technology Startups" from their specialized perspective:
+   - Use the retrieved RAG context as factual basis
+   - Explore different dimensions of the theme
+   - Identify convergence and divergence points
+   - Reference specific evidence from documents
 
-3. **Debate Colaborativo**: 
-   - Personalidades interagem entre si
-   - Questionam e complementam perspectivas umas das outras
-   - Constroem sobre as ideias apresentadas
-   - Mantêm foco no tema central
+3. **Collaborative Debate**: 
+   - Personalities interact with each other
+   - Question and complement each other's perspectives
+   - Build upon presented ideas
+   - Maintain focus on central theme
 
-4. **Síntese Multidisciplinar**: Ao final, destaque:
-   - Consensos emergentes entre as personalidades
-   - Tensões produtivas e diferentes abordagens
-   - Implicações práticas e teóricas do tema
-   - Recomendações ou próximos passos
+4. **Multidisciplinary Synthesis**: At the end, highlight:
+   - Emerging consensus among personalities
+   - Productive tensions and different approaches
+   - Practical and theoretical implications of the theme
+   - Recommendations or next steps
 
-📝 Metadados da Sessão:
-- Gerado em: 2025-01-25 14:30:15
-- Documentos RAG consultados: 4
-- Personalidades solicitadas: 4
+📝 Session Metadata:
+- Generated at: 2025-01-25 14:30:15
+- RAG documents consulted: 4
+- Requested personalities: 4
 
-🚀 EXECUTE AS DUAS FASES SEQUENCIALMENTE PARA CRIAR O DEBATE MULTIDISCIPLINAR SOBRE "Sustentabilidade em Startups de Tecnologia"."""
+🚀 EXECUTE BOTH PHASES SEQUENTIALLY TO CREATE THE MULTIDISCIPLINARY DEBATE ON "Sustainability in Technology Startups".""""""    print(prompt_example)
+    print("="*80)
 
-    print(prompt_exemplo)
+    print(prompt_example)
     print("="*80)
 
 
-def exemplo_resposta_esperada():
+def expected_response_example():
     """
-    Exemplo de como o LLM cliente responderia ao prompt estruturado do Synapstor.
-    Esta é a execução completa que o LLM faria seguindo as instruções.
+    Example of how the LLM client would respond to Synapstor's structured prompt.
+    This is the complete execution the LLM would perform following the instructions.
     """
-    print("\n🤖 Exemplo de Execução do LLM Cliente\n")
+    print("\n🤖 Example of LLM Client Execution\n")
     print("="*80)
     
-    resposta_exemplo = """**PRIMEIRA FASE - Personalidades Geradas:**
+    response_example = """**FIRST PHASE - Generated Personalities:**
 
 [
   {
@@ -192,15 +193,15 @@ def exemplo_resposta_esperada():
 
 O debate revela que sustentabilidade em startups de tecnologia não é apenas responsabilidade social, mas imperativo estratégico para sucesso no mercado atual."""
 
-    print(resposta_exemplo)
+    print(response_example)
     print("="*80)
 
 
-def arquitetura_mcp_synapstor():
+def mcp_synapstor_architecture():
     """
-    Explica a arquitetura MCP e o papel do Synapstor vs LLM.
+    Explains MCP architecture and the role of Synapstor vs LLM.
     """
-    print("\n🏗️ Arquitetura MCP - Synapstor vs LLM\n")
+    print("\n🏗️ MCP Architecture - Synapstor vs LLM\n")
     
     print("🔧 SYNAPSTOR (MCP Server):")
     print("   • Conecta-se ao banco Qdrant")
@@ -239,9 +240,9 @@ if __name__ == "__main__":
     print("🎭 Modo Synapstor - Arquitetura MCP Dinâmica")
     print("=" * 50)
     
-    exemplo_prompt_gerado()
-    exemplo_resposta_esperada()
-    arquitetura_mcp_synapstor()
+    generated_prompt_example()
+    expected_response_example()
+    mcp_synapstor_architecture()
     
     print("\n✨ Vantagens da Arquitetura MCP:")
     print("   🎯 Synapstor fornece contexto RAG especializado")

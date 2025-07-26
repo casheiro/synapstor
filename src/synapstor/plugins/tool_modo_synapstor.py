@@ -1,10 +1,9 @@
 """
-Plugin Modo Synapstor - Sistema de Raciocínio Multidisciplinar com RAG
+Synapstor Mode Plugin - Multidisciplinary Reasoning System with RAG
 
-Este plugin implementa o modo_synapstor, que ativa um sistema de raciocínio
-multidisciplinar baseado em múltiplas personalidades especializadas que
-debatem colaborativamente, utilizando recuperação automática de contexto
-via RAG do banco Qdrant.
+This plugin implements synapstor_mode, which activates a multidisciplinary
+reasoning system based on multiple specialized personalities that debate
+collaboratively, using automatic context retrieval via RAG from Qdrant database.
 """
 
 import logging
@@ -19,184 +18,184 @@ from synapstor.i18n import get_translator
 logger = logging.getLogger(__name__)
 
 #############################################################################
-# SECTION 1: ESTRUTURAS DE DADOS                                            #
+# SECTION 1: DATA STRUCTURES                                                #
 #############################################################################
 
-# NOTA: Personalidade como dataclass foi removida.
-# Personalidades customizadas são fornecidas diretamente como JSON.
-# Exemplo de JSON para personalidades customizadas:
+# NOTE: Personality as dataclass was removed.
+# Custom personalities are provided directly as JSON.
+# Example JSON for custom personalities:
 # [
 #   {
-#     "nome": "Nome do Especialista",
-#     "expertise": "Área de conhecimento",
-#     "papel": "Função no debate",
-#     "estilo": "Tom de comunicação",
-#     "perspectiva": "Ângulo de análise"
+#     "name": "Expert Name",
+#     "expertise": "Knowledge area",
+#     "role": "Function in debate",
+#     "style": "Communication tone",
+#     "perspective": "Analysis angle"
 #   }
 # ]
 
 
 @dataclass
-class ContextoRAG:
+class RAGContext:
     """
-    Representa o contexto recuperado via RAG do Qdrant.
+    Represents the context retrieved via RAG from Qdrant.
     """
-    documentos: List[Dict[str, Any]]
-    query_original: str
-    total_encontrados: int
-    relevancia_minima: float = 0.0
+    documents: List[Dict[str, Any]]
+    original_query: str
+    total_found: int
+    minimum_relevance: float = 0.0
 
 
 @dataclass
-class ConfiguracaoDebate:
+class DebateConfiguration:
     """
-    Configurações para o modo de debate multidisciplinar.
+    Configuration for multidisciplinary debate mode.
     """
-    max_personalidades: int = 5
-    min_personalidades: int = 3
-    limite_documentos_rag: int = 5
-    namespace_padrao: str = "projetos_ativos"
-    relevancia_minima: float = 0.3
+    max_personalities: int = 5
+    min_personalities: int = 3
+    rag_documents_limit: int = 5
+    default_namespace: str = "active_projects"
+    minimum_relevance: float = 0.3
 
 
 #############################################################################
-# SECTION 2: GERADOR DE PERSONALIDADES DINÂMICO                             #
+# SECTION 2: DYNAMIC PERSONALITY GENERATOR                                  #
 #############################################################################
 
-class GeradorPersonalidades:
+class PersonalityGenerator:
     """
-    Gera personalidades especializadas dinamicamente através de instruções para o LLM.
+    Generates specialized personalities dynamically through LLM instructions.
     """
     
     @classmethod
     def _get_personality_generator_prompt(cls) -> str:
-        """Obtém o prompt do gerador de personalidades traduzido."""
+        """Gets the translated personality generator prompt."""
         translator = get_translator()
         return translator.translate("modo_synapstor.personality_generator.instruction")
 
     @classmethod
-    def gerar_prompt_personalidades(cls, tema: str, num_personalidades: int) -> str:
+    def generate_personalities_prompt(cls, theme: str, num_personalities: int) -> str:
         """
-        Gera o prompt para o LLM criar personalidades dinamicamente.
+        Generates the prompt for the LLM to create personalities dynamically.
         """
         prompt_template = cls._get_personality_generator_prompt()
         return prompt_template.format(
-            theme=tema,
-            num_personalities=num_personalidades
+            theme=theme,
+            num_personalities=num_personalities
         )
 
 
 #############################################################################
-# SECTION 3: CONSULTA RAG AO QDRANT                                         #
+# SECTION 3: RAG QUERY TO QDRANT                                            #
 #############################################################################
 
-class ConsultorRAG:
+class RAGConsultant:
     """
-    Responsável pela consulta RAG ao banco Qdrant.
+    Responsible for RAG queries to Qdrant database.
     """
     
     def __init__(self, qdrant_connector):
         """
-        Inicializa o consultor RAG com o conector Qdrant.
+        Initializes the RAG consultant with Qdrant connector.
         """
         self.qdrant_connector = qdrant_connector
     
-    async def consultar_contexto(
+    async def query_context(
         self, 
-        tema: str, 
-        configuracao: ConfiguracaoDebate,
-        filtros: Optional[Dict[str, Any]] = None
-    ) -> ContextoRAG:
+        theme: str, 
+        configuration: DebateConfiguration,
+        filters: Optional[Dict[str, Any]] = None
+    ) -> RAGContext:
         """
-        Consulta o Qdrant para recuperar contexto relevante sobre o tema.
+        Queries Qdrant to retrieve relevant context about the theme.
         """
         try:
-            # Preparar query melhorada baseada no tema
-            query_expandida = self._expandir_query(tema)
+            # Prepare improved query based on theme
+            expanded_query = self._expand_query(theme)
             
-            # Realizar busca no Qdrant
-            resultados = await self.qdrant_connector.search(
-                query=query_expandida,
-                limit=configuracao.limite_documentos_rag,
-                collection_name=configuracao.namespace_padrao
+            # Perform search in Qdrant
+            results = await self.qdrant_connector.search(
+                query=expanded_query,
+                limit=configuration.rag_documents_limit,
+                collection_name=configuration.default_namespace
             )
             
-            # Processar resultados
-            documentos_processados = []
-            for entrada in resultados:
-                doc_processado = {
-                    "conteudo": entrada.content,
-                    "metadata": entrada.metadata or {},
-                    "relevancia": 1.0  # Qdrant não retorna score por padrão no FastMCP
+            # Process results
+            processed_documents = []
+            for entry in results:
+                processed_doc = {
+                    "content": entry.content,
+                    "metadata": entry.metadata or {},
+                    "relevance": 1.0  # Qdrant doesn't return score by default in FastMCP
                 }
-                documentos_processados.append(doc_processado)
+                processed_documents.append(processed_doc)
             
-            return ContextoRAG(
-                documentos=documentos_processados,
-                query_original=tema,
-                total_encontrados=len(documentos_processados),
-                relevancia_minima=configuracao.relevancia_minima
+            return RAGContext(
+                documents=processed_documents,
+                original_query=theme,
+                total_found=len(processed_documents),
+                minimum_relevance=configuration.minimum_relevance
             )
             
         except Exception as e:
-            logger.error(f"Erro na consulta RAG: {e}")
-            # Retornar contexto vazio em caso de erro
-            return ContextoRAG(
-                documentos=[],
-                query_original=tema,
-                total_encontrados=0,
-                relevancia_minima=configuracao.relevancia_minima
+            logger.error(f"Error in RAG query: {e}")
+            # Return empty context in case of error
+            return RAGContext(
+                documents=[],
+                original_query=theme,
+                total_found=0,
+                minimum_relevance=configuration.minimum_relevance
             )
     
-    def _expandir_query(self, tema: str) -> str:
+    def _expand_query(self, theme: str) -> str:
         """
-        Expande a query do tema com termos relacionados para melhor recuperação.
+        Expands the theme query with related terms for better retrieval.
         """
-        # Adicionar contexto semântico básico
-        expansoes = [
-            f"conceitos sobre {tema}",
-            f"aspectos de {tema}",
-            f"características de {tema}",
-            f"princípios de {tema}",
-            tema  # Query original
+        # Add basic semantic context
+        expansions = [
+            f"concepts about {theme}",
+            f"aspects of {theme}",
+            f"characteristics of {theme}",
+            f"principles of {theme}",
+            theme  # Original query
         ]
         
-        # Retornar a query original com contexto adicional
-        return f"{tema} - {' '.join(expansoes[:2])}"
+        # Return original query with additional context
+        return f"{theme} - {' '.join(expansions[:2])}"
 
 
 #############################################################################
-# SECTION 4: CONSTRUTOR DE PROMPT                                           #
+# SECTION 4: PROMPT BUILDER                                                 #
 #############################################################################
 
-class ConstrutorPrompt:
+class PromptBuilder:
     """
-    Constrói o prompt final do modo Synapstor com geração dinâmica de personalidades.
+    Builds the final Synapstor mode prompt with dynamic personality generation.
     """
     
     @classmethod
-    def _build_dynamic_template(cls, tema: str) -> str:
-        """Constrói o template dinâmico traduzido."""
+    def _build_dynamic_template(cls, theme: str) -> str:
+        """Builds the translated dynamic template."""
         translator = get_translator()
         
         template = f"""{translator.translate("modo_synapstor.title")}
 
-🧠 {translator.translate("modo_synapstor.theme", theme=tema)}
+🧠 {translator.translate("modo_synapstor.theme", theme=theme)}
 
 📚 {translator.translate("modo_synapstor.context_header")}
-{{contexto_qdrant}}
+{{qdrant_context}}
 
 🎭 {translator.translate("modo_synapstor.phase1_title")}
-{{prompt_personalidades}}
+{{personalities_prompt}}
 
 🎯 {translator.translate("modo_synapstor.phase2_title")}
 
 {translator.translate("modo_synapstor.phase2_presentation")}
 
-{translator.translate("modo_synapstor.phase2_analysis", theme=tema)}
+{translator.translate("modo_synapstor.phase2_analysis", theme=theme)}
 """
         
-        # Adicionar bullets da análise
+        # Add analysis bullets
         for bullet in translator.translate("modo_synapstor.phase2_analysis_bullets"):
             template += f"   - {bullet}\n"
         
@@ -204,7 +203,7 @@ class ConstrutorPrompt:
 {translator.translate("modo_synapstor.phase2_debate")}
 """
         
-        # Adicionar bullets do debate
+        # Add debate bullets
         for bullet in translator.translate("modo_synapstor.phase2_debate_bullets"):
             template += f"   - {bullet}\n"
         
@@ -212,187 +211,187 @@ class ConstrutorPrompt:
 {translator.translate("modo_synapstor.phase2_synthesis")}
 """
         
-        # Adicionar bullets da síntese
+        # Add synthesis bullets
         for bullet in translator.translate("modo_synapstor.phase2_synthesis_bullets"):
             template += f"   - {bullet}\n"
         
         template += f"""
 📝 {translator.translate("modo_synapstor.metadata_title")}
 - {translator.translate("modo_synapstor.metadata_generated", timestamp="{{timestamp}}")}
-- {translator.translate("modo_synapstor.metadata_documents", count="{{num_documentos}}")}
-- {translator.translate("modo_synapstor.metadata_personalities", count="{{num_personalidades}}")}
+- {translator.translate("modo_synapstor.metadata_documents", count="{{num_documents}}")}
+- {translator.translate("modo_synapstor.metadata_personalities", count="{{num_personalities}}")}
 
-🚀 {translator.translate("modo_synapstor.execute_instruction", theme=tema)}"""
+🚀 {translator.translate("modo_synapstor.execute_instruction", theme=theme)}"""
         
         return template
 
     @classmethod
-    def construir_prompt_dinamico(
+    def build_dynamic_prompt(
         cls,
-        tema: str,
-        num_personalidades: int,
-        contexto_rag: ContextoRAG
+        theme: str,
+        num_personalities: int,
+        rag_context: RAGContext
     ) -> str:
         """
-        Constrói o prompt final do modo Synapstor com geração dinâmica de personalidades.
+        Builds the final Synapstor mode prompt with dynamic personality generation.
         """
-        # Formatar contexto Qdrant
-        contexto_formatado = cls._formatar_contexto_qdrant(contexto_rag)
+        # Format Qdrant context
+        formatted_context = cls._format_qdrant_context(rag_context)
         
-        # Gerar prompt para criação de personalidades
-        prompt_personalidades = GeradorPersonalidades.gerar_prompt_personalidades(
-            tema=tema,
-            num_personalidades=num_personalidades
+        # Generate prompt for personality creation
+        personalities_prompt = PersonalityGenerator.generate_personalities_prompt(
+            theme=theme,
+            num_personalities=num_personalities
         )
         
-        # Construir template dinâmico traduzido
-        template = cls._build_dynamic_template(tema)
+        # Build translated dynamic template
+        template = cls._build_dynamic_template(theme)
         
-        # Construir prompt final
+        # Build final prompt
         return template.format(
-            contexto_qdrant=contexto_formatado,
-            prompt_personalidades=prompt_personalidades,
+            qdrant_context=formatted_context,
+            personalities_prompt=personalities_prompt,
             timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            num_documentos=contexto_rag.total_encontrados,
-            num_personalidades=num_personalidades
+            num_documents=rag_context.total_found,
+            num_personalities=num_personalities
         )
     
     @classmethod
-    def _formatar_contexto_qdrant(cls, contexto: ContextoRAG) -> str:
+    def _format_qdrant_context(cls, context: RAGContext) -> str:
         """
-        Formata o contexto recuperado do Qdrant.
+        Formats the context retrieved from Qdrant.
         """
         translator = get_translator()
         
-        if not contexto.documentos:
+        if not context.documents:
             return translator.translate("modo_synapstor.no_context")
         
-        contexto_str = f"📊 {translator.translate('modo_synapstor.total_documents', count=contexto.total_encontrados)}\n\n"
+        context_str = f"📊 {translator.translate('modo_synapstor.total_documents', count=context.total_found)}\n\n"
         
-        for i, doc in enumerate(contexto.documentos, 1):
+        for i, doc in enumerate(context.documents, 1):
             metadata = doc.get("metadata", {})
-            projeto = metadata.get("projeto", "")
-            arquivo = metadata.get("nome_arquivo", "")
+            project = metadata.get("projeto", "")
+            filename = metadata.get("nome_arquivo", "")
             
-            fonte = f" {translator.translate('modo_synapstor.source_prefix', source=f'{projeto}/{arquivo}')}" if projeto or arquivo else ""
-            contexto_str += f"📄 {translator.translate('modo_synapstor.document_prefix', number=i)}{fonte}:\n{doc['conteudo'][:500]}{'...' if len(doc['conteudo']) > 500 else ''}\n\n"
+            source = f" {translator.translate('modo_synapstor.source_prefix', source=f'{project}/{filename}')}" if project or filename else ""
+            context_str += f"📄 {translator.translate('modo_synapstor.document_prefix', number=i)}{source}:\n{doc['content'][:500]}{'...' if len(doc['content']) > 500 else ''}\n\n"
         
-        return contexto_str.strip()
+        return context_str.strip()
     
 
 
 #############################################################################
-# SECTION 5: FERRAMENTA PRINCIPAL                                           #
+# SECTION 5: MAIN TOOL                                                      #
 #############################################################################
 
-async def modo_synapstor(
+async def synapstor_mode(
     ctx: Context,
-    tema: str,
-    max_personalidades: int = 4,
-    limite_documentos: int = 5,
+    theme: str,
+    max_personalities: int = 4,
+    document_limit: int = 5,
     namespace: str = "",
-    incluir_contexto_debug: bool = False
+    include_debug_context: bool = False
 ) -> str:
     """
-    Ativa o modo Synapstor - sistema de raciocínio multidisciplinar com RAG.
+    Activates Synapstor mode - multidisciplinary reasoning system with RAG.
     
-    Esta ferramenta MCP constrói um prompt estruturado que instrui o LLM cliente a:
-    1) Gerar personalidades especializadas dinamicamente baseadas no tema
-    2) Executar um debate multidisciplinar usando contexto RAG recuperado do Qdrant
-    3) Produzir análise multifacetada com perspectivas complementares
+    This MCP tool builds a structured prompt that instructs the LLM client to:
+    1) Generate specialized personalities dynamically based on the theme
+    2) Execute a multidisciplinary debate using RAG context retrieved from Qdrant
+    3) Produce multifaceted analysis with complementary perspectives
     
-    O Synapstor fornece o contexto RAG e as instruções; o LLM executa o raciocínio.
+    Synapstor provides RAG context and instructions; the LLM executes the reasoning.
     
-    :param ctx: Contexto da requisição MCP
-    :param tema: Tema principal para análise multidisciplinar
-    :param max_personalidades: Número de especialistas a serem gerados (padrão: 4)
-    :param limite_documentos: Limite de documentos RAG a recuperar (padrão: 5)
-    :param namespace: Namespace/coleção Qdrant para busca (padrão: usa config do servidor)
-    :param incluir_contexto_debug: Se deve incluir informações técnicas de debug
-    :return: Prompt estruturado que instrui o LLM a executar o modo Synapstor
+    :param ctx: MCP request context
+    :param theme: Main theme for multidisciplinary analysis
+    :param max_personalities: Number of experts to be generated (default: 4)
+    :param document_limit: Limit of RAG documents to retrieve (default: 5)
+    :param namespace: Qdrant namespace/collection for search (default: uses server config)
+    :param include_debug_context: Whether to include technical debug information
+    :return: Structured prompt that instructs the LLM to execute Synapstor mode
     """
     translator = get_translator()
-    await ctx.debug(translator.translate("modo_synapstor.debug.starting", theme=tema))
+    await ctx.debug(translator.translate("modo_synapstor.debug.starting", theme=theme))
     
     try:
-        # Usar namespace padrão do servidor se não especificado
-        namespace_final = namespace or _server_instance.qdrant_settings.collection_name or "synapstor"
+        # Use server default namespace if not specified
+        final_namespace = namespace or _server_instance.qdrant_settings.collection_name or "synapstor"
         
-        # Configuração do debate
-        configuracao = ConfiguracaoDebate(
-            max_personalidades=max_personalidades,
-            limite_documentos_rag=limite_documentos,
-            namespace_padrao=namespace_final
+        # Debate configuration
+        configuration = DebateConfiguration(
+            max_personalities=max_personalities,
+            rag_documents_limit=document_limit,
+            default_namespace=final_namespace
         )
         
-        # Acessar o conector Qdrant através da referência global do servidor
-        # Esta referência será definida na função setup_tools
+        # Access Qdrant connector through server global reference
+        # This reference will be defined in setup_tools function
         qdrant_connector = _server_instance.qdrant_connector
         
-        # Inicializar consultor RAG
-        consultor_rag = ConsultorRAG(qdrant_connector)
+        # Initialize RAG consultant
+        rag_consultant = RAGConsultant(qdrant_connector)
         
-        # Recuperar contexto via RAG
+        # Retrieve context via RAG
         await ctx.debug(translator.translate("modo_synapstor.debug.consulting_rag"))
-        contexto_rag = await consultor_rag.consultar_contexto(tema, configuracao)
+        rag_context = await rag_consultant.query_context(theme, configuration)
         
-        # Construir prompt final com geração dinâmica de personalidades
-        await ctx.debug(translator.translate("modo_synapstor.debug.building_prompt", count=max_personalidades))
+        # Build final prompt with dynamic personality generation
+        await ctx.debug(translator.translate("modo_synapstor.debug.building_prompt", count=max_personalities))
         
-        prompt_final = ConstrutorPrompt.construir_prompt_dinamico(
-            tema=tema,
-            num_personalidades=max_personalidades,
-            contexto_rag=contexto_rag
+        final_prompt = PromptBuilder.build_dynamic_prompt(
+            theme=theme,
+            num_personalities=max_personalities,
+            rag_context=rag_context
         )
         
-        # Adicionar contexto de debug se solicitado
-        if incluir_contexto_debug:
+        # Add debug context if requested
+        if include_debug_context:
             debug_info = f"\n\n🔧 Debug Info:\n"
-            debug_info += f"- Configuração: {asdict(configuracao)}\n"
-            debug_info += f"- Personalidades solicitadas: {max_personalidades}\n"
-            debug_info += f"- Documentos RAG encontrados: {contexto_rag.total_encontrados}\n"
-            debug_info += f"- Namespace utilizado: {namespace_final}\n"
-            prompt_final += debug_info
+            debug_info += f"- Configuration: {asdict(configuration)}\n"
+            debug_info += f"- Requested personalities: {max_personalities}\n"
+            debug_info += f"- RAG documents found: {rag_context.total_found}\n"
+            debug_info += f"- Namespace used: {final_namespace}\n"
+            final_prompt += debug_info
         
         await ctx.debug(translator.translate("modo_synapstor.debug.success"))
-        return prompt_final
+        return final_prompt
         
     except Exception as e:
-        error_msg = f"Erro no modo Synapstor: {str(e)}"
+        error_msg = f"Error in Synapstor mode: {str(e)}"
         await ctx.debug(error_msg)
         logger.error(error_msg)
         
-        # Retornar prompt de fallback traduzido
+        # Return translated fallback prompt
         fallback_prompt = f"""{translator.translate("modo_synapstor.errors.initialization")}
 
 {translator.translate("modo_synapstor.errors.error_occurred", error=str(e))}
 
 {translator.translate("modo_synapstor.errors.fallback_activated")}
 
-🧠 {translator.translate("modo_synapstor.theme", theme=tema)}
+🧠 {translator.translate("modo_synapstor.theme", theme=theme)}
 
 {translator.translate("modo_synapstor.errors.fallback_personalities")}
 - {translator.translate("modo_synapstor.errors.technical_expert")}
 - {translator.translate("modo_synapstor.errors.strategic_thinker")}
 - {translator.translate("modo_synapstor.errors.analytical_critic")}
 
-{translator.translate("modo_synapstor.errors.fallback_instructions", theme=tema)}
+{translator.translate("modo_synapstor.errors.fallback_instructions", theme=theme)}
 """
         return fallback_prompt
 
 
 #############################################################################
-# SECTION 6: FERRAMENTAS AUXILIARES                                         #
+# SECTION 6: AUXILIARY TOOLS                                                #
 #############################################################################
 
-async def info_modo_synapstor(ctx: Context) -> List[str]:
+async def synapstor_mode_info(ctx: Context) -> List[str]:
     """
-    Fornece informações sobre como o modo Synapstor funciona.
+    Provides information about how Synapstor mode works.
     
-    :param ctx: Contexto da requisição MCP
-    :return: Informações sobre o funcionamento do modo Synapstor
+    :param ctx: MCP request context
+    :return: Information about Synapstor mode functioning
     """
-    await ctx.debug("Fornecendo informações sobre o modo Synapstor")
+    await ctx.debug("Providing information about Synapstor mode")
     
     translator = get_translator()
     
@@ -440,33 +439,33 @@ async def info_modo_synapstor(ctx: Context) -> List[str]:
     return info_lines
 
 
-async def configurar_synapstor(
+async def configure_synapstor(
     ctx: Context,
-    tema: str,
-    personalidades_customizadas: Optional[str] = None
+    theme: str,
+    custom_personalities: Optional[str] = None
 ) -> str:
     """
-    Permite configuração customizada do modo Synapstor.
+    Allows custom configuration of Synapstor mode.
     
-    :param ctx: Contexto da requisição MCP
-    :param tema: Tema para análise
-    :param personalidades_customizadas: JSON com personalidades customizadas
-    :return: Configuração personalizada ou sugestões
+    :param ctx: MCP request context
+    :param theme: Theme for analysis
+    :param custom_personalities: JSON with custom personalities
+    :return: Custom configuration or suggestions
     """
-    await ctx.debug(f"Configurando modo Synapstor personalizado para: {tema}")
+    await ctx.debug(f"Configuring custom Synapstor mode for: {theme}")
     
     translator = get_translator()
     
-    if personalidades_customizadas:
+    if custom_personalities:
         try:
-            # Tentar parsear personalidades customizadas
-            custom_personas = json.loads(personalidades_customizadas)
-            return f"✅ Configuração customizada aplicada com {len(custom_personas)} personalidades personalizadas."
+            # Try to parse custom personalities
+            custom_personas = json.loads(custom_personalities)
+            return f"✅ Custom configuration applied with {len(custom_personas)} personalized personalities."
         except json.JSONDecodeError:
-            return "❌ Erro: Formato JSON inválido para personalidades customizadas."
+            return "❌ Error: Invalid JSON format for custom personalities."
     
-    # Construir resposta traduzida
-    config_text = f"{translator.translate('modo_synapstor.config.title', theme=tema)}\n\n"
+    # Build translated response
+    config_text = f"{translator.translate('modo_synapstor.config.title', theme=theme)}\n\n"
     config_text += f"{translator.translate('modo_synapstor.config.dynamic_approach')}\n\n"
     config_text += f"{translator.translate('modo_synapstor.config.configurable_parameters')}\n"
     
@@ -474,60 +473,60 @@ async def configurar_synapstor(
         config_text += f"{param}\n"
     
     config_text += f"\n{translator.translate('modo_synapstor.config.custom_personalities')}\n"
-    config_text += f"{translator.translate('modo_synapstor.config.json_example', theme=tema)}\n\n"
+    config_text += f"{translator.translate('modo_synapstor.config.json_example', theme=theme)}\n\n"
     config_text += f"{translator.translate('modo_synapstor.config.advanced_usage')}\n"
-    config_text += f"{translator.translate('modo_synapstor.config.usage_example', theme=tema)}\n\n"
-    config_text += f"{translator.translate('modo_synapstor.config.advantage', theme=tema)}"
+    config_text += f"{translator.translate('modo_synapstor.config.usage_example', theme=theme)}\n\n"
+    config_text += f"{translator.translate('modo_synapstor.config.advantage', theme=theme)}"
     
     return config_text
 
 
 #############################################################################
-# SECTION 7: FUNÇÃO DE REGISTRO (OBRIGATÓRIA)                              #
+# SECTION 7: REGISTRATION FUNCTION (REQUIRED)                              #
 #############################################################################
 
-# Variável global para armazenar referência do servidor
+# Global variable to store server reference
 _server_instance = None
 
 def setup_tools(server) -> List[str]:
     """
-    Registra as ferramentas fornecidas por este plugin.
+    Registers the tools provided by this plugin.
     
-    Esta função é chamada automaticamente pelo Synapstor durante a inicialização.
-    Todas as ferramentas DEVEM ser registradas aqui para ficarem disponíveis.
+    This function is called automatically by Synapstor during initialization.
+    All tools MUST be registered here to be available.
     
     Args:
-        server: Instância do QdrantMCPServer.
+        server: QdrantMCPServer instance.
     
     Returns:
-        List[str]: Lista com os nomes das ferramentas registradas.
+        List[str]: List with the names of registered tools.
     """
     global _server_instance
     _server_instance = server
     
-    logger.info("Registrando ferramentas do Modo Synapstor")
+    logger.info("Registering Synapstor Mode tools")
     
     translator = get_translator()
     
-    # Registrar ferramenta principal
+    # Register main tool
     server.add_tool(
-        modo_synapstor,
+        synapstor_mode,
         name="modo-synapstor",
         description=translator.translate("modo_synapstor.description")
     )
     
-    # Registrar ferramentas auxiliares
+    # Register auxiliary tools
     server.add_tool(
-        info_modo_synapstor,
+        synapstor_mode_info,
         name="info-modo-synapstor",
-        description="Fornece informações sobre como o modo Synapstor funciona com geração dinâmica de personalidades."
+        description="Provides information about how Synapstor mode works with dynamic personality generation."
     )
     
     server.add_tool(
-        configurar_synapstor,
+        configure_synapstor,
         name="configurar-synapstor", 
-        description="Permite configuração personalizada do modo Synapstor com personalidades customizadas."
+        description="Allows custom configuration of Synapstor mode with custom personalities."
     )
     
-    # IMPORTANTE: Retornar lista com os nomes de todas as ferramentas registradas
+    # IMPORTANT: Return list with the names of all registered tools
     return ["modo-synapstor", "info-modo-synapstor", "configurar-synapstor"]

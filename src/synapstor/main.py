@@ -16,7 +16,7 @@ def main():
         print("Error configuring the environment. The MCP server cannot be started.")
         sys.exit(1)
     
-    # Configurar idioma
+    # Configure language
     i18n_settings = I18nSettings()
     language = SupportedLanguages.get_language_by_code(i18n_settings.language)
     set_language(language)
@@ -40,7 +40,7 @@ def main():
         print(f"Starting MCP server with transport: {args.transport}")
         
         if args.transport == "http":
-            # Para transporte HTTP, usar configuração específica
+            # For HTTP transport, use specific configuration
             from synapstor.settings import ServerSettings
             server_settings = ServerSettings()
             print(f"Starting HTTP server at {server_settings.host}:{server_settings.port}")

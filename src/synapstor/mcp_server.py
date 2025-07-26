@@ -39,7 +39,7 @@ class QdrantMCPServer(FastMCP):
         self.embedding_provider_settings = embedding_provider_settings
         self.i18n_settings = i18n_settings or I18nSettings()
         
-        # Configurar idioma
+        # Configure language
         language = SupportedLanguages.get_language_by_code(self.i18n_settings.language)
         set_language(language)
 

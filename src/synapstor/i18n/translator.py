@@ -24,7 +24,7 @@ class Translator:
         self._load_translations()
     
     def _load_translations(self):
-        """Carrega arquivos de tradução."""
+        """Loads translation files."""
         translations_dir = Path(__file__).parent / "translations"
         
         for lang in Language:
@@ -43,29 +43,29 @@ class Translator:
                 self._translations[lang] = {}
     
     def set_language(self, language: Language):
-        """Define o idioma atual."""
+        """Sets the current language."""
         with self._lock:
             self._language = language
     
     def get_language(self) -> Language:
-        """Retorna o idioma atual."""
+        """Returns the current language."""
         return self._language
     
     def translate(self, key: str, **kwargs) -> str:
         """
-        Traduz uma chave para o idioma atual.
+        Translates a key to the current language.
         
         Args:
-            key: Chave de tradução (ex: "tools.store.success")
-            **kwargs: Variáveis para interpolação na string
+            key: Translation key (e.g.: "tools.store.success")
+            **kwargs: Variables for string interpolation
             
         Returns:
-            String traduzida ou a chave original se não encontrada
+            Translated string or original key if not found
         """
         with self._lock:
             translations = self._translations.get(self._language, {})
             
-            # Navegar pela estrutura aninhada usando pontos
+            # Navigate nested structure using dots
             keys = key.split('.')
             value = translations
             
@@ -73,12 +73,12 @@ class Translator:
                 if isinstance(value, dict) and k in value:
                     value = value[k]
                 else:
-                    # Se não encontrar, tentar inglês como fallback
+                    # If not found, try English as fallback
                     if self._language != Language.ENGLISH:
                         return self._get_fallback_translation(key, **kwargs)
-                    return key  # Retorna a chave se não encontrar tradução
+                    return key  # Return key if translation not found
             
-            # Interpolar variáveis se necessário
+            # Interpolate variables if necessary
             if isinstance(value, str) and kwargs:
                 try:
                     return value.format(**kwargs)
@@ -89,7 +89,7 @@ class Translator:
             return str(value)
     
     def _get_fallback_translation(self, key: str, **kwargs) -> str:
-        """Obtém tradução em inglês como fallback."""
+        """Gets English translation as fallback."""
         en_translations = self._translations.get(Language.ENGLISH, {})
         
         keys = key.split('.')
@@ -110,7 +110,7 @@ class Translator:
         return str(value)
     
     def has_translation(self, key: str) -> bool:
-        """Verifica se existe tradução para uma chave."""
+        """Checks if translation exists for a key."""
         translations = self._translations.get(self._language, {})
         keys = key.split('.')
         value = translations
@@ -130,7 +130,7 @@ _translator_lock = Lock()
 
 
 def get_translator() -> Translator:
-    """Retorna a instância global do tradutor."""
+    """Returns the global translator instance."""
     global _global_translator
     
     with _translator_lock:
@@ -140,20 +140,20 @@ def get_translator() -> Translator:
 
 
 def set_language(language: Language):
-    """Define o idioma global."""
+    """Sets the global language."""
     translator = get_translator()
     translator.set_language(language)
 
 
 def _(key: str, **kwargs) -> str:
     """
-    Função de conveniência para tradução.
+    Convenience function for translation.
     
     Args:
-        key: Chave de tradução
-        **kwargs: Variáveis para interpolação
+        key: Translation key
+        **kwargs: Variables for interpolation
         
     Returns:
-        String traduzida
+        Translated string
     """
     return get_translator().translate(key, **kwargs)

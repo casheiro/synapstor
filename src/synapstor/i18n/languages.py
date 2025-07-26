@@ -32,20 +32,20 @@ class SupportedLanguages:
     
     @classmethod
     def get_language_by_code(cls, code: str) -> Language:
-        """Obtém o idioma pelo código."""
+        """Gets language by code."""
         code = code.lower()
         for language in Language:
             if cls.LANGUAGE_INFO[language]["code"] == code:
                 return language
-        # Fallback para inglês se não encontrar
+        # Fallback to English if not found
         return Language.ENGLISH
     
     @classmethod
     def get_language_info(cls, language: Language) -> Dict[str, Any]:
-        """Obtém informações sobre um idioma."""
+        """Gets information about a language."""
         return cls.LANGUAGE_INFO[language]
     
     @classmethod
     def get_available_languages(cls) -> list[Language]:
-        """Retorna lista de idiomas disponíveis."""
+        """Returns list of available languages."""
         return list(Language)
