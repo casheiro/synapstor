@@ -27,12 +27,23 @@ def main():
     parser = argparse.ArgumentParser(description="Starts the Synapstor server")
     parser.add_argument(
         "--transport",
-        choices=["stdio", "sse"],
+        choices=["stdio", "sse", "http"],
         default="stdio",
-        help="Transport protocol (stdio or sse, default: stdio)",
+        help="Transport protocol (stdio, sse, or http, default: stdio)",
     )
     parser.add_argument(
         "--env-file", default=".env", help="Path to the .env file (default: .env)"
+    )
+    parser.add_argument(
+        "--host", 
+        default=None, 
+        help="Host address for HTTP transport (default: from .env or 0.0.0.0)"
+    )
+    parser.add_argument(
+        "--port", 
+        type=int, 
+        default=None, 
+        help="Port for HTTP transport (default: from .env or 8000)"
     )
     parser.add_argument(
         "--create-env",
@@ -83,6 +94,24 @@ def main():
 
         if "--configure" in sys.argv:
             sys.argv.remove("--configure")
+            
+        # Handle HTTP-specific arguments
+        if "--host" in sys.argv:
+            sys.argv.remove("--host")
+            if args.host and args.host in sys.argv:
+                sys.argv.remove(args.host)
+                
+        if "--port" in sys.argv:
+            sys.argv.remove("--port")
+            if args.port and str(args.port) in sys.argv:
+                sys.argv.remove(str(args.port))
+                
+        # Set environment variables for HTTP transport
+        if args.transport == "http":
+            if args.host:
+                os.environ["MCP_SERVER_HOST"] = args.host
+            if args.port:
+                os.environ["MCP_SERVER_PORT"] = str(args.port)
 
         # Run the main server
         from synapstor.main import main as mcp_main

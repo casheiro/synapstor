@@ -18,7 +18,7 @@ def main():
     parser = argparse.ArgumentParser(description="synapstor")
     parser.add_argument(
         "--transport",
-        choices=["stdio", "sse"],
+        choices=["stdio", "sse", "http"],
         default="stdio",
     )
     args = parser.parse_args()
@@ -30,7 +30,15 @@ def main():
         from synapstor.server import mcp
 
         print(f"Starting MCP server with transport: {args.transport}")
-        mcp.run(transport=args.transport)
+        
+        if args.transport == "http":
+            # Para transporte HTTP, usar configuração específica
+            from synapstor.settings import ServerSettings
+            server_settings = ServerSettings()
+            print(f"Starting HTTP server at {server_settings.host}:{server_settings.port}")
+            mcp.run(transport="http", host=server_settings.host, port=server_settings.port)
+        else:
+            mcp.run(transport=args.transport)
     except ImportError as e:
         print(f"❌ Error starting the server: {e}")
         sys.exit(1)

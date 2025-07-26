@@ -95,6 +95,10 @@ def start_server(args):
         server_cmd.extend(["--transport", args.transport])
     if args.env_file:
         server_cmd.extend(["--env-file", args.env_file])
+    if args.host:
+        server_cmd.extend(["--host", args.host])
+    if args.port:
+        server_cmd.extend(["--port", str(args.port)])
 
     try:
         # Redirect output to the log file
@@ -412,10 +416,19 @@ def main():
     )
     start_parser.add_argument(
         "--transport",
-        choices=["stdio", "sse"],
-        help="Transport protocol (stdio or sse)",
+        choices=["stdio", "sse", "http"],
+        help="Transport protocol (stdio, sse, or http)",
     )
     start_parser.add_argument("--env-file", help="Path to the .env file")
+    start_parser.add_argument(
+        "--host", 
+        help="Host address for HTTP transport (default: from .env or 0.0.0.0)"
+    )
+    start_parser.add_argument(
+        "--port", 
+        type=int, 
+        help="Port for HTTP transport (default: from .env or 8000)"
+    )
     start_parser.add_argument(
         "--configure",
         action="store_true",

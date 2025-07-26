@@ -69,3 +69,15 @@ class QdrantSettings(BaseSettings):
         Gets the Qdrant location, either the URL or the local path.
         """
         return self.location or self.local_path
+
+
+class ServerSettings(BaseSettings):
+    """
+    Configuration for the MCP server transport.
+    """
+
+    host: str = Field(default="0.0.0.0", validation_alias="MCP_SERVER_HOST")
+    port: int = Field(default=8000, validation_alias="MCP_SERVER_PORT")
+    cors_origins: list[str] = Field(
+        default_factory=lambda: ["*"], validation_alias="MCP_CORS_ORIGINS"
+    )
