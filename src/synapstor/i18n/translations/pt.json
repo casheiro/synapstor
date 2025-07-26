@@ -1,0 +1,159 @@
+{
+  "common": {
+    "error": "Erro",
+    "success": "Sucesso",
+    "warning": "Aviso", 
+    "info": "Informação",
+    "loading": "Carregando...",
+    "searching": "Buscando...",
+    "saving": "Salvando...",
+    "generating": "Gerando...",
+    "completed": "Concluído",
+    "failed": "Falhou",
+    "cancelled": "Cancelado"
+  },
+  "tools": {
+    "store": {
+      "description": "Armazena memória para uso posterior, quando você for solicitado a lembrar de algo.",
+      "success": "Lembrado: {information}",
+      "success_with_collection": "Lembrado: {information} na coleção {collection_name}",
+      "error": "Erro ao armazenar informação: {error}"
+    },
+    "find": {
+      "description": "Busca memórias no Qdrant. Use esta ferramenta quando precisar: \n - Encontrar memórias pelo conteúdo \n - Acessar memórias para análise adicional \n - Obter informações pessoais sobre o usuário",
+      "no_results": "Nenhuma informação encontrada para a consulta '{query}'",
+      "results_header": "Resultados para a consulta '{query}'",
+      "error": "Erro na busca: {error}"
+    }
+  },
+  "modo_synapstor": {
+    "title": "Modo Synapstor - Raciocínio Multidisciplinar com RAG",
+    "description": "Ativa o modo Synapstor - sistema de raciocínio multidisciplinar com múltiplas personalidades especializadas e recuperação automática de contexto via RAG do banco Qdrant.",
+    "theme": "Tema: {theme}",
+    "context_header": "Contexto recuperado via Qdrant:",
+    "total_documents": "Total de documentos relevantes encontrados: {count}",
+    "document_prefix": "Documento {number}",
+    "source_prefix": "(Fonte: {source})",
+    "no_context": "⚠️ Nenhum contexto específico encontrado no banco de conhecimento. O debate baseará-se no conhecimento geral das personalidades.",
+    "phase1_title": "PRIMEIRA FASE - Geração de Personalidades:",
+    "phase2_title": "SEGUNDA FASE - Instruções para o Debate:",
+    "phase2_presentation": "**Apresentação das Personalidades**: Cada personalidade se apresenta brevemente (nome, expertise, perspectiva única)",
+    "phase2_analysis": "**Análise Multidisciplinar**: Cada personalidade analisa o tema \"{theme}\" sob sua ótica especializada:",
+    "phase2_analysis_bullets": [
+      "Use o contexto RAG recuperado como base factual",
+      "Explore diferentes dimensões do tema",
+      "Identifique pontos de convergência e divergência", 
+      "Referencie evidências específicas dos documentos"
+    ],
+    "phase2_debate": "**Debate Colaborativo**:",
+    "phase2_debate_bullets": [
+      "Personalidades interagem entre si",
+      "Questionam e complementam perspectivas umas das outras",
+      "Constroem sobre as ideias apresentadas",
+      "Mantêm foco no tema central"
+    ],
+    "phase2_synthesis": "**Síntese Multidisciplinar**: Ao final, destaque:",
+    "phase2_synthesis_bullets": [
+      "Consensos emergentes entre as personalidades",
+      "Tensões produtivas e diferentes abordagens",
+      "Implicações práticas e teóricas do tema",
+      "Recomendações ou próximos passos"
+    ],
+    "metadata_title": "Metadados da Sessão:",
+    "metadata_generated": "Gerado em: {timestamp}",
+    "metadata_documents": "Documentos RAG consultados: {count}",
+    "metadata_personalities": "Personalidades solicitadas: {count}",
+    "execute_instruction": "EXECUTE AS DUAS FASES SEQUENCIALMENTE PARA CRIAR O DEBATE MULTIDISCIPLINAR SOBRE \"{theme}\".",
+    "personality_generator": {
+      "instruction": "Você é um especialista em criar personalidades para debates multidisciplinares.\n\nTEMA: {theme}\n\nINSTRUÇÕES:\nCrie exatamente {num_personalities} personalidades especializadas que seriam as mais adequadas para debater sobre \"{theme}\".\n\nPara cada personalidade, forneça:\n- Nome (pode ser pessoa real histórica/contemporânea ou arquétipo profissional)\n- Expertise (área específica de conhecimento)\n- Papel (função no debate)\n- Estilo (tom de comunicação)\n- Perspectiva (ângulo único de análise)\n\nCRITÉRIOS:\n- Personalidades devem ser complementares, não redundantes\n- Cubram diferentes aspectos/dimensões do tema\n- Incluam mix de perspectivas teóricas e práticas\n- Considerem aspectos técnicos, éticos, sociais e econômicos quando relevante\n- Sejam especialistas reconhecidos ou arquétipos profissionais relevantes\n\nFORMATO DE RESPOSTA (JSON):\n[\n  {\n    \"nome\": \"Nome da Personalidade\",\n    \"expertise\": \"Área específica de conhecimento\",\n    \"papel\": \"Função no debate\",\n    \"estilo\": \"Tom de comunicação\",\n    \"perspectiva\": \"Ângulo único de análise\"\n  }\n]\n\nResponda apenas com o JSON válido, sem texto adicional."
+    },
+    "info": {
+      "title": "🧠 Como funciona o Modo Synapstor:",
+      "dynamic_generation": "1. **Geração Dinâmica de Personalidades**:",
+      "dynamic_bullets": [
+        "• O LLM analisa o tema fornecido",
+        "• Cria especialistas apropriados automaticamente",
+        "• Garante perspectivas complementares e diversas"
+      ],
+      "rag_retrieval": "2. **Recuperação de Contexto (RAG)**:",
+      "rag_bullets": [
+        "• Consulta automática ao banco Qdrant",
+        "• Recupera documentos relevantes ao tema",
+        "• Fornece base factual para o debate"
+      ],
+      "debate": "3. **Debate Multidisciplinar**:",
+      "debate_bullets": [
+        "• Personalidades se apresentam",
+        "• Cada uma analisa o tema sob sua ótica",
+        "• Interagem e debatem colaborativamente",
+        "• Chegam a sínteses e recomendações"
+      ],
+      "advantages_title": "🎯 Vantagens da Abordagem Dinâmica:",
+      "advantages": [
+        "• Adaptação total ao tema específico",
+        "• Não limitado a domínios pré-definidos",
+        "• Personalidades sempre relevantes",
+        "• Flexibilidade máxima de perspectivas"
+      ],
+      "examples_title": "💡 Exemplos de uso:",
+      "examples": [
+        "• modo-synapstor tema=\"Sustentabilidade em Startups\"",
+        "• modo-synapstor tema=\"Ética em IA Generativa\" max_personalidades=5",
+        "• modo-synapstor tema=\"Design de APIs RESTful\" limite_documentos=8"
+      ]
+    },
+    "config": {
+      "title": "🎛️ Configuração do Modo Synapstor para \"{theme}\":",
+      "dynamic_approach": "🧠 **Abordagem Dinâmica**:\nO Modo Synapstor agora gera personalidades automaticamente baseado no tema específico, garantindo máxima relevância e adaptabilidade.",
+      "configurable_parameters": "⚙️ **Parâmetros Configuráveis**:",
+      "parameters": [
+        "• max_personalidades: Número de especialistas (padrão: 4)",
+        "• limite_documentos: Documentos RAG a recuperar (padrão: 5)",
+        "• namespace: Coleção Qdrant para consulta",
+        "• incluir_contexto_debug: Informações técnicas detalhadas"
+      ],
+      "custom_personalities": "🎯 **Para usar personalidades específicas**, forneça um JSON no formato:",
+      "json_example": "```json\n[\n  {{\n    \"nome\": \"Especialista em {theme}\",\n    \"expertise\": \"Área específica de conhecimento\",\n    \"papel\": \"Função no debate\",\n    \"estilo\": \"Tom de comunicação\",\n    \"perspectiva\": \"Ângulo único de análise\"\n  }}\n]\n```",
+      "advanced_usage": "💡 **Exemplo de uso avançado**:",
+      "usage_example": "```\nmodo-synapstor tema=\"{theme}\" max_personalidades=5 limite_documentos=8 incluir_contexto_debug=true\n```",
+      "advantage": "🚀 **Vantagem**: As personalidades serão geradas dinamicamente pelo LLM para se adequarem perfeitamente ao tema \"{theme}\", resultando em um debate mais rico e contextualizado."
+    },
+    "errors": {
+      "initialization": "Modo Synapstor - Erro na Inicialização",
+      "error_occurred": "❌ Ocorreu um erro ao configurar o modo Synapstor: {error}",
+      "fallback_activated": "🔄 Modo Fallback Ativado:",
+      "fallback_personalities": "👥 Personalidades (Modo Básico):",
+      "technical_expert": "**Especialista Técnico** – Análise técnica e implementação",
+      "strategic_thinker": "**Pensador Estratégico** – Visão macro e planejamento",
+      "analytical_critic": "**Crítico Analítico** – Questionamento e validação",
+      "fallback_instructions": "💭 Instruções Básicas:\nMesmo sem acesso ao contexto RAG completo, as personalidades devem debater o tema \"{theme}\" baseando-se em conhecimento geral e melhores práticas. Inicie o debate com cada personalidade apresentando sua perspectiva inicial."
+    },
+    "debug": {
+      "starting": "Iniciando modo Synapstor para tema: {theme}",
+      "consulting_rag": "Consultando contexto RAG no Qdrant...",
+      "building_prompt": "Construindo prompt com {count} personalidades dinâmicas",
+      "success": "Prompt do modo Synapstor construído com sucesso"
+    }
+  },
+  "server": {
+    "starting": "Iniciando Servidor MCP Synapstor...",
+    "started": "Servidor MCP Synapstor iniciado com sucesso",
+    "stopping": "Parando servidor...",
+    "stopped": "Servidor parado",
+    "error_starting": "Erro ao iniciar servidor: {error}",
+    "plugin_loading": "Carregando plugins...",
+    "plugin_loaded": "Plugin carregado: {plugin}",
+    "plugin_error": "Erro ao carregar plugin {plugin}: {error}"
+  },
+  "qdrant": {
+    "connecting": "Conectando ao Qdrant...",
+    "connected": "Conectado ao Qdrant com sucesso",
+    "connection_error": "Erro ao conectar ao Qdrant: {error}",
+    "collection_created": "Coleção {collection} criada",
+    "collection_exists": "Coleção {collection} já existe",
+    "storing": "Armazenando entrada na coleção {collection}",
+    "stored": "Entrada armazenada com sucesso",
+    "searching": "Buscando na coleção {collection}",
+    "search_results": "Encontrados {count} resultados"
+  }
+}

@@ -81,3 +81,12 @@ class ServerSettings(BaseSettings):
     cors_origins: list[str] = Field(
         default_factory=lambda: ["*"], validation_alias="MCP_CORS_ORIGINS"
     )
+
+
+class I18nSettings(BaseSettings):
+    """
+    Configuration for internationalization.
+    """
+
+    language: str = Field(default="en", validation_alias="SYNAPSTOR_LANGUAGE")
+    auto_detect: bool = Field(default=True, validation_alias="SYNAPSTOR_AUTO_DETECT_LANGUAGE")

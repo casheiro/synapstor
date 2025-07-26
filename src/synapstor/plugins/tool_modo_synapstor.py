@@ -14,6 +14,8 @@ from dataclasses import dataclass, asdict
 from datetime import datetime
 from mcp.server.fastmcp import Context
 
+from synapstor.i18n import get_translator
+
 logger = logging.getLogger(__name__)
 
 #############################################################################
@@ -66,48 +68,21 @@ class GeradorPersonalidades:
     Gera personalidades especializadas dinamicamente através de instruções para o LLM.
     """
     
-    PROMPT_GERADOR_PERSONALIDADES = """Você é um especialista em criar personalidades para debates multidisciplinares.
-
-TEMA: {tema}
-
-INSTRUÇÕES:
-Crie exatamente {num_personalidades} personalidades especializadas que seriam as mais adequadas para debater sobre "{tema}". 
-
-Para cada personalidade, forneça:
-- Nome (pode ser pessoa real histórica/contemporânea ou arquétipo profissional)
-- Expertise (área específica de conhecimento)
-- Papel (função no debate)
-- Estilo (tom de comunicação)
-- Perspectiva (ângulo único de análise)
-
-CRITÉRIOS:
-- Personalidades devem ser complementares, não redundantes
-- Cubram diferentes aspectos/dimensões do tema
-- Incluam mix de perspectivas teóricas e práticas
-- Considerem aspectos técnicos, éticos, sociais e econômicos quando relevante
-- Sejam especialistas reconhecidos ou arquétipos profissionais relevantes
-
-FORMATO DE RESPOSTA (JSON):
-[
-  {
-    "nome": "Nome da Personalidade",
-    "expertise": "Área específica de conhecimento",
-    "papel": "Função no debate",
-    "estilo": "Tom de comunicação",
-    "perspectiva": "Ângulo único de análise"
-  }
-]
-
-Responda apenas com o JSON válido, sem texto adicional."""
+    @classmethod
+    def _get_personality_generator_prompt(cls) -> str:
+        """Obtém o prompt do gerador de personalidades traduzido."""
+        translator = get_translator()
+        return translator.translate("modo_synapstor.personality_generator.instruction")
 
     @classmethod
     def gerar_prompt_personalidades(cls, tema: str, num_personalidades: int) -> str:
         """
         Gera o prompt para o LLM criar personalidades dinamicamente.
         """
-        return cls.PROMPT_GERADOR_PERSONALIDADES.format(
-            tema=tema,
-            num_personalidades=num_personalidades
+        prompt_template = cls._get_personality_generator_prompt()
+        return prompt_template.format(
+            theme=tema,
+            num_personalities=num_personalidades
         )
 
 
@@ -199,46 +174,57 @@ class ConstrutorPrompt:
     Constrói o prompt final do modo Synapstor com geração dinâmica de personalidades.
     """
     
-    TEMPLATE_PROMPT_DINAMICO = """Modo Synapstor ativado - Raciocínio Multidisciplinar com RAG.
+    @classmethod
+    def _build_dynamic_template(cls, tema: str) -> str:
+        """Constrói o template dinâmico traduzido."""
+        translator = get_translator()
+        
+        template = f"""{translator.translate("modo_synapstor.title")}
 
-🧠 Tema: {tema}
+🧠 {translator.translate("modo_synapstor.theme", theme=tema)}
 
-📚 Contexto recuperado via Qdrant:
-{contexto_qdrant}
+📚 {translator.translate("modo_synapstor.context_header")}
+{{contexto_qdrant}}
 
-🎭 PRIMEIRA FASE - Geração de Personalidades:
-{prompt_personalidades}
+🎭 {translator.translate("modo_synapstor.phase1_title")}
+{{prompt_personalidades}}
 
-🎯 SEGUNDA FASE - Instruções para o Debate:
+🎯 {translator.translate("modo_synapstor.phase2_title")}
 
-Após gerar as personalidades na PRIMEIRA FASE, proceda com o debate multidisciplinar:
+{translator.translate("modo_synapstor.phase2_presentation")}
 
-1. **Apresentação das Personalidades**: Cada personalidade se apresenta brevemente (nome, expertise, perspectiva única)
+{translator.translate("modo_synapstor.phase2_analysis", theme=tema)}
+"""
+        
+        # Adicionar bullets da análise
+        for bullet in translator.translate("modo_synapstor.phase2_analysis_bullets"):
+            template += f"   - {bullet}\n"
+        
+        template += f"""
+{translator.translate("modo_synapstor.phase2_debate")}
+"""
+        
+        # Adicionar bullets do debate
+        for bullet in translator.translate("modo_synapstor.phase2_debate_bullets"):
+            template += f"   - {bullet}\n"
+        
+        template += f"""
+{translator.translate("modo_synapstor.phase2_synthesis")}
+"""
+        
+        # Adicionar bullets da síntese
+        for bullet in translator.translate("modo_synapstor.phase2_synthesis_bullets"):
+            template += f"   - {bullet}\n"
+        
+        template += f"""
+📝 {translator.translate("modo_synapstor.metadata_title")}
+- {translator.translate("modo_synapstor.metadata_generated", timestamp="{{timestamp}}")}
+- {translator.translate("modo_synapstor.metadata_documents", count="{{num_documentos}}")}
+- {translator.translate("modo_synapstor.metadata_personalities", count="{{num_personalidades}}")}
 
-2. **Análise Multidisciplinar**: Cada personalidade analisa o tema "{tema}" sob sua ótica especializada:
-   - Use o contexto RAG recuperado como base factual
-   - Explore diferentes dimensões do tema
-   - Identifique pontos de convergência e divergência
-   - Referencie evidências específicas dos documentos
-
-3. **Debate Colaborativo**: 
-   - Personalidades interagem entre si
-   - Questionam e complementam perspectivas umas das outras
-   - Constroem sobre as ideias apresentadas
-   - Mantêm foco no tema central
-
-4. **Síntese Multidisciplinar**: Ao final, destaque:
-   - Consensos emergentes entre as personalidades
-   - Tensões produtivas e diferentes abordagens
-   - Implicações práticas e teóricas do tema
-   - Recomendações ou próximos passos
-
-📝 Metadados da Sessão:
-- Gerado em: {timestamp}
-- Documentos RAG consultados: {num_documentos}
-- Personalidades solicitadas: {num_personalidades}
-
-🚀 EXECUTE AS DUAS FASES SEQUENCIALMENTE PARA CRIAR O DEBATE MULTIDISCIPLINAR SOBRE "{tema}"."""
+🚀 {translator.translate("modo_synapstor.execute_instruction", theme=tema)}"""
+        
+        return template
 
     @classmethod
     def construir_prompt_dinamico(
@@ -259,9 +245,11 @@ Após gerar as personalidades na PRIMEIRA FASE, proceda com o debate multidiscip
             num_personalidades=num_personalidades
         )
         
+        # Construir template dinâmico traduzido
+        template = cls._build_dynamic_template(tema)
+        
         # Construir prompt final
-        return cls.TEMPLATE_PROMPT_DINAMICO.format(
-            tema=tema,
+        return template.format(
             contexto_qdrant=contexto_formatado,
             prompt_personalidades=prompt_personalidades,
             timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -274,18 +262,20 @@ Após gerar as personalidades na PRIMEIRA FASE, proceda com o debate multidiscip
         """
         Formata o contexto recuperado do Qdrant.
         """
-        if not contexto.documentos:
-            return "⚠️ Nenhum contexto específico encontrado no banco de conhecimento. O debate baseará-se no conhecimento geral das personalidades."
+        translator = get_translator()
         
-        contexto_str = f"📊 Total de documentos relevantes encontrados: {contexto.total_encontrados}\n\n"
+        if not contexto.documentos:
+            return translator.translate("modo_synapstor.no_context")
+        
+        contexto_str = f"📊 {translator.translate('modo_synapstor.total_documents', count=contexto.total_encontrados)}\n\n"
         
         for i, doc in enumerate(contexto.documentos, 1):
             metadata = doc.get("metadata", {})
             projeto = metadata.get("projeto", "")
             arquivo = metadata.get("nome_arquivo", "")
             
-            fonte = f" (Fonte: {projeto}/{arquivo})" if projeto or arquivo else ""
-            contexto_str += f"📄 Documento {i}{fonte}:\n{doc['conteudo'][:500]}{'...' if len(doc['conteudo']) > 500 else ''}\n\n"
+            fonte = f" {translator.translate('modo_synapstor.source_prefix', source=f'{projeto}/{arquivo}')}" if projeto or arquivo else ""
+            contexto_str += f"📄 {translator.translate('modo_synapstor.document_prefix', number=i)}{fonte}:\n{doc['conteudo'][:500]}{'...' if len(doc['conteudo']) > 500 else ''}\n\n"
         
         return contexto_str.strip()
     
@@ -321,7 +311,8 @@ async def modo_synapstor(
     :param incluir_contexto_debug: Se deve incluir informações técnicas de debug
     :return: Prompt estruturado que instrui o LLM a executar o modo Synapstor
     """
-    await ctx.debug(f"Iniciando modo Synapstor para tema: {tema}")
+    translator = get_translator()
+    await ctx.debug(translator.translate("modo_synapstor.debug.starting", theme=tema))
     
     try:
         # Usar namespace padrão do servidor se não especificado
@@ -342,11 +333,11 @@ async def modo_synapstor(
         consultor_rag = ConsultorRAG(qdrant_connector)
         
         # Recuperar contexto via RAG
-        await ctx.debug("Consultando contexto RAG no Qdrant...")
+        await ctx.debug(translator.translate("modo_synapstor.debug.consulting_rag"))
         contexto_rag = await consultor_rag.consultar_contexto(tema, configuracao)
         
         # Construir prompt final com geração dinâmica de personalidades
-        await ctx.debug(f"Construindo prompt com {max_personalidades} personalidades dinâmicas")
+        await ctx.debug(translator.translate("modo_synapstor.debug.building_prompt", count=max_personalidades))
         
         prompt_final = ConstrutorPrompt.construir_prompt_dinamico(
             tema=tema,
@@ -363,7 +354,7 @@ async def modo_synapstor(
             debug_info += f"- Namespace utilizado: {namespace_final}\n"
             prompt_final += debug_info
         
-        await ctx.debug("Prompt do modo Synapstor construído com sucesso")
+        await ctx.debug(translator.translate("modo_synapstor.debug.success"))
         return prompt_final
         
     except Exception as e:
@@ -371,25 +362,23 @@ async def modo_synapstor(
         await ctx.debug(error_msg)
         logger.error(error_msg)
         
-        # Retornar prompt de fallback
-        return f"""Modo Synapstor - Erro na Inicialização
+        # Retornar prompt de fallback traduzido
+        fallback_prompt = f"""{translator.translate("modo_synapstor.errors.initialization")}
 
-❌ Ocorreu um erro ao configurar o modo Synapstor: {str(e)}
+{translator.translate("modo_synapstor.errors.error_occurred", error=str(e))}
 
-🔄 Modo Fallback Ativado:
+{translator.translate("modo_synapstor.errors.fallback_activated")}
 
-🧠 Tema: {tema}
+🧠 {translator.translate("modo_synapstor.theme", theme=tema)}
 
-👥 Personalidades (Modo Básico):
-- **Especialista Técnico** – Análise técnica e implementação
-- **Pensador Estratégico** – Visão macro e planejamento
-- **Crítico Analítico** – Questionamento e validação
+{translator.translate("modo_synapstor.errors.fallback_personalities")}
+- {translator.translate("modo_synapstor.errors.technical_expert")}
+- {translator.translate("modo_synapstor.errors.strategic_thinker")}
+- {translator.translate("modo_synapstor.errors.analytical_critic")}
 
-💭 Instruções Básicas:
-Mesmo sem acesso ao contexto RAG completo, as personalidades devem debater o tema "{tema}" 
-baseando-se em conhecimento geral e melhores práticas. Inicie o debate com cada personalidade 
-apresentando sua perspectiva inicial.
+{translator.translate("modo_synapstor.errors.fallback_instructions", theme=tema)}
 """
+        return fallback_prompt
 
 
 #############################################################################
@@ -405,36 +394,50 @@ async def info_modo_synapstor(ctx: Context) -> List[str]:
     """
     await ctx.debug("Fornecendo informações sobre o modo Synapstor")
     
-    return [
-        "🧠 Como funciona o Modo Synapstor:",
+    translator = get_translator()
+    
+    info_lines = [
+        translator.translate("modo_synapstor.info.title"),
         "",
-        "1. **Geração Dinâmica de Personalidades**:",
-        "   • O LLM analisa o tema fornecido",
-        "   • Cria especialistas apropriados automaticamente", 
-        "   • Garante perspectivas complementares e diversas",
-        "",
-        "2. **Recuperação de Contexto (RAG)**:",
-        "   • Consulta automática ao banco Qdrant",
-        "   • Recupera documentos relevantes ao tema",
-        "   • Fornece base factual para o debate",
-        "",
-        "3. **Debate Multidisciplinar**:",
-        "   • Personalidades se apresentam",
-        "   • Cada uma analisa o tema sob sua ótica",
-        "   • Interagem e debatem colaborativamente",
-        "   • Chegam a sínteses e recomendações",
-        "",
-        "🎯 Vantagens da Abordagem Dinâmica:",
-        "   • Adaptação total ao tema específico",
-        "   • Não limitado a domínios pré-definidos",
-        "   • Personalidades sempre relevantes",
-        "   • Flexibilidade máxima de perspectivas",
-        "",
-        "💡 Exemplos de uso:",
-        '   • modo-synapstor tema="Sustentabilidade em Startups"',
-        '   • modo-synapstor tema="Ética em IA Generativa" max_personalidades=5',
-        '   • modo-synapstor tema="Design de APIs RESTful" limite_documentos=8'
+        translator.translate("modo_synapstor.info.dynamic_generation"),
     ]
+    
+    for bullet in translator.translate("modo_synapstor.info.dynamic_bullets"):
+        info_lines.append(f"   {bullet}")
+    
+    info_lines.extend([
+        "",
+        translator.translate("modo_synapstor.info.rag_retrieval"),
+    ])
+    
+    for bullet in translator.translate("modo_synapstor.info.rag_bullets"):
+        info_lines.append(f"   {bullet}")
+    
+    info_lines.extend([
+        "",
+        translator.translate("modo_synapstor.info.debate"),
+    ])
+    
+    for bullet in translator.translate("modo_synapstor.info.debate_bullets"):
+        info_lines.append(f"   {bullet}")
+    
+    info_lines.extend([
+        "",
+        translator.translate("modo_synapstor.info.advantages_title"),
+    ])
+    
+    for advantage in translator.translate("modo_synapstor.info.advantages"):
+        info_lines.append(f"   {advantage}")
+    
+    info_lines.extend([
+        "",
+        translator.translate("modo_synapstor.info.examples_title"),
+    ])
+    
+    for example in translator.translate("modo_synapstor.info.examples"):
+        info_lines.append(f"   {example}")
+    
+    return info_lines
 
 
 async def configurar_synapstor(
@@ -452,6 +455,8 @@ async def configurar_synapstor(
     """
     await ctx.debug(f"Configurando modo Synapstor personalizado para: {tema}")
     
+    translator = get_translator()
+    
     if personalidades_customizadas:
         try:
             # Tentar parsear personalidades customizadas
@@ -460,37 +465,21 @@ async def configurar_synapstor(
         except json.JSONDecodeError:
             return "❌ Erro: Formato JSON inválido para personalidades customizadas."
     
-    # Retornar informações sobre configuração dinâmica
-    return f"""🎛️ Configuração do Modo Synapstor para "{tema}":
-
-🧠 **Abordagem Dinâmica**:
-O Modo Synapstor agora gera personalidades automaticamente baseado no tema específico, garantindo máxima relevância e adaptabilidade.
-
-⚙️ **Parâmetros Configuráveis**:
-• max_personalidades: Número de especialistas (padrão: 4)
-• limite_documentos: Documentos RAG a recuperar (padrão: 5)
-• namespace: Coleção Qdrant para consulta
-• incluir_contexto_debug: Informações técnicas detalhadas
-
-🎯 **Para usar personalidades específicas**, forneça um JSON no formato:
-```json
-[
-  {{
-    "nome": "Especialista em {tema}",
-    "expertise": "Área específica de conhecimento",
-    "papel": "Função no debate",
-    "estilo": "Tom de comunicação",
-    "perspectiva": "Ângulo único de análise"
-  }}
-]
-```
-
-💡 **Exemplo de uso avançado**:
-```
-modo-synapstor tema="{tema}" max_personalidades=5 limite_documentos=8 incluir_contexto_debug=true
-```
-
-🚀 **Vantagem**: As personalidades serão geradas dinamicamente pelo LLM para se adequarem perfeitamente ao tema "{tema}", resultando em um debate mais rico e contextualizado."""
+    # Construir resposta traduzida
+    config_text = f"{translator.translate('modo_synapstor.config.title', theme=tema)}\n\n"
+    config_text += f"{translator.translate('modo_synapstor.config.dynamic_approach')}\n\n"
+    config_text += f"{translator.translate('modo_synapstor.config.configurable_parameters')}\n"
+    
+    for param in translator.translate('modo_synapstor.config.parameters'):
+        config_text += f"{param}\n"
+    
+    config_text += f"\n{translator.translate('modo_synapstor.config.custom_personalities')}\n"
+    config_text += f"{translator.translate('modo_synapstor.config.json_example', theme=tema)}\n\n"
+    config_text += f"{translator.translate('modo_synapstor.config.advanced_usage')}\n"
+    config_text += f"{translator.translate('modo_synapstor.config.usage_example', theme=tema)}\n\n"
+    config_text += f"{translator.translate('modo_synapstor.config.advantage', theme=tema)}"
+    
+    return config_text
 
 
 #############################################################################
@@ -518,11 +507,13 @@ def setup_tools(server) -> List[str]:
     
     logger.info("Registrando ferramentas do Modo Synapstor")
     
+    translator = get_translator()
+    
     # Registrar ferramenta principal
     server.add_tool(
         modo_synapstor,
         name="modo-synapstor",
-        description="Ativa o modo Synapstor - sistema de raciocínio multidisciplinar com múltiplas personalidades especializadas e recuperação automática de contexto via RAG do banco Qdrant."
+        description=translator.translate("modo_synapstor.description")
     )
     
     # Registrar ferramentas auxiliares

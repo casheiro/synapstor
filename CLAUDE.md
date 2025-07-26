@@ -49,6 +49,22 @@ python -m mypy_runner
 ruff check --fix
 ```
 
+### Internacionalização (i18n)
+```bash
+# Testar sistema de i18n
+python examples/i18n_example.py
+
+# Configurar idioma via variável de ambiente
+export SYNAPSTOR_LANGUAGE=pt  # Português
+export SYNAPSTOR_LANGUAGE=en  # English
+
+# Rodar servidor em português
+SYNAPSTOR_LANGUAGE=pt python -m synapstor
+
+# Rodar servidor em inglês  
+SYNAPSTOR_LANGUAGE=en python -m synapstor
+```
+
 ### Ferramentas CLI
 ```bash
 # Comando principal de controle
@@ -114,11 +130,22 @@ O sistema usa um padrão Factory para provedores de embeddings:
 - **tool_boilerplate.py**: Gera código boilerplate para projetos
 - **tool_modo_synapstor.py**: Sistema de raciocínio multidisciplinar com RAG integrado
 
+### Sistema de Internacionalização (i18n)
+Suporte completo a múltiplos idiomas:
+- **Idiomas Suportados**: Português (pt-BR) e English (en-US)
+- **Traduções Automáticas**: Todas as mensagens, descrições e prompts são traduzidos
+- **Configuração Flexível**: Via SYNAPSTOR_LANGUAGE ou configuração programática
+- **Sistema de Fallback**: Inglês como idioma de fallback automático
+- **Thread-Safe**: Sistema seguro para aplicações concorrentes
+- **Interpolação**: Suporte a variáveis com `{variavel}` nas traduções
+
 ### Configuração e Variáveis de Ambiente
 Baseado em Pydantic Settings com validação automática:
 - **QdrantSettings**: Configuração do banco Qdrant (URL, API key, coleção)
 - **EmbeddingProviderSettings**: Configuração de embeddings (provedor, modelo)
 - **ToolSettings**: Configuração de descrições de ferramentas MCP
+- **I18nSettings**: Configuração de idioma (SYNAPSTOR_LANGUAGE=pt/en)
+- **ServerSettings**: Configuração de servidor HTTP (host, porta, CORS)
 
 ### Padrões de ID e Indexação
 - IDs determinísticos para evitar duplicação de documentos
