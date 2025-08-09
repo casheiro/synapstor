@@ -23,7 +23,9 @@
       "Bash(sudo rm:*)",
       "Bash(env)",
       "Bash(unset:*)",
-      "Bash(systemctl:*)"
+      "Bash(systemctl:*)",
+      "Bash(cat:*)",
+      "Bash(git log:*)"
     ],
     "deny": []
   }
