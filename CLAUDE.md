@@ -61,7 +61,7 @@ export SYNAPSTOR_LANGUAGE=en  # English
 # Rodar servidor em português
 SYNAPSTOR_LANGUAGE=pt python -m synapstor
 
-# Rodar servidor em inglês  
+# Rodar servidor em inglês
 SYNAPSTOR_LANGUAGE=en python -m synapstor
 ```
 

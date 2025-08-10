@@ -1,7 +1,7 @@
 {
   "common": {
     "error": "Error",
-    "success": "Success", 
+    "success": "Success",
     "warning": "Warning",
     "info": "Information",
     "loading": "Loading...",
@@ -41,14 +41,14 @@
     "phase2_analysis": "**Multidisciplinary Analysis**: Each personality analyzes the theme \"{theme}\" from their specialized perspective:",
     "phase2_analysis_bullets": [
       "Use the retrieved RAG context as factual basis",
-      "Explore different dimensions of the theme", 
+      "Explore different dimensions of the theme",
       "Identify convergence and divergence points",
       "Reference specific evidence from documents"
     ],
     "phase2_debate": "**Collaborative Debate**:",
     "phase2_debate_bullets": [
       "Personalities interact with each other",
-      "Question and complement each other's perspectives", 
+      "Question and complement each other's perspectives",
       "Build upon presented ideas",
       "Maintain focus on the central theme"
     ],
@@ -85,7 +85,7 @@
       "debate_bullets": [
         "• Personalities introduce themselves",
         "• Each analyzes theme from their perspective",
-        "• Interact and debate collaboratively", 
+        "• Interact and debate collaboratively",
         "• Reach syntheses and recommendations"
       ],
       "advantages_title": "🎯 Advantages of Dynamic Approach:",
@@ -98,7 +98,7 @@
       "examples_title": "💡 Usage examples:",
       "examples": [
         "• modo-synapstor theme=\"Sustainability in Startups\"",
-        "• modo-synapstor theme=\"Ethics in Generative AI\" max_personalities=5", 
+        "• modo-synapstor theme=\"Ethics in Generative AI\" max_personalities=5",
         "• modo-synapstor theme=\"RESTful API Design\" limit_documents=8"
       ]
     },
@@ -124,7 +124,7 @@
       "fallback_activated": "🔄 Fallback Mode Activated:",
       "fallback_personalities": "👥 Personalities (Basic Mode):",
       "technical_expert": "**Technical Expert** – Technical analysis and implementation",
-      "strategic_thinker": "**Strategic Thinker** – Macro vision and planning", 
+      "strategic_thinker": "**Strategic Thinker** – Macro vision and planning",
       "analytical_critic": "**Analytical Critic** – Questioning and validation",
       "fallback_instructions": "💭 Basic Instructions:\nEven without access to complete RAG context, personalities should debate the theme \"{theme}\" based on general knowledge and best practices. Start the debate with each personality presenting their initial perspective."
     },

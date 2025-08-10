@@ -421,13 +421,10 @@ def main():
     )
     start_parser.add_argument("--env-file", help="Path to the .env file")
     start_parser.add_argument(
-        "--host", 
-        help="Host address for HTTP transport (default: from .env or 0.0.0.0)"
+        "--host", help="Host address for HTTP transport (default: from .env or 0.0.0.0)"
     )
     start_parser.add_argument(
-        "--port", 
-        type=int, 
-        help="Port for HTTP transport (default: from .env or 8000)"
+        "--port", type=int, help="Port for HTTP transport (default: from .env or 8000)"
     )
     start_parser.add_argument(
         "--configure",

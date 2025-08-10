@@ -8,34 +8,34 @@ debates multidisciplinares com recuperação automática de contexto.
 
 import asyncio
 import json
-from synapstor.qdrant import QdrantConnector, Entry
-from synapstor.embeddings.factory import create_embedding_provider
-from synapstor.settings import EmbeddingProviderSettings, QdrantSettings
+from src.synapstor.qdrant import QdrantConnector, Entry
+from src.synapstor.embeddings.factory import create_embedding_provider
+from src.synapstor.settings import EmbeddingProviderSettings
+
 
 async def exemplo_modo_synapstor():
     """
     Exemplo de uso completo do modo Synapstor.
     """
     print("🚀 Exemplo: Modo Synapstor - Raciocínio Multidisciplinar com RAG\n")
-    
+
     # 1. Configurar ambiente de teste
     print("📚 1. Configurando ambiente de teste...")
-    
+
     # Configurações (ajuste conforme seu ambiente)
-    qdrant_settings = QdrantSettings()
     embedding_settings = EmbeddingProviderSettings()
-    
+
     # Criar provedor de embeddings e conector
     embedding_provider = create_embedding_provider(embedding_settings)
     qdrant_connector = QdrantConnector(
         qdrant_url="http://localhost:6333",
         collection_name="exemplo_synapstor",
-        embedding_provider=embedding_provider
+        embedding_provider=embedding_provider,
     )
-    
+
     # 2. Adicionar contexto de exemplo
     print("📄 2. Adicionando contexto de exemplo ao Qdrant...")
-    
+
     documentos_exemplo = [
         Entry(
             content="A inteligência artificial na educação pode personalizar o aprendizado, adaptando-se ao ritmo e estilo de cada estudante. Ferramentas como sistemas tutores inteligentes e plataformas adaptativas permitem identificar lacunas de conhecimento e sugerir conteúdos específicos.",
@@ -43,8 +43,8 @@ async def exemplo_modo_synapstor():
                 "projeto": "educacao_ai",
                 "nome_arquivo": "ia_personalizacao.md",
                 "categoria": "educacao",
-                "autor": "Dr. Silva"
-            }
+                "autor": "Dr. Silva",
+            },
         ),
         Entry(
             content="Os desafios éticos da IA na educação incluem privacidade de dados dos estudantes, viés algorítmico na avaliação, e a necessidade de manter o elemento humano no processo educativo. É crucial desenvolver frameworks éticos robustos.",
@@ -52,8 +52,8 @@ async def exemplo_modo_synapstor():
                 "projeto": "educacao_ai",
                 "nome_arquivo": "etica_ai_educacao.md",
                 "categoria": "etica",
-                "autor": "Prof. Santos"
-            }
+                "autor": "Prof. Santos",
+            },
         ),
         Entry(
             content="Implementações práticas de IA em sala de aula mostram resultados promissores. Chatbots educacionais, sistemas de correção automática e análise de sentimento em fóruns estudantis são exemplos de aplicações bem-sucedidas.",
@@ -61,72 +61,74 @@ async def exemplo_modo_synapstor():
                 "projeto": "educacao_ai",
                 "nome_arquivo": "casos_praticos.md",
                 "categoria": "implementacao",
-                "autor": "Equipe Tech"
-            }
-        )
+                "autor": "Equipe Tech",
+            },
+        ),
     ]
-    
+
     # Armazenar documentos
     for doc in documentos_exemplo:
         await qdrant_connector.store(doc, collection_name="exemplo_synapstor")
-    
+
     print(f"✅ {len(documentos_exemplo)} documentos adicionados com sucesso!")
-    
+
     # 3. Simular uso do modo Synapstor
     print("\n🧠 3. Simulando uso do modo Synapstor...")
-    
+
     # Tema para análise
     tema = "Inteligência Artificial na Educação: Oportunidades e Desafios"
-    
+
     # Import plugin classes
     from synapstor.plugins.tool_modo_synapstor import (
-        PersonalityGenerator, 
-        RAGConsultant, 
+        PersonalityGenerator,
+        RAGConsultant,
         PromptBuilder,
-        DebateConfiguration
+        DebateConfiguration,
     )
-    
+
     # Configuration
     configuration = DebateConfiguration(
         max_personalities=4,
         rag_documents_limit=3,
-        default_namespace="exemplo_synapstor"
+        default_namespace="exemplo_synapstor",
     )
-    
+
     # Generate personalities prompt (dynamic approach)
-    personalities_prompt = PersonalityGenerator.generate_personalities_prompt(tema, configuration.max_personalities)
-    
-    print(f"🎯 Dynamic personality generation enabled")
+    PersonalityGenerator.generate_personalities_prompt(
+        tema, configuration.max_personalities
+    )
+
+    print("🎯 Dynamic personality generation enabled")
     print(f"👥 Personalities to be generated: {configuration.max_personalities}")
     print(f"   • LLM will create experts based on theme: {tema}")
-    
+
     # Query RAG context
     rag_consultant = RAGConsultant(qdrant_connector)
     rag_context = await rag_consultant.query_context(tema, configuration)
-    
+
     print(f"\n📚 RAG context retrieved: {rag_context.total_found} documents")
-    
+
     # Build final prompt
     final_prompt = PromptBuilder.build_dynamic_prompt(
         theme=tema,
         num_personalities=configuration.max_personalities,
-        rag_context=rag_context
+        rag_context=rag_context,
     )
-    
+
     # 4. Exibir resultado
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("🎭 PROMPT GENERATED BY SYNAPSTOR MODE")
-    print("="*80)
+    print("=" * 80)
     print(final_prompt)
-    print("="*80)
-    
+    print("=" * 80)
+
     # 5. Estatísticas
-    print(f"\n📊 Statistics:")
+    print("\n📊 Statistics:")
     print(f"   • Prompt length: {len(final_prompt)} characters")
     print(f"   • Personalities to generate: {configuration.max_personalities}")
     print(f"   • RAG documents used: {rag_context.total_found}")
-    print(f"   • Dynamic approach: LLM generates experts automatically")
-    
+    print("   • Dynamic approach: LLM generates experts automatically")
+
     print("\n✅ Example completed successfully!")
     print("\n💡 To use in production:")
     print("   1. Configure Qdrant with your real data")
@@ -139,7 +141,7 @@ async def exemplo_custom_personalities():
     Example of how to provide custom personalities (optional).
     """
     print("\n🎨 Example: Custom Personalities (Optional)\n")
-    
+
     # Example of custom personalities JSON format
     custom_personalities_json = [
         {
@@ -147,24 +149,24 @@ async def exemplo_custom_personalities():
             "expertise": "Distributed Systems Architecture",
             "role": "Scalable Solutions Designer",
             "style": "technical-pragmatic",
-            "perspective": "performance and maintainability"
+            "perspective": "performance and maintainability",
         },
         {
-            "name": "Principal UX Designer", 
+            "name": "Principal UX Designer",
             "expertise": "User Experience and Design Thinking",
             "role": "Usability Advocate",
             "style": "empathetic-visual",
-            "perspective": "user-centered"
+            "perspective": "user-centered",
         },
         {
             "name": "DevOps Engineer",
             "expertise": "Infrastructure and Automation",
             "role": "Continuous Delivery Facilitator",
-            "style": "operational-resilient", 
-            "perspective": "reliability and automation"
-        }
+            "style": "operational-resilient",
+            "perspective": "reliability and automation",
+        },
     ]
-    
+
     print("👥 Custom Personalities Example:")
     for i, p in enumerate(custom_personalities_json, 1):
         print(f"{i}. {p['name']}")
@@ -172,10 +174,10 @@ async def exemplo_custom_personalities():
         print(f"   Role: {p['role']}")
         print(f"   Style: {p['style']}")
         print(f"   Perspective: {p['perspective']}\n")
-    
+
     # Convert to JSON (useful for configurations)
     json_config = json.dumps(custom_personalities_json, indent=2, ensure_ascii=False)
-    
+
     print("📋 JSON Configuration for custom personalities:")
     print(json_config)
     print("\n💡 Note: The new dynamic approach generates personalities automatically.")
@@ -189,7 +191,7 @@ async def main():
     try:
         await exemplo_modo_synapstor()
         await exemplo_custom_personalities()
-        
+
     except Exception as e:
         print(f"❌ Erro durante a execução: {e}")
         print("\n💡 Dicas para resolução:")
@@ -201,6 +203,6 @@ async def main():
 if __name__ == "__main__":
     print("🎭 Exemplos do Modo Synapstor")
     print("=" * 50)
-    
+
     # Executar exemplos
     asyncio.run(main())

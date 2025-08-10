@@ -12,63 +12,64 @@ from .languages import Language, SupportedLanguages
 
 logger = logging.getLogger(__name__)
 
+
 class Translator:
     """
     Classe principal para gerenciar traduções no Synapstor.
     """
-    
+
     def __init__(self, language: Language = Language.ENGLISH):
         self._language = language
         self._translations: Dict[Language, Dict[str, Any]] = {}
         self._lock = Lock()
         self._load_translations()
-    
+
     def _load_translations(self):
         """Loads translation files."""
         translations_dir = Path(__file__).parent / "translations"
-        
+
         for lang in Language:
             lang_info = SupportedLanguages.get_language_info(lang)
             lang_file = translations_dir / f"{lang_info['code']}.json"
-            
+
             try:
                 if lang_file.exists():
-                    with open(lang_file, 'r', encoding='utf-8') as f:
+                    with open(lang_file, "r", encoding="utf-8") as f:
                         self._translations[lang] = json.load(f)
                 else:
-                    logger.warning(f"Translation file not found: {lang_file}")
+                    logger.warning("Translation file not found: %s", lang_file)
                     self._translations[lang] = {}
-            except Exception as e:
-                logger.error(f"Error loading translation file {lang_file}: {e}")
+            except (json.JSONDecodeError, OSError) as e:
+                logger.error("Error loading translation file %s: %s", lang_file, e)
                 self._translations[lang] = {}
-    
+
     def set_language(self, language: Language):
         """Sets the current language."""
         with self._lock:
             self._language = language
-    
+
     def get_language(self) -> Language:
         """Returns the current language."""
         return self._language
-    
+
     def translate(self, key: str, **kwargs) -> str:
         """
         Translates a key to the current language.
-        
+
         Args:
             key: Translation key (e.g.: "tools.store.success")
             **kwargs: Variables for string interpolation
-            
+
         Returns:
             Translated string or original key if not found
         """
         with self._lock:
             translations = self._translations.get(self._language, {})
-            
+
             # Navigate nested structure using dots
-            keys = key.split('.')
+            keys = key.split(".")
             value = translations
-            
+
             for k in keys:
                 if isinstance(value, dict) and k in value:
                     value = value[k]
@@ -77,50 +78,52 @@ class Translator:
                     if self._language != Language.ENGLISH:
                         return self._get_fallback_translation(key, **kwargs)
                     return key  # Return key if translation not found
-            
+
             # Interpolate variables if necessary
             if isinstance(value, str) and kwargs:
                 try:
                     return value.format(**kwargs)
                 except KeyError as e:
-                    logger.warning(f"Missing variable {e} for translation key: {key}")
+                    logger.warning(
+                        "Missing variable %s for translation key: %s", e, key
+                    )
                     return value
-            
+
             return str(value)
-    
+
     def _get_fallback_translation(self, key: str, **kwargs) -> str:
         """Gets English translation as fallback."""
         en_translations = self._translations.get(Language.ENGLISH, {})
-        
-        keys = key.split('.')
+
+        keys = key.split(".")
         value = en_translations
-        
+
         for k in keys:
             if isinstance(value, dict) and k in value:
                 value = value[k]
             else:
                 return key
-        
+
         if isinstance(value, str) and kwargs:
             try:
                 return value.format(**kwargs)
             except KeyError:
                 return str(value)
-        
+
         return str(value)
-    
+
     def has_translation(self, key: str) -> bool:
         """Checks if translation exists for a key."""
         translations = self._translations.get(self._language, {})
-        keys = key.split('.')
+        keys = key.split(".")
         value = translations
-        
+
         for k in keys:
             if isinstance(value, dict) and k in value:
                 value = value[k]
             else:
                 return False
-        
+
         return True
 
 
@@ -132,7 +135,7 @@ _translator_lock = Lock()
 def get_translator() -> Translator:
     """Returns the global translator instance."""
     global _global_translator
-    
+
     with _translator_lock:
         if _global_translator is None:
             _global_translator = Translator()
@@ -148,11 +151,11 @@ def set_language(language: Language):
 def _(key: str, **kwargs) -> str:
     """
     Convenience function for translation.
-    
+
     Args:
         key: Translation key
         **kwargs: Variables for interpolation
-        
+
     Returns:
         Translated string
     """

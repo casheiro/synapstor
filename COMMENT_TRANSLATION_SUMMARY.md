@@ -79,7 +79,7 @@ Traduz uma chave para o idioma atual.
 Args:
     key: Chave de tradução (ex: "tools.store.success")
     **kwargs: Variáveis para interpolação na string
-    
+
 Returns:
     String traduzida ou a chave original se não encontrada
 """
@@ -93,7 +93,7 @@ Translates a key to the current language.
 Args:
     key: Translation key (e.g.: "tools.store.success")
     **kwargs: Variables for string interpolation
-    
+
 Returns:
     Translated string or original key if not found
 """
@@ -154,7 +154,7 @@ Returns:
 All translated files passed syntax validation:
 - ✅ `tool_modo_synapstor.py`
 - ✅ `translator.py`
-- ✅ `languages.py` 
+- ✅ `languages.py`
 - ✅ `main.py`
 - ✅ `mcp_server.py`
 

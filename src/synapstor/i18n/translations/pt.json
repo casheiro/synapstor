@@ -2,7 +2,7 @@
   "common": {
     "error": "Erro",
     "success": "Sucesso",
-    "warning": "Aviso", 
+    "warning": "Aviso",
     "info": "Informação",
     "loading": "Carregando...",
     "searching": "Buscando...",
@@ -42,7 +42,7 @@
     "phase2_analysis_bullets": [
       "Use o contexto RAG recuperado como base factual",
       "Explore diferentes dimensões do tema",
-      "Identifique pontos de convergência e divergência", 
+      "Identifique pontos de convergência e divergência",
       "Referencie evidências específicas dos documentos"
     ],
     "phase2_debate": "**Debate Colaborativo**:",

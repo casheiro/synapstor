@@ -15,7 +15,7 @@ def main():
     if not setup_environment():
         print("Error configuring the environment. The MCP server cannot be started.")
         sys.exit(1)
-    
+
     # Configure language
     i18n_settings = I18nSettings()
     language = SupportedLanguages.get_language_by_code(i18n_settings.language)
@@ -38,16 +38,21 @@ def main():
         from synapstor.server import mcp
 
         print(f"Starting MCP server with transport: {args.transport}")
-        
+
         if args.transport == "http":
             # For HTTP transport, use specific configuration
             from synapstor.settings import ServerSettings
+
             server_settings = ServerSettings()
-            print(f"Starting HTTP server at {server_settings.host}:{server_settings.port}")
-            mcp.run(transport="http", host=server_settings.host, port=server_settings.port)
+            print(
+                f"Starting HTTP server at {server_settings.host}:{server_settings.port}"
+            )
+            mcp.run(
+                transport="http", host=server_settings.host, port=server_settings.port
+            )
         else:
             mcp.run(transport=args.transport)
-        
+
         print(translator.translate("server.started"))
     except ImportError as e:
         print(translator.translate("server.error_starting", error=str(e)))

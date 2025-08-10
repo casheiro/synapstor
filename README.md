@@ -185,7 +185,7 @@ Interface centralizada para gerenciar todas as funcionalidades do Synapstor:
 ```bash
 # Iniciar o servidor MCP com diferentes transportes
 synapstor-ctl start --transport stdio   # Para integração direta com LLMs
-synapstor-ctl start --transport sse     # Para Server-Sent Events  
+synapstor-ctl start --transport sse     # Para Server-Sent Events
 synapstor-ctl start --transport http    # Para Streamable HTTP MCP
 synapstor-ctl start --transport http --host 0.0.0.0 --port 8000
 

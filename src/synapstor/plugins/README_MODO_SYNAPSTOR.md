@@ -50,20 +50,20 @@ sequenceDiagram
     Note over LLM,Qdrant: Modo Synapstor - Raciocínio Multidisciplinar com RAG
 
     LLM->>Synapstor: 1. modo-synapstor tema="Sustentabilidade em Startups"
-    
+
     Synapstor->>Qdrant: 2. Query RAG expandida
     Qdrant-->>Synapstor: 3. Documentos relevantes
-    
+
     Synapstor->>Synapstor: 4. Constrói prompt estruturado<br/>• Contexto RAG formatado<br/>• Instruções para geração de personalidades<br/>• Template de debate multifásico
-    
+
     Synapstor-->>LLM: 5. Retorna prompt estruturado
-    
+
     Note over LLM: Fase 1: Geração de Personalidades
     LLM->>LLM: 6. Analisa tema + gera especialistas<br/>JSON com personalidades apropriadas
-    
-    Note over LLM: Fase 2: Debate Multidisciplinar  
+
+    Note over LLM: Fase 2: Debate Multidisciplinar
     LLM->>LLM: 7. Executa debate entre personalidades<br/>• Apresentações<br/>• Análises especializadas<br/>• Interações colaborativas<br/>• Síntese final
-    
+
     LLM-->>LLM: 8. Análise multidisciplinar completa
 ```
 
@@ -108,7 +108,7 @@ prompt = await modo_synapstor(
 # Uso avançado
 prompt = await modo_synapstor(
     ctx=context,
-    tema="Arquitetura de Microserviços", 
+    tema="Arquitetura de Microserviços",
     max_personalidades=5,
     limite_documentos=8,
     namespace="meus_projetos",
@@ -183,7 +183,7 @@ Após gerar as personalidades na PRIMEIRA FASE, proceda com o debate multidiscip
 [
   {
     "nome": "Arquiteto de Software Sênior",
-    "expertise": "Arquitetura de Sistemas Distribuídos", 
+    "expertise": "Arquitetura de Sistemas Distribuídos",
     "papel": "Projetista de Soluções Escaláveis",
     "estilo": "técnico-pragmático",
     "perspectiva": "performance e maintibilidade"
@@ -191,7 +191,7 @@ Após gerar as personalidades na PRIMEIRA FASE, proceda com o debate multidiscip
   {
     "nome": "UX Designer Principal",
     "expertise": "Experiência do Usuário e Design Thinking",
-    "papel": "Defensor da Usabilidade", 
+    "papel": "Defensor da Usabilidade",
     "estilo": "empático-visual",
     "perspectiva": "centrada no usuário"
   }
@@ -223,7 +223,7 @@ async def consultar_contexto(tema: str, configuracao: ConfiguracaoDebate) -> Con
         limit=configuracao.limite_documentos_rag,
         collection_name=configuracao.namespace_padrao
     )
-    
+
     return ContextoRAG(
         documentos=resultados_processados,
         query_original=tema,
@@ -262,7 +262,7 @@ def construir_prompt_dinamico(tema: str, num_personalidades: int, contexto_rag: 
 import asyncio
 from synapstor.plugins.tool_modo_synapstor import (
     GeradorPersonalidades,
-    ConsultorRAG, 
+    ConsultorRAG,
     ConstrutorPrompt
 )
 
@@ -270,19 +270,19 @@ async def exemplo_completo():
     # 1. Detectar domínio
     tema = "Machine Learning na Medicina"
     dominio = GeradorPersonalidades.detectar_dominio(tema)
-    
+
     # 2. Gerar personalidades
     personalidades = GeradorPersonalidades.gerar_personalidades(tema, config)
-    
+
     # 3. Consultar RAG
     consultor = ConsultorRAG(qdrant_connector)
     contexto = await consultor.consultar_contexto(tema, config)
-    
+
     # 4. Construir prompt
     prompt = ConstrutorPrompt.construir_prompt(
         tema, personalidades, contexto, dominio
     )
-    
+
     print(prompt)
 
 asyncio.run(exemplo_completo())
@@ -292,7 +292,7 @@ asyncio.run(exemplo_completo())
 
 ### Tempos Típicos de Resposta
 - **Detecção de domínio**: ~1ms
-- **Geração de personalidades**: ~5ms  
+- **Geração de personalidades**: ~5ms
 - **Consulta RAG**: ~100-500ms (dependente do Qdrant)
 - **Construção de prompt**: ~10ms
 - **Total**: ~120-520ms
@@ -385,10 +385,10 @@ configurar-synapstor tema="DevOps" personalidades_customizadas='[
     "perspectiva": "prevenção de incidentes"
   },
   {
-    "nome": "Platform Engineer", 
+    "nome": "Platform Engineer",
     "expertise": "Infraestrutura como Código",
     "papel": "Arquiteto de Plataforma",
-    "estilo": "sistemático-escalável", 
+    "estilo": "sistemático-escalável",
     "perspectiva": "developer experience"
   }
 ]'

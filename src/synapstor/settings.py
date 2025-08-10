@@ -89,4 +89,6 @@ class I18nSettings(BaseSettings):
     """
 
     language: str = Field(default="en", validation_alias="SYNAPSTOR_LANGUAGE")
-    auto_detect: bool = Field(default=True, validation_alias="SYNAPSTOR_AUTO_DETECT_LANGUAGE")
+    auto_detect: bool = Field(
+        default=True, validation_alias="SYNAPSTOR_AUTO_DETECT_LANGUAGE"
+    )

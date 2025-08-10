@@ -38,7 +38,7 @@ class QdrantMCPServer(FastMCP):
         self.qdrant_settings = qdrant_settings
         self.embedding_provider_settings = embedding_provider_settings
         self.i18n_settings = i18n_settings or I18nSettings()
-        
+
         # Configure language
         language = SupportedLanguages.get_language_by_code(self.i18n_settings.language)
         set_language(language)
@@ -89,9 +89,11 @@ class QdrantMCPServer(FastMCP):
             await self.qdrant_connector.store(entry, collection_name=collection_name)
             translator = get_translator()
             if collection_name:
-                return translator.translate("tools.store.success_with_collection", 
-                                          information=information, 
-                                          collection_name=collection_name)
+                return translator.translate(
+                    "tools.store.success_with_collection",
+                    information=information,
+                    collection_name=collection_name,
+                )
             return translator.translate("tools.store.success", information=information)
 
         async def store_with_default_collection(

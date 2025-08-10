@@ -4,7 +4,7 @@ O Synapstor agora oferece suporte completo a múltiplos idiomas através de um s
 
 ## 🌍 Idiomas Suportados
 
-- **Português (pt-BR)**: Idioma padrão para brasileiros  
+- **Português (pt-BR)**: Idioma padrão para brasileiros
 - **English (en-US)**: Idioma internacional padrão
 
 ## 🚀 Como Usar
@@ -103,7 +103,7 @@ class SupportedLanguages:
     LANGUAGE_INFO = {
         Language.PORTUGUESE: {
             "name": "Português",
-            "code": "pt", 
+            "code": "pt",
             "locale": "pt_BR",
             "rtl": False
         },
@@ -186,13 +186,13 @@ from synapstor.i18n import get_translator
 
 async def minha_ferramenta(ctx: Context, parametro: str) -> str:
     translator = get_translator()
-    
+
     # Tradução com variável
     message = translator.translate("meu_plugin.processando", item=parametro)
     await ctx.debug(message)
-    
+
     # Processo...
-    
+
     return translator.translate("meu_plugin.concluido")
 ```
 
@@ -255,7 +255,7 @@ class SupportedLanguages:
         Language.SPANISH: {
             "name": "Español",
             "code": "es",
-            "locale": "es_ES", 
+            "locale": "es_ES",
             "rtl": False
         }
     }
@@ -339,7 +339,7 @@ message = translator.translate("welcome.message", name=safe_user_input)
 ### Próximas Versões
 
 - **v1.1**: Suporte a pluralização
-- **v1.2**: Formatação de datas e números por localização  
+- **v1.2**: Formatação de datas e números por localização
 - **v1.3**: Detecção automática de idioma do usuário
 - **v1.4**: Tradução de documentação dinâmica
 - **v1.5**: Interface web para gerenciar traduções

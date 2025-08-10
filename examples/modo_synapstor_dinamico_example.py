@@ -2,7 +2,7 @@
 """
 Dynamic Synapstor Mode Usage Example
 
-This file demonstrates how Synapstor (MCP server) provides structured 
+This file demonstrates how Synapstor (MCP server) provides structured
 prompts that instruct the LLM client to execute multidisciplinary reasoning
 with dynamic generation of specialized personalities.
 
@@ -11,14 +11,15 @@ ARCHITECTURE:
 - LLM Client: Receives prompt + executes personality generation + debate
 """
 
+
 def generated_prompt_example():
     """
     Example of the structured prompt that Synapstor provides to the LLM client.
     The LLM receives this prompt and executes the instructions to conduct the debate.
     """
     print("🎭 Structured Prompt Provided by Synapstor to LLM Client\n")
-    print("="*80)
-    
+    print("=" * 80)
+
     prompt_example = """Synapstor Mode activated - Multidisciplinary Reasoning with RAG.
 
 🧠 Theme: Sustainability in Technology Startups
@@ -27,8 +28,8 @@ def generated_prompt_example():
 📊 Total relevant documents found: 4
 
 📄 Documento 1 (Fonte: sustentabilidade_tech/green_coding.md):
-Green coding practices podem reduzir o consumo energético de aplicações em até 30%. 
-Técnicas incluem otimização de algoritmos, uso eficiente de recursos de cloud e 
+Green coding practices podem reduzir o consumo energético de aplicações em até 30%.
+Técnicas incluem otimização de algoritmos, uso eficiente de recursos de cloud e
 práticas de desenvolvimento sustentável...
 
 📄 Documento 2 (Fonte: startups_cases/patagonia_tech.md):
@@ -37,7 +38,7 @@ Blockchain para transparência, IoT para monitoramento ambiental e IA para otimi
 de recursos são pilares da estratégia sustentável...
 
 📄 Documento 3 (Fonte: investimentos/esg_venture.md):
-Critérios ESG (Environmental, Social, Governance) se tornaram fundamentais para 
+Critérios ESG (Environmental, Social, Governance) se tornaram fundamentais para
 captação de investimento. VCs avaliam não apenas retorno financeiro mas também
 impacto socioambiental das startups...
 
@@ -48,7 +49,7 @@ You are an expert in creating personalities for multidisciplinary debates.
 THEME: Sustainability in Technology Startups
 
 INSTRUCTIONS:
-Create exactly 4 specialized personalities that would be most suitable for debating "Sustainability in Technology Startups". 
+Create exactly 4 specialized personalities that would be most suitable for debating "Sustainability in Technology Startups".
 
 For each personality, provide:
 - Name (can be real historical/contemporary person or professional archetype)
@@ -89,7 +90,7 @@ After generating personalities in the FIRST PHASE, proceed with multidisciplinar
    - Identify convergence and divergence points
    - Reference specific evidence from documents
 
-3. **Collaborative Debate**: 
+3. **Collaborative Debate**:
    - Personalities interact with each other
    - Question and complement each other's perspectives
    - Build upon presented ideas
@@ -106,11 +107,12 @@ After generating personalities in the FIRST PHASE, proceed with multidisciplinar
 - RAG documents consulted: 4
 - Requested personalities: 4
 
-🚀 EXECUTE BOTH PHASES SEQUENTIALLY TO CREATE THE MULTIDISCIPLINARY DEBATE ON "Sustainability in Technology Startups".""""""    print(prompt_example)
-    print("="*80)
+🚀 EXECUTE BOTH PHASES SEQUENTIALLY TO CREATE THE MULTIDISCIPLINARY DEBATE ON "Sustainability in Technology Startups"."""
+    print(prompt_example)
+    print("=" * 80)
 
     print(prompt_example)
-    print("="*80)
+    print("=" * 80)
 
 
 def expected_response_example():
@@ -119,8 +121,8 @@ def expected_response_example():
     This is the complete execution the LLM would perform following the instructions.
     """
     print("\n🤖 Example of LLM Client Execution\n")
-    print("="*80)
-    
+    print("=" * 80)
+
     response_example = """**FIRST PHASE - Generated Personalities:**
 
 [
@@ -194,7 +196,7 @@ def expected_response_example():
 O debate revela que sustentabilidade em startups de tecnologia não é apenas responsabilidade social, mas imperativo estratégico para sucesso no mercado atual."""
 
     print(response_example)
-    print("="*80)
+    print("=" * 80)
 
 
 def mcp_synapstor_architecture():
@@ -202,21 +204,21 @@ def mcp_synapstor_architecture():
     Explains MCP architecture and the role of Synapstor vs LLM.
     """
     print("\n🏗️ MCP Architecture - Synapstor vs LLM\n")
-    
+
     print("🔧 SYNAPSTOR (MCP Server):")
     print("   • Conecta-se ao banco Qdrant")
     print("   • Recupera documentos relevantes via RAG")
     print("   • Constrói prompts estruturados")
     print("   • Fornece contexto factual ao LLM")
     print("   • Define instruções de execução")
-    
+
     print("\n🧠 LLM (MCP Client):")
     print("   • Recebe prompt estruturado do Synapstor")
     print("   • Gera personalidades especializadas dinamicamente")
     print("   • Executa debate multidisciplinar")
     print("   • Utiliza contexto RAG fornecido")
     print("   • Produz análise final e sínteses")
-    
+
     print("\n🔄 FLUXO DE TRABALHO:")
     print("   1. LLM solicita: modo-synapstor tema='Sustentabilidade Tech'")
     print("   2. Synapstor consulta Qdrant e recupera documentos relevantes")
@@ -225,25 +227,29 @@ def mcp_synapstor_architecture():
     print("      • Fase 1: Gera personalidades apropriadas")
     print("      • Fase 2: Executa debate usando contexto fornecido")
     print("   5. LLM retorna análise multidisciplinar completa")
-    
+
     print("\n🎯 Exemplos de Melhoria:")
     print("   • Tema: 'Ética em NFTs para Arte Digital'")
     print("     ANTES: Tentaria encaixar em 'tecnologia' com especialistas genéricos")
-    print("     AGORA: Gera especialistas em arte digital, direitos autorais, blockchain, filosofia da arte")
+    print(
+        "     AGORA: Gera especialistas em arte digital, direitos autorais, blockchain, filosofia da arte"
+    )
     print()
     print("   • Tema: 'Psicologia de UX em Apps de Meditação'")
     print("     ANTES: Mistura confusa entre 'tecnologia' e 'geral'")
-    print("     AGORA: Especialistas em UX/UI, psicologia comportamental, mindfulness, product design")
+    print(
+        "     AGORA: Especialistas em UX/UI, psicologia comportamental, mindfulness, product design"
+    )
 
 
 if __name__ == "__main__":
     print("🎭 Modo Synapstor - Arquitetura MCP Dinâmica")
     print("=" * 50)
-    
+
     generated_prompt_example()
     expected_response_example()
     mcp_synapstor_architecture()
-    
+
     print("\n✨ Vantagens da Arquitetura MCP:")
     print("   🎯 Synapstor fornece contexto RAG especializado")
     print("   🧠 LLM executa raciocínio multidisciplinar")

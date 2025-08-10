@@ -35,15 +35,15 @@ def main():
         "--env-file", default=".env", help="Path to the .env file (default: .env)"
     )
     parser.add_argument(
-        "--host", 
-        default=None, 
-        help="Host address for HTTP transport (default: from .env or 0.0.0.0)"
+        "--host",
+        default=None,
+        help="Host address for HTTP transport (default: from .env or 0.0.0.0)",
     )
     parser.add_argument(
-        "--port", 
-        type=int, 
-        default=None, 
-        help="Port for HTTP transport (default: from .env or 8000)"
+        "--port",
+        type=int,
+        default=None,
+        help="Port for HTTP transport (default: from .env or 8000)",
     )
     parser.add_argument(
         "--create-env",
@@ -94,18 +94,18 @@ def main():
 
         if "--configure" in sys.argv:
             sys.argv.remove("--configure")
-            
+
         # Handle HTTP-specific arguments
         if "--host" in sys.argv:
             sys.argv.remove("--host")
             if args.host and args.host in sys.argv:
                 sys.argv.remove(args.host)
-                
+
         if "--port" in sys.argv:
             sys.argv.remove("--port")
             if args.port and str(args.port) in sys.argv:
                 sys.argv.remove(str(args.port))
-                
+
         # Set environment variables for HTTP transport
         if args.transport == "http":
             if args.host:
