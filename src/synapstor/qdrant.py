@@ -1,11 +1,24 @@
+"""
+Qdrant connector module for managing vector search operations.
+
+This module provides functionality to interact with a Qdrant vector database,
+including storing and searching vector embeddings with associated metadata.
+It handles both local and remote Qdrant instances and supports async operations.
+"""
+
 import logging
 import uuid
 from typing import Any, Dict, Optional
 
-from pydantic import BaseModel
-from qdrant_client import AsyncQdrantClient, models
-
-from synapstor.embeddings.base import EmbeddingProvider
+try:
+    from pydantic import BaseModel
+    from qdrant_client import AsyncQdrantClient, models
+    from synapstor.embeddings.base import EmbeddingProvider
+except ImportError:
+    logging.error(
+        "Qdrant dependencies not installed. Please install with 'pip install -e \".[qdrant]\"'"
+    )
+    raise
 
 # Import the deterministic ID generator
 try:
@@ -87,14 +100,13 @@ class QdrantConnector:
         """
         Stores information in the Qdrant collection, along with the specified metadata.
         :param entry: The entry to store in the Qdrant collection.
-        :param collection_name: The name of the collection to store the information in, optional. If not provided,
-                                the default collection is used.
+        :param collection_name: The name of the collection to store the information in, optional.
+                                If not provided, the default collection is used.
         """
         collection_name = collection_name or self._default_collection_name
         await self._ensure_collection_exists(collection_name)
 
         # Embed the document
-        # ToDo: instead of embedding text explicitly, use `models.Document`,
         # it should unlock usage of server-side inference.
         embeddings = await self._embedding_provider.embed_documents([entry.content])
 
@@ -111,7 +123,7 @@ class QdrantConnector:
             document_id = uuid.uuid4().hex
 
         # Informative log
-        logger.debug(f"Storing document with ID: {document_id}")
+        logger.debug("Storing document with ID: %s", document_id)
 
         await self._client.upsert(
             collection_name=collection_name,
@@ -141,7 +153,6 @@ class QdrantConnector:
             return []
 
         # Embed the query
-        # ToDo: instead of embedding text explicitly, use `models.Document`,
         # it should unlock usage of server-side inference.
 
         query_vector = await self._embedding_provider.embed_query(query)

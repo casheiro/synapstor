@@ -11,6 +11,12 @@ import json
 from src.synapstor.qdrant import QdrantConnector, Entry
 from src.synapstor.embeddings.factory import create_embedding_provider
 from src.synapstor.settings import EmbeddingProviderSettings
+from src.synapstor.plugins.tool_modo_synapstor import (
+    PersonalityGenerator,
+    RAGConsultant,
+    PromptBuilder,
+    DebateConfiguration,
+)
 
 
 async def exemplo_modo_synapstor():
@@ -29,8 +35,10 @@ async def exemplo_modo_synapstor():
     embedding_provider = create_embedding_provider(embedding_settings)
     qdrant_connector = QdrantConnector(
         qdrant_url="http://localhost:6333",
+        qdrant_api_key=None,
         collection_name="exemplo_synapstor",
         embedding_provider=embedding_provider,
+        qdrant_local_path=None,
     )
 
     # 2. Adicionar contexto de exemplo
@@ -77,15 +85,6 @@ async def exemplo_modo_synapstor():
 
     # Tema para análise
     tema = "Inteligência Artificial na Educação: Oportunidades e Desafios"
-
-    # Import plugin classes
-    from synapstor.plugins.tool_modo_synapstor import (
-        PersonalityGenerator,
-        RAGConsultant,
-        PromptBuilder,
-        DebateConfiguration,
-    )
-
     # Configuration
     configuration = DebateConfiguration(
         max_personalities=4,
