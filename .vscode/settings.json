@@ -2,14 +2,19 @@
     "cSpell.words": [
         "claude",
         "colecao",
+        "commitizen",
         "Devs",
         "EMBEDAMENTO",
         "enforçado",
         "GITHUB",
+        "mypy",
         "precommit",
+        "psutil",
         "pyproject",
         "reindex",
+        "setuptools",
         "Streamable",
+        "tqdm",
         "unik",
         "venv"
     ]
