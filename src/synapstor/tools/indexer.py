@@ -21,8 +21,16 @@ import time
 from typing import Dict, List, Any, Optional
 import concurrent.futures
 import logging
-from tqdm import tqdm
 import hashlib
+from tqdm import tqdm
+
+try:
+    from synapstor.i18n import _
+except ImportError:
+    # Fallback function if i18n not available
+    def _(key: str, **kwargs) -> str:
+        return key.format(**kwargs) if kwargs else key
+
 
 # Logging configuration - DISABLES LOGS by default
 # This prevents messages from appearing during normal execution
@@ -31,56 +39,63 @@ logger = logging.getLogger("indexer")
 
 # Try to import the deterministic ID generation module and MEF support
 try:
-    from src.synapstor.utils.id_generator import gerar_id_determinista
+    from src.synapstor.utils.id_generator import generate_deterministic_id
 
-    print("✅ Using deterministic ID generator from synapstor.utils")
+    print("✅", _("indexer.using_deterministic_id"))
 except ImportError:
     # Fallback function if the module doesn't exist
-    def gerar_id_determinista(metadata: Dict[str, Any]) -> str:
+    def generate_deterministic_id(metadata: Dict[str, Any]) -> str:
         """Internal fallback version of the deterministic ID generator"""
         # Extract identification data
-        projeto = metadata.get("projeto", "")
-        caminho = metadata.get("caminho_absoluto", "")
+        project = metadata.get("project", "") or metadata.get("projeto", "")
+        absolute_path = metadata.get("absolute_path", "") or metadata.get(
+            "caminho_absoluto", ""
+        )
 
         # If there's no project and path, try to use other identifiers
-        if not (projeto and caminho):
+        if not (project and absolute_path):
             content_hash = ""
-            # Try to use file_name if available
-            if "nome_arquivo" in metadata:
-                content_hash += f"file:{metadata['nome_arquivo']};"
+            # Try to use filename if available
+            filename = metadata.get("filename", "") or metadata.get("nome_arquivo", "")
+            if filename:
+                content_hash += f"file:{filename};"
 
             # Use any available metadata to create a unique string
             for key in sorted(metadata.keys()):
-                if key not in ["projeto", "caminho_absoluto", "nome_arquivo"]:
+                if key not in [
+                    "project",
+                    "projeto",
+                    "absolute_path",
+                    "caminho_absoluto",
+                    "filename",
+                    "nome_arquivo",
+                ]:
                     value = str(metadata[key])
                     if value:
                         content_hash += f"{key}:{value};"
         else:
             # Use the project+absolute_path combination as the main identifier
-            content_hash = f"{projeto}:{caminho}"
+            content_hash = f"{project}:{absolute_path}"
 
         # If there's still nothing for hash, raise an error
         if not content_hash:
-            print("❌ Insufficient metadata to generate deterministic ID:", metadata)
-            raise ValueError("Insufficient metadata to generate deterministic ID")
+            print("❌", _("indexer.insufficient_metadata_error"), metadata)
+            raise ValueError(_("indexer.insufficient_metadata_error"))
 
         # Calculate MD5 hash of the identification string
         return hashlib.md5(content_hash.encode("utf-8")).hexdigest()
 
-    print(
-        "⚠️\t Module synapstor.utils not found, "
-        "using internal version of gerar_id_determinista"
-    )
+    print("⚠️", _("indexer.fallback_id_generator"))
 
 # Try to import MEF support
 try:
     from src.synapstor.mef import MEFParser
 
     MEF_AVAILABLE = True
-    print("✅ MEF support available")
+    print("✅", _("indexer.mef_support_available"))
 except ImportError:
     MEF_AVAILABLE = False
-    print("⚠️\t MEF support not available")
+    print("⚠️", _("indexer.mef_support_unavailable"))
 
 
 class ConsolePrinter:
@@ -109,7 +124,7 @@ console = ConsolePrinter()
 
 
 # Silent function to load .env
-def carregar_dotenv():
+def load_dotenv_file():
     try:
         from dotenv import load_dotenv
 
@@ -117,6 +132,10 @@ def carregar_dotenv():
         return True
     except ImportError:
         return False
+
+
+# Backward compatibility alias
+carregar_dotenv = load_dotenv_file
 
 
 # Silently checks dependencies
@@ -167,6 +186,12 @@ def importar_bibliotecas():
         print(f"Error importing dependencies: {e}")
         sys.exit(1)
 
+
+# Initialize libraries early to make globals available
+try:
+    importar_bibliotecas()
+except SystemExit:
+    pass  # Will be handled later in main()
 
 # Early global import
 try:
@@ -257,16 +282,16 @@ BINARY_EXTENSIONS = {
 class GitIgnoreFilter:
     """Filters files based on .gitignore rules"""
 
-    def __init__(self, projeto_path: Path):
+    def __init__(self, project_path: Path):
         """Initializes the filter with the project path"""
-        self.projeto_path = projeto_path
+        self.project_path = project_path
 
         # Load patterns from .gitignore if available
-        self.patterns = self._carregar_gitignore(projeto_path)
+        self.patterns = self._load_gitignore(project_path)
 
-    def _carregar_gitignore(self, projeto_path: Path) -> List[str]:
+    def _load_gitignore(self, project_path: Path) -> List[str]:
         """Loads the .gitignore file using pathspec"""
-        gitignore_path = projeto_path / ".gitignore"
+        gitignore_path = project_path / ".gitignore"
         patterns = []
 
         # Add default patterns
@@ -291,11 +316,11 @@ class GitIgnoreFilter:
 
         return patterns
 
-    def deve_ignorar(self, path: Path) -> bool:
+    def should_ignore(self, path: Path) -> bool:
         """Checks if a path should be ignored according to the rules"""
         try:
             # Convert to a path relative to the project
-            rel_path = path.relative_to(self.projeto_path)
+            rel_path = path.relative_to(self.project_path)
             str_path = str(rel_path).replace(os.sep, "/")
 
             # Use pathspec to check if the file should be ignored
@@ -311,31 +336,31 @@ class GitIgnoreFilter:
             return True  # For safety, ignore in case of error
 
 
-class IndexadorDireto:
+class DirectIndexer:
     """Class for directly indexing projects in Qdrant Cloud"""
 
     def __init__(
         self,
-        nome_projeto: str,
-        caminho_projeto: str,
+        project_name: str,
+        project_path: str,
         collection_name: str = "synapstor",
         qdrant_url: Optional[str] = None,
         qdrant_api_key: Optional[str] = None,
         embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
         max_workers: int = 4,
-        tamanho_lote: int = 10,
-        tamanho_maximo_arquivo: int = 5 * 1024 * 1024,  # 5MB by default
+        batch_size: int = 10,
+        max_file_size: int = 5 * 1024 * 1024,  # 5MB by default
         vector_name: str = "fast-all-MiniLM-L6-v2",  # Default vector name
         mef_enabled: bool = False,  # Enable MEF processing
         mef_enforce_structure: bool = False,  # Enforce MEF structure validation
     ):
         # Validate and configure paths
-        self.nome_projeto = nome_projeto
-        self.caminho_projeto = Path(caminho_projeto)
+        self.project_name = project_name
+        self.project_path = Path(project_path)
         self.collection_name = collection_name
         self.max_workers = max_workers
-        self.tamanho_lote = tamanho_lote
-        self.tamanho_maximo_arquivo = tamanho_maximo_arquivo
+        self.batch_size = batch_size
+        self.max_file_size = max_file_size
         self.vector_name = vector_name
         self.verbose = console.verbose  # Add the verbose attribute
         self.mef_enabled = mef_enabled and MEF_AVAILABLE
@@ -347,8 +372,9 @@ class IndexadorDireto:
             try:
                 self.mef_parser = MEFParser(enforce_structure=mef_enforce_structure)
                 print(
-                    f"✅ MEF processing enabled "
-                    f"(enforce_structure={mef_enforce_structure})"
+                    "✅",
+                    _("indexer.mef_processing"),
+                    f"(enforce_structure={mef_enforce_structure})",
                 )
             except (ImportError, ValueError, TypeError) as e:
                 print(f"⚠️ Failed to initialize MEF parser: {e}")
@@ -390,25 +416,25 @@ class IndexadorDireto:
             raise ValueError(f"Could not load the embeddings model: {e}")
 
         # Initialize the file filter based on .gitignore
-        self.gitignore_filter = GitIgnoreFilter(self.caminho_projeto)
+        self.gitignore_filter = GitIgnoreFilter(self.project_path)
 
         # Statistics
-        self.arquivos_indexados = 0
-        self.arquivos_ignorados = 0
-        self.arquivos_com_erro = 0
-        self.total_tamanho = 0
+        self.indexed_files = 0
+        self.ignored_files = 0
+        self.error_files = 0
+        self.total_size = 0
 
         # Check if the directory exists
-        if not self.caminho_projeto.exists() or not self.caminho_projeto.is_dir():
+        if not self.project_path.exists() or not self.project_path.is_dir():
             raise ValueError(
                 f"The project path does not exist or is not a directory: "
-                f"{caminho_projeto}"
+                f"{project_path}"
             )
 
         # Ensure the collection exists
-        self._garantir_colecao()
+        self._ensure_collection()
 
-    def _garantir_colecao(self):
+    def _ensure_collection(self):
         """Ensures the collection exists in Qdrant, creating it if necessary"""
         try:
             collections = self.qdrant_client.get_collections().collections
@@ -477,7 +503,7 @@ class IndexadorDireto:
                 f"Using default: {self.vector_name}"
             )
 
-        except Exception as e:
+        except (ValueError, ConnectionError, RuntimeError, AttributeError) as e:
             # In case of error, use the default
             self.vector_name = "fast-all-minilm-l6-v2"
             print(
@@ -521,27 +547,27 @@ class IndexadorDireto:
             if hasattr(colecao_info, "status"):
                 print(f"  Status: {colecao_info.status}")
 
-        except Exception as e:
+        except (ValueError, AttributeError, TypeError, OSError) as e:
             print(f"  Error printing detailed information: {e}")
 
-    def _eh_arquivo_binario(self, caminho: Path) -> bool:
+    def _is_binary_file(self, file_path: Path) -> bool:
         """Checks if a file is binary through multiple heuristics"""
         # 1. Check by extension
-        extensao = caminho.suffix.lower()[1:] if caminho.suffix else ""
-        if extensao in BINARY_EXTENSIONS:
+        extension = file_path.suffix.lower()[1:] if file_path.suffix else ""
+        if extension in BINARY_EXTENSIONS:
             return True
 
         # 2. Check by size (very large files are considered binary)
         try:
-            if caminho.stat().st_size > self.tamanho_maximo_arquivo:
+            if file_path.stat().st_size > self.max_file_size:
                 return True
         except (OSError, PermissionError):
             return True  # In case of error checking size, assume binary
 
         # 3. Check by content
         try:
-            if caminho.is_file():
-                with open(caminho, "rb") as f:
+            if file_path.is_file():
+                with open(file_path, "rb") as f:
                     chunk = f.read(4096)
 
                     # Empty file
@@ -567,123 +593,134 @@ class IndexadorDireto:
         except (OSError, PermissionError, UnicodeDecodeError):
             return True  # In case of error, assume binary for safety
 
-    def deve_ignorar(self, caminho: Path) -> bool:
+    def should_ignore(self, file_path: Path) -> bool:
         """Decides if a file should be ignored, combining various checks"""
         # First check if it's a file
-        if not caminho.is_file():
+        if not file_path.is_file():
             return True
 
         # Check if the file is hidden (starts with .)
-        if caminho.name.startswith("."):
+        if file_path.name.startswith("."):
             return True
 
         # Use the .gitignore filter
-        if self.gitignore_filter.deve_ignorar(caminho):
+        if self.gitignore_filter.should_ignore(file_path):
             return True
 
         # Check if it's binary
-        if self._eh_arquivo_binario(caminho):
+        if self._is_binary_file(file_path):
             return True
 
         return False
 
-    def _ler_arquivo(self, caminho: Path) -> Optional[str]:
+    def _read_file(self, file_path: Path) -> Optional[str]:
         """Reads the content of a file with encoding handling"""
         # List of encodings to try
         encodings = ["utf-8", "latin1", "cp1252", "iso-8859-1"]
 
         for encoding in encodings:
             try:
-                with open(caminho, "r", encoding=encoding) as f:
-                    conteudo = f.read()
+                with open(file_path, "r", encoding=encoding) as f:
+                    content = f.read()
                     # Check if it's not too large for embedding
-                    if len(conteudo) > 100000:  # Limit to ~100KB of text
-                        conteudo = conteudo[:100000]
-                    return conteudo
+                    if len(content) > 100000:  # Limit to ~100KB of text
+                        content = content[:100000]
+                    return content
             except UnicodeDecodeError:
                 continue
             except IOError as e:
-                print(f"⚠️ Error reading {caminho}: {e}")
+                print("⚠️", _("indexer.reading_error", file=file_path, error=e))
                 return None
 
         # If all encodings fail
         return None
 
-    def _obter_metadados(self, caminho: Path) -> Dict[str, Any]:
+    def _get_metadata(self, file_path: Path) -> Dict[str, Any]:
         """Extracts factual metadata from a file with MEF support"""
         # Path relative to the project
         try:
-            caminho_relativo = str(caminho.relative_to(self.caminho_projeto))
+            relative_path = str(file_path.relative_to(self.project_path))
         except ValueError:
-            caminho_relativo = str(caminho)
+            relative_path = str(file_path)
 
         # File name and extension
-        nome_arquivo = caminho.name
-        extensao = (
-            caminho.suffix[1:] if caminho.suffix else ""
+        filename = file_path.name
+        extension = (
+            file_path.suffix[1:] if file_path.suffix else ""
         )  # Remove the initial dot
 
         # File information
         try:
-            stats = os.stat(caminho)
-            tamanho_bytes = stats.st_size
-            data_modificacao = time.strftime(
+            stats = os.stat(file_path)
+            size_bytes = stats.st_size
+            modification_date = time.strftime(
                 "%Y-%m-%dT%H:%M:%S", time.localtime(stats.st_mtime)
             )
         except (OSError, PermissionError):
-            tamanho_bytes = 0
-            data_modificacao = None
+            size_bytes = 0
+            modification_date = None
 
         # Create factual metadata needed for deterministic ID
         # Project and absolute_path are REQUIRED for a good ID
         metadata = {
-            "projeto": self.nome_projeto,
-            "caminho_absoluto": str(caminho.absolute()),
-            "caminho_relativo": caminho_relativo,
-            "nome_arquivo": nome_arquivo,
-            "extensao": extensao,
-            "tamanho_bytes": tamanho_bytes,
+            "project": self.project_name,
+            "absolute_path": str(file_path.absolute()),
+            "relative_path": relative_path,
+            "filename": filename,
+            "extension": extension,
+            "size_bytes": size_bytes,
+            # Backward compatibility
+            "projeto": self.project_name,
+            "caminho_absoluto": str(file_path.absolute()),
+            "caminho_relativo": relative_path,
+            "nome_arquivo": filename,
+            "extensao": extension,
+            "tamanho_bytes": size_bytes,
         }
 
         # Check for MEF processing
         if self.mef_enabled and self.mef_parser:
             try:
                 mef_doc, mef_metadata = self.mef_parser.extract_mef_metadata(
-                    caminho, self.nome_projeto
+                    file_path, self.project_name
                 )
                 # Convert MEF metadata to dict and merge
                 mef_dict = mef_metadata.to_dict()
                 metadata.update(mef_dict)
 
                 if self.verbose and mef_metadata.is_mef_document:
-                    print(f"📄 MEF document detected: {mef_metadata.mef_id}")
+                    print("📄", _("indexer.uki_processed", id=mef_metadata.mef_id))
 
             except (ValueError, TypeError, ImportError) as e:
                 if self.verbose:
-                    print(f"⚠️ MEF processing failed for {caminho_relativo}: {e}")
+                    print(
+                        "⚠️",
+                        _("indexer.mef_validation_failed", file=relative_path, error=e),
+                    )
 
         # Check if essential fields are present
-        if not metadata["projeto"] or not metadata["caminho_absoluto"]:
-            print(f"⚠️ Warning: Essential metadata incomplete for: {nome_arquivo}")
+        if not metadata["project"] or not metadata["absolute_path"]:
+            print("⚠️", _("indexer.warning_incomplete_metadata", filename=filename))
             # Add a timestamp to at least ensure there's something unique
             metadata["timestamp"] = time.time()
 
-        if data_modificacao:
-            metadata["data_modificacao"] = data_modificacao
+        if modification_date:
+            metadata["modification_date"] = modification_date
+            metadata["data_modificacao"] = modification_date  # Backward compatibility
 
         return metadata
 
-    def _enviar_para_qdrant(self, conteudo: str, metadata: Dict[str, Any]) -> bool:
+    def _send_to_qdrant(self, content: str, metadata: Dict[str, Any]) -> bool:
         """Sends an entry directly to Qdrant"""
         try:
             # Local import to avoid type errors
             from qdrant_client import models
 
             # Create the text embedding
-            embedding = self.embedding_model.encode(conteudo)
+            embedding = self.embedding_model.encode(content)
 
             # Prepare the payload
-            payload = {"document": conteudo, "metadata": metadata}
+            payload = {"document": content, "metadata": metadata}
 
             # Use the vector name determined at initialization
             vector_name = getattr(self, "vector_name", "vector")
@@ -691,11 +728,13 @@ class IndexadorDireto:
             # Generate a deterministic ID based on metadata
             # This ensures the same file will always have the same ID
             try:
-                deterministic_id = gerar_id_determinista(metadata)
+                deterministic_id = generate_deterministic_id(metadata)
 
                 if self.verbose:
-                    caminho_rel = metadata.get("caminho_relativo", "unknown")
-                    print(f"🔑 ID generated for {caminho_rel}: {deterministic_id}")
+                    relative_path = metadata.get("relative_path", "") or metadata.get(
+                        "caminho_relativo", "unknown"
+                    )
+                    print(f"🔑 ID generated for {relative_path}: {deterministic_id}")
             except Exception as e:
                 print(f"❌ Error generating deterministic ID: {e}")
                 print(f"⚠️ Metadata used: {metadata}")
@@ -727,94 +766,101 @@ class IndexadorDireto:
             tamanho_formatado /= 1024.0
         return f"{tamanho_formatado:.2f} {unit}"
 
-    def _processar_arquivo(self, caminho: Path) -> bool:
+    def _process_file(self, file_path: Path) -> bool:
         """Processes a single file for indexing with MEF support"""
         try:
-            rel_path = caminho.relative_to(self.caminho_projeto)
+            rel_path = file_path.relative_to(self.project_path)
 
             # Skip if it should be ignored
-            if self.deve_ignorar(caminho):
+            if self.should_ignore(file_path):
                 # Don't log each ignored file to keep console clean
                 return False
 
             # Get metadata first (includes MEF processing)
-            metadados = self._obter_metadados(caminho)
+            metadata = self._get_metadata(file_path)
 
             # For MEF documents, use specialized content extraction
             if (
                 self.mef_enabled
-                and metadados.get("is_mef_document", False)
+                and metadata.get("is_mef_document", False)
                 and self.mef_parser
             ):
                 try:
                     mef_doc, _ = self.mef_parser.extract_mef_metadata(
-                        caminho, self.nome_projeto
+                        file_path, self.project_name
                     )
                     if mef_doc:
-                        conteudo = self.mef_parser.get_indexable_content(mef_doc)
+                        content = self.mef_parser.get_indexable_content(mef_doc)
                     else:
                         # Fallback to regular content reading
-                        conteudo = self._ler_arquivo(caminho)
+                        content = self._read_file(file_path)
                 except (ValueError, TypeError, ImportError) as e:
                     if self.verbose:
-                        print(f"⚠️ MEF content extraction failed for {rel_path}: {e}")
-                    conteudo = self._ler_arquivo(caminho)
+                        print(
+                            "⚠️",
+                            _(
+                                "indexer.content_extraction_failed",
+                                file=rel_path,
+                                error=e,
+                            ),
+                        )
+                    content = self._read_file(file_path)
             else:
                 # Regular content reading
-                conteudo = self._ler_arquivo(caminho)
+                content = self._read_file(file_path)
 
-            if conteudo is None:
+            if content is None:
                 # Only log errors, not files we can't read
-                print(f"⚠️ Could not read: {rel_path}")
+                print("⚠️", _("indexer.failed_to_index", file=rel_path))
                 return False
 
             # Check if the content is empty
-            if not conteudo.strip():
+            if not content.strip():
                 return False
 
             # Send to Qdrant
-            if self._enviar_para_qdrant(conteudo, metadados):
+            if self._send_to_qdrant(content, metadata):
                 # Progress bar already shows indexing status
                 return True
             else:
-                print(f"❌ Failed to index: {rel_path}")
+                print("❌", _("indexer.failed_to_index", file=rel_path))
                 return False
 
         except (OSError, PermissionError, ValueError) as e:
-            print(f"❌ Error processing file {caminho}: {e}")
+            print("❌", _("indexer.file_error", file=file_path, error=e))
             return False
 
-    def indexar(self) -> bool:
+    def index(self) -> bool:
         """Indexes all files in the project recursively"""
         try:
             # Statistics
-            total_arquivos = 0
-            arquivos_para_processar = []
+            total_files = 0
+            files_to_process = []
 
             # Progress bar for file discovery
-            print(f"🔍 Discovering files in: {self.caminho_projeto}")
+            print(f"🔍 Discovering files in: {self.project_path}")
 
             # Traverse all files recursively
-            for root, _, files in os.walk(self.caminho_projeto):
+            for root, _, files in os.walk(self.project_path):
                 root_path = Path(root)
                 for file in files:
-                    total_arquivos += 1
-                    caminho = root_path / file
-                    extensao = caminho.suffix.lower()[1:] if caminho.suffix else ""
+                    total_files += 1
+                    file_path = root_path / file
+                    extension = file_path.suffix.lower()[1:] if file_path.suffix else ""
 
                     # Filter only text files that shouldn't be ignored by gitignore
                     if (
-                        extensao not in BINARY_EXTENSIONS
-                        and not self.gitignore_filter.deve_ignorar(caminho)
+                        extension not in BINARY_EXTENSIONS
+                        and not self.gitignore_filter.should_ignore(file_path)
                     ):
-                        arquivos_para_processar.append(caminho)
+                        files_to_process.append(file_path)
 
-            total_para_processar = len(arquivos_para_processar)
-            print(f"Found {total_para_processar} processable files")
+            total_to_process = len(files_to_process)
+            print(_("indexer.total_processing", total=total_to_process))
 
             # Reset counters
-            self.arquivos_indexados = 0
-            self.arquivos_ignorados = 0
+            self.indexed_files = 0
+            self.ignored_files = 0
 
             # Main progress bar for indexing
             progress_format = (
@@ -822,88 +868,93 @@ class IndexadorDireto:
                 "[{elapsed}<{remaining}, {rate_fmt}]"
             )
             with tqdm(
-                total=total_para_processar,
+                total=total_to_process,
                 desc="Indexing",
                 unit="file",
                 bar_format=progress_format,
             ) as pbar:
                 # Parallel processing (if applicable)
-                if total_para_processar > 20 and self.max_workers > 1:
+                if total_to_process > 20 and self.max_workers > 1:
                     with concurrent.futures.ThreadPoolExecutor(
                         max_workers=self.max_workers
                     ) as executor:
                         # Define function for processing with progress
-                        def processar_com_progresso(caminho):
-                            rel_path = str(caminho.relative_to(self.caminho_projeto))
+                        def process_with_progress(file_path):
+                            rel_path = str(file_path.relative_to(self.project_path))
                             truncated_path = (
                                 f"{rel_path[:40]}..."
                                 if len(rel_path) > 40
                                 else rel_path
                             )
                             pbar.set_description(f"Indexing: {truncated_path}")
-                            resultado = self._processar_arquivo(caminho)
+                            result = self._process_file(file_path)
                             pbar.update(1)
-                            return resultado
+                            return result
 
                         # Submit tasks
                         futures = []
-                        for caminho in arquivos_para_processar:
+                        for file_path in files_to_process:
                             futures.append(
-                                executor.submit(processar_com_progresso, caminho)
+                                executor.submit(process_with_progress, file_path)
                             )
 
                         # Collect results in real-time
-                        indexados = 0
+                        indexed = 0
                         for i, future in enumerate(
                             concurrent.futures.as_completed(futures)
                         ):
-                            resultado = future.result()
-                            if resultado:
-                                indexados += 1
+                            result = future.result()
+                            if result:
+                                indexed += 1
                             # Update statistics in real-time
                             pbar.set_postfix(
-                                indexed=f"{indexados}/{i + 1}",
-                                rate=f"{(indexados / (i + 1)) * 100:.1f}%",
+                                indexed=f"{indexed}/{i + 1}",
+                                rate=f"{(indexed / (i + 1)) * 100:.1f}%",
                             )
 
                         # Update final counters
-                        self.arquivos_indexados = indexados
-                        self.arquivos_ignorados = total_para_processar - indexados
+                        self.indexed_files = indexed
+                        self.ignored_files = total_to_process - indexed
 
                 # Sequential processing
                 else:
-                    indexados = 0
-                    for i, caminho in enumerate(arquivos_para_processar):
-                        rel_path = str(caminho.relative_to(self.caminho_projeto))
+                    indexed = 0
+                    for i, file_path in enumerate(files_to_process):
+                        rel_path = str(file_path.relative_to(self.project_path))
                         truncated_path = (
                             f"{rel_path[:40]}..." if len(rel_path) > 40 else rel_path
                         )
                         pbar.set_description(f"Indexing: {truncated_path}")
 
-                        if self._processar_arquivo(caminho):
-                            indexados += 1
+                        if self._process_file(file_path):
+                            indexed += 1
 
                         # Update statistics in real-time
                         pbar.set_postfix(
-                            indexed=f"{indexados}/{i + 1}",
-                            rate=f"{(indexados / (i + 1)) * 100:.1f}%",
+                            indexed=f"{indexed}/{i + 1}",
+                            rate=f"{(indexed / (i + 1)) * 100:.1f}%",
                         )
                         pbar.update(1)
 
                 # Update final counters
-                self.arquivos_indexados = indexados
-                self.arquivos_ignorados = total_para_processar - indexados
+                self.indexed_files = indexed
+                self.ignored_files = total_to_process - indexed
 
             # Clean and clear summary
-            print("\n✅ Indexing completed!")
-            print("📊 Statistics:")
-            print(f"   Total files found: {total_arquivos}")
-            processable_pct = (total_para_processar / total_arquivos) * 100
-            indexed_pct = (self.arquivos_indexados / total_para_processar) * 100
+            print("\n✅", _("indexer.indexing_completed"))
+            print("📊", _("indexer.indexing_summary"))
+            print(f"   Total files found: {total_files}")
+            processable_pct = (total_to_process / total_files) * 100
+            indexed_pct = (self.indexed_files / total_to_process) * 100
+            print(f"   Processable files: {total_to_process} ({processable_pct:.1f}%)")
             print(
-                f"   Processable files: {total_para_processar} ({processable_pct:.1f}%)"
+                "   ",
+                _(
+                    "indexer.indexed_files",
+                    count=self.indexed_files,
+                    percentage=indexed_pct,
+                ),
             )
-            print(f"   Indexed files: {self.arquivos_indexados} ({indexed_pct:.1f}%)")
 
             return True
 
@@ -914,34 +965,39 @@ class IndexadorDireto:
             print(f"\n❌ Error during indexing: {str(e)}")
             return False
 
-    def buscar(self, consulta: str, limite: int = 10) -> List[Dict[str, Any]]:
+    def search(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
         """Searches for documents in Qdrant using a natural language query"""
         try:
             # Create the query embedding
-            embedding = self.embedding_model.encode(consulta)
+            embedding = self.embedding_model.encode(query)
 
             # Search in Qdrant
             results = self.qdrant_client.search(
                 collection_name=self.collection_name,
                 query_vector=embedding,
-                limit=limite,
+                limit=limit,
             )
 
             # Format the results
-            resultados_formatados = []
+            formatted_results = []
             for res in results:
                 doc = res.payload.get("document", "")
                 metadata = res.payload.get("metadata", {})
                 score = res.score
 
-                resultados_formatados.append(
-                    {"documento": doc, "metadata": metadata, "score": score}
+                formatted_results.append(
+                    {"document": doc, "metadata": metadata, "score": score}
                 )
 
-            return resultados_formatados
+            return formatted_results
         except (ValueError, ConnectionError, RuntimeError) as e:
-            print(f"❌ Error searching in Qdrant: {str(e)}")
+            print("❌", _("indexer.file_error", file="Qdrant", error=str(e)))
             return []
+
+    # Backward compatibility alias
+    def buscar(self, consulta: str, limite: int = 10) -> List[Dict[str, Any]]:
+        """Backward compatibility method"""
+        return self.search(consulta, limite)
 
 
 def main():
@@ -1043,19 +1099,18 @@ def main():
     # Prepare environment - silently
     carregar_dotenv()
     verificar_dependencias()
-    importar_bibliotecas()
 
     try:
         # Create the indexer with minimalist interface and MEF support
-        indexador = IndexadorDireto(
-            nome_projeto=args.project,
-            caminho_projeto=args.path,
+        indexer = DirectIndexer(
+            project_name=args.project,
+            project_path=args.path,
             collection_name=args.collection,
             qdrant_url=args.qdrant_url,
             qdrant_api_key=args.qdrant_api_key,
             embedding_model=args.embedding_model,
             max_workers=args.workers,
-            tamanho_maximo_arquivo=args.max_file_size * 1024 * 1024,
+            max_file_size=args.max_file_size * 1024 * 1024,
             vector_name=(
                 "fast-all-minilm-l6-v2" if not args.vector_name else args.vector_name
             ),
@@ -1064,25 +1119,28 @@ def main():
         )
 
         # Run the indexing
-        success = indexador.indexar()
+        success = indexer.index()
 
         # If a query was provided, perform the search
         if args.query and success:
             print(f"\n🔍 Searching: '{args.query}'")
-            resultados = indexador.buscar(args.query)
+            results = indexer.search(args.query)
 
-            if resultados:
-                print(f"🔎 Found {len(resultados)} results:")
-                for i, res in enumerate(resultados, 1):
+            if results:
+                print(f"🔎 Found {len(results)} results:")
+                for i, res in enumerate(results, 1):
                     print(f"\n--- Result {i} (Score: {res['score']:.4f}) ---")
                     metadata = res["metadata"]
-                    print(f"📂 {metadata.get('caminho_relativo', 'Unknown')}")
+                    relative_path = metadata.get("relative_path", "") or metadata.get(
+                        "caminho_relativo", "Unknown"
+                    )
+                    print(f"📂 {relative_path}")
 
                     # Show a snippet of the document
-                    doc = res["documento"]
+                    doc = res["document"]
                     max_chars = 150
-                    trecho = doc[:max_chars] + ("..." if len(doc) > max_chars else "")
-                    print(f"📄 {trecho}")
+                    snippet = doc[:max_chars] + ("..." if len(doc) > max_chars else "")
+                    print(f"📄 {snippet}")
             else:
                 print("❓ No results found")
 
@@ -1091,6 +1149,10 @@ def main():
     except (ValueError, OSError, ImportError, RuntimeError) as e:
         print(f"\n❌ Error: {e}")
         return 1
+
+
+# Backward compatibility aliases
+IndexadorDireto = DirectIndexer
 
 
 if __name__ == "__main__":
