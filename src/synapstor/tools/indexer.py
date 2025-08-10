@@ -23,13 +23,9 @@ import concurrent.futures
 import logging
 import hashlib
 from tqdm import tqdm
-
-try:
-    from synapstor.i18n import _
-except ImportError:
-    # Fallback function if i18n not available
-    def _(key: str, **kwargs) -> str:
-        return key.format(**kwargs) if kwargs else key
+from src.synapstor.i18n import _
+from qdrant_client import models
+import pathspec
 
 
 # Logging configuration - DISABLES LOGS by default
@@ -176,22 +172,12 @@ def verificar_dependencias():
 # Silently imports libraries
 def importar_bibliotecas():
     try:
-        global QdrantClient, models, SentenceTransformer, pathspec
-        from qdrant_client import QdrantClient, models
-        from sentence_transformers import SentenceTransformer
-        import pathspec
 
         return True
     except ImportError as e:
         print(f"Error importing dependencies: {e}")
         sys.exit(1)
 
-
-# Initialize libraries early to make globals available
-try:
-    importar_bibliotecas()
-except SystemExit:
-    pass  # Will be handled later in main()
 
 # Early global import
 try:
@@ -413,7 +399,7 @@ class DirectIndexer:
             print("✅ Embeddings model successfully loaded")
         except Exception as e:
             print(f"❌ Failed to load embeddings model: {e}")
-            raise ValueError(f"Could not load the embeddings model: {e}")
+            raise ValueError(f"Could not load the embeddings model: {e}") from e
 
         # Initialize the file filter based on .gitignore
         self.gitignore_filter = GitIgnoreFilter(self.project_path)
@@ -786,7 +772,7 @@ class DirectIndexer:
                 and self.mef_parser
             ):
                 try:
-                    mef_doc, _ = self.mef_parser.extract_mef_metadata(
+                    mef_doc, _MEF = self.mef_parser.extract_mef_metadata(
                         file_path, self.project_name
                     )
                     if mef_doc:

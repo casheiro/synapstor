@@ -28,7 +28,8 @@
       "Bash(git log:*)",
       "Bash(synapstor-ctl indexer:*)",
       "Bash(pip install:*)",
-      "Bash(ruff check:*)"
+      "Bash(ruff check:*)",
+      "Bash(SYNAPSTOR_LANGUAGE=pt synapstor-ctl --help)"
     ],
     "deny": []
   }
