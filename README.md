@@ -183,8 +183,11 @@ O Synapstor oferece um conjunto de ferramentas de linha de comando para facilita
 Interface centralizada para gerenciar todas as funcionalidades do Synapstor:
 
 ```bash
-# Iniciar o servidor MCP
-synapstor-ctl start --transport sse
+# Iniciar o servidor MCP com diferentes transportes
+synapstor-ctl start --transport stdio   # Para integração direta com LLMs
+synapstor-ctl start --transport sse     # Para Server-Sent Events
+synapstor-ctl start --transport http    # Para Streamable HTTP MCP
+synapstor-ctl start --transport http --host 0.0.0.0 --port 8000
 
 # Configuração interativa
 synapstor-ctl setup
@@ -221,7 +224,9 @@ Inicia o servidor MCP para integração com LLMs e outras ferramentas.
 synapstor-server
 
 # Especificar protocolo de transporte
-synapstor-server --transport sse
+synapstor-server --transport sse    # Server-Sent Events
+synapstor-server --transport http   # Streamable HTTP MCP
+synapstor-server --transport stdio  # Integração direta
 
 # Especificar arquivo .env personalizado
 synapstor-server --env-file config.env
@@ -348,9 +353,13 @@ Configure o Synapstor no arquivo `claude_desktop_config.json`:
 
 #### Claude Web / API
 
-Inicie o servidor com transporte SSE:
+Inicie o servidor com transporte HTTP ou SSE:
 
 ```bash
+# Streamable HTTP MCP (recomendado para APIs)
+synapstor-ctl start --transport http --host 0.0.0.0 --port 8000
+
+# Server-Sent Events (para compatibilidade)
 synapstor-ctl start --transport sse
 ```
 
