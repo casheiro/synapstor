@@ -28,7 +28,7 @@ import hashlib
 logging.basicConfig(level=logging.CRITICAL)  # Only shows critical errors
 logger = logging.getLogger("indexer")
 
-# Try to import the deterministic ID generation module
+# Try to import the deterministic ID generation module and MEF support
 try:
     from synapstor.utils.id_generator import gerar_id_determinista
 
@@ -69,6 +69,16 @@ except ImportError:
     print(
         "⚠️\t Module synapstor.utils not found, using internal version of gerar_id_determinista"
     )
+
+# Try to import MEF support
+try:
+    from synapstor.mef import MEFParser
+
+    MEF_AVAILABLE = True
+    print("✅ MEF support available")
+except ImportError:
+    MEF_AVAILABLE = False
+    print("⚠️\t MEF support not available")
 
 
 # Class to replace the print function with a version that only prints in verbose mode
@@ -308,6 +318,8 @@ class IndexadorDireto:
         tamanho_lote: int = 10,
         tamanho_maximo_arquivo: int = 5 * 1024 * 1024,  # 5MB by default
         vector_name: str = "fast-all-MiniLM-L6-v2",  # Default vector name
+        mef_enabled: bool = False,  # Enable MEF processing
+        mef_enforce_structure: bool = False,  # Enforce MEF structure validation
     ):
         # Validate and configure paths
         self.nome_projeto = nome_projeto
@@ -318,6 +330,20 @@ class IndexadorDireto:
         self.tamanho_maximo_arquivo = tamanho_maximo_arquivo
         self.vector_name = vector_name
         self.verbose = console.verbose  # Add the verbose attribute
+        self.mef_enabled = mef_enabled and MEF_AVAILABLE
+        self.mef_enforce_structure = mef_enforce_structure
+
+        # Initialize MEF parser if enabled
+        self.mef_parser = None
+        if self.mef_enabled:
+            try:
+                self.mef_parser = MEFParser(enforce_structure=mef_enforce_structure)
+                print(
+                    f"✅ MEF processing enabled (enforce_structure={mef_enforce_structure})"
+                )
+            except Exception as e:
+                print(f"⚠️ Failed to initialize MEF parser: {e}")
+                self.mef_enabled = False
 
         # Initialize Qdrant client
         try:
@@ -569,7 +595,7 @@ class IndexadorDireto:
         return None
 
     def _obter_metadados(self, caminho: Path) -> Dict[str, Any]:
-        """Extracts factual metadata from a file"""
+        """Extracts factual metadata from a file with MEF support"""
         # Path relative to the project
         try:
             caminho_relativo = str(caminho.relative_to(self.caminho_projeto))
@@ -603,6 +629,23 @@ class IndexadorDireto:
             "extensao": extensao,
             "tamanho_bytes": tamanho_bytes,
         }
+
+        # Check for MEF processing
+        if self.mef_enabled and self.mef_parser:
+            try:
+                mef_doc, mef_metadata = self.mef_parser.extract_mef_metadata(
+                    caminho, self.nome_projeto
+                )
+                # Convert MEF metadata to dict and merge
+                mef_dict = mef_metadata.to_dict()
+                metadata.update(mef_dict)
+
+                if self.verbose and mef_metadata.is_mef_document:
+                    print(f"📄 MEF document detected: {mef_metadata.mef_id}")
+
+            except Exception as e:
+                if self.verbose:
+                    print(f"⚠️ MEF processing failed for {caminho_relativo}: {e}")
 
         # Check if essential fields are present
         if not metadata["projeto"] or not metadata["caminho_absoluto"]:
@@ -670,7 +713,7 @@ class IndexadorDireto:
         return f"{tamanho_formatado:.2f} {unit}"
 
     def _processar_arquivo(self, caminho: Path) -> bool:
-        """Processes a single file for indexing"""
+        """Processes a single file for indexing with MEF support"""
         try:
             rel_path = caminho.relative_to(self.caminho_projeto)
 
@@ -679,8 +722,32 @@ class IndexadorDireto:
                 # Don't log each ignored file to keep console clean
                 return False
 
-            # Read file content
-            conteudo = self._ler_arquivo(caminho)
+            # Get metadata first (includes MEF processing)
+            metadados = self._obter_metadados(caminho)
+
+            # For MEF documents, use specialized content extraction
+            if (
+                self.mef_enabled
+                and metadados.get("is_mef_document", False)
+                and self.mef_parser
+            ):
+                try:
+                    mef_doc, _ = self.mef_parser.extract_mef_metadata(
+                        caminho, self.nome_projeto
+                    )
+                    if mef_doc:
+                        conteudo = self.mef_parser.get_indexable_content(mef_doc)
+                    else:
+                        # Fallback to regular content reading
+                        conteudo = self._ler_arquivo(caminho)
+                except Exception as e:
+                    if self.verbose:
+                        print(f"⚠️ MEF content extraction failed for {rel_path}: {e}")
+                    conteudo = self._ler_arquivo(caminho)
+            else:
+                # Regular content reading
+                conteudo = self._ler_arquivo(caminho)
+
             if conteudo is None:
                 # Only log errors, not files we can't read
                 print(f"⚠️ Could not read: {rel_path}")
@@ -689,9 +756,6 @@ class IndexadorDireto:
             # Check if the content is empty
             if not conteudo.strip():
                 return False
-
-            # Get metadata
-            metadados = self._obter_metadados(caminho)
 
             # Send to Qdrant
             if self._enviar_para_qdrant(conteudo, metadados):
@@ -927,6 +991,18 @@ def main():
         action="store_true",
         help="Recreates the collection if it already exists",
     )
+    parser.add_argument(
+        "--mef-enabled",
+        "-m",
+        action="store_true",
+        help="Enable MEF (Matrix Embedding Framework) processing for YAML files",
+    )
+    parser.add_argument(
+        "--mef-enforce-structure",
+        "-e",
+        action="store_true",
+        help="Enforce strict MEF structure validation (requires --mef-enabled)",
+    )
 
     args = parser.parse_args()
 
@@ -940,7 +1016,7 @@ def main():
     importar_bibliotecas()
 
     try:
-        # Create the indexer with minimalist interface
+        # Create the indexer with minimalist interface and MEF support
         indexador = IndexadorDireto(
             nome_projeto=args.project,
             caminho_projeto=args.path,
@@ -953,6 +1029,8 @@ def main():
             vector_name=(
                 "fast-all-minilm-l6-v2" if not args.vector_name else args.vector_name
             ),
+            mef_enabled=args.mef_enabled,
+            mef_enforce_structure=args.mef_enforce_structure,
         )
 
         # Run the indexing

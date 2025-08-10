@@ -1,0 +1,88 @@
+id: unik-rest-api-pagination
+title: REST API Pagination Pattern
+domain: technical
+type: pattern
+context: implementation
+content: |
+  # REST API Pagination Pattern
+  
+  Este padrão define como implementar paginação eficiente em APIs REST,
+  melhorando a performance e experiência do usuário ao lidar com grandes
+  conjuntos de dados.
+  
+  ## Implementação
+  
+  ### Parâmetros de Query
+  ```
+  GET /api/users?page=1&limit=20&sort=created_at&order=desc
+  ```
+  
+  ### Resposta Estruturada
+  ```json
+  {
+    "data": [...],
+    "pagination": {
+      "current_page": 1,
+      "per_page": 20,
+      "total": 1000,
+      "total_pages": 50,
+      "has_next": true,
+      "has_prev": false,
+      "next_url": "/api/users?page=2&limit=20",
+      "prev_url": null
+    }
+  }
+  ```
+  
+  ## Vantagens
+  
+  - Reduz carga no servidor
+  - Melhora tempo de resposta
+  - Experiência de usuário mais fluida
+  - Controle de recursos
+  
+  ## Considerações
+  
+  - Limite máximo de registros por página
+  - Cache de contagens totais
+  - Indices otimizados para ordenação
+  - Tratamento de páginas inválidas
+
+examples:
+  - input: "GET /api/users?page=1&limit=10"
+    output: "Primeira página com 10 usuários e metadados de paginação"
+  - input: "GET /api/products?page=5&limit=25&sort=price&order=asc"
+    output: "Quinta página de produtos ordenados por preço crescente"
+
+intent_of_use:
+  - implement_pagination
+  - optimize_api_performance  
+  - improve_user_experience
+  - handle_large_datasets
+  
+use_case_stage:
+  - design
+  - implementation
+  - optimization
+  - scaling
+
+related_to:
+  - unik-api-response-format
+  - unik-database-indexing
+  - unik-api-caching
+  - unik-performance-optimization
+
+tags:
+  - rest-api
+  - pagination
+  - performance
+  - database
+  - web-development
+
+metadata:
+  created_at: "2024-01-15"
+  updated_at: "2024-01-20"
+  version: "1.0"
+  language: "pt-BR"
+  complexity: "intermediate"
+  estimated_implementation_time: "4-6 hours"

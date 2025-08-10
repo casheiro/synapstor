@@ -384,6 +384,10 @@ def run_indexer(args):
         indexer_cmd.append("--verbose")
     if args.dry_run:
         indexer_cmd.append("--dry-run")
+    if args.mef_enabled:
+        indexer_cmd.append("--mef-enabled")
+    if args.mef_enforce_structure:
+        indexer_cmd.append("--mef-enforce-structure")
 
     try:
         logger.info("🔄 Starting indexer...")
@@ -492,6 +496,18 @@ def main():
         "--dry-run",
         action="store_true",
         help="Simulates indexing without sending to Qdrant",
+    )
+    indexer_parser.add_argument(
+        "--mef-enabled",
+        "-m",
+        action="store_true",
+        help="Enable MEF (Matrix Embedding Framework) processing for YAML files",
+    )
+    indexer_parser.add_argument(
+        "--mef-enforce-structure",
+        "-e",
+        action="store_true",
+        help="Enforce strict MEF structure validation (requires --mef-enabled)",
     )
 
     args = parser.parse_args()

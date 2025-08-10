@@ -46,8 +46,9 @@ Synapstor é uma solução completa para armazenamento e recuperação de inform
 - 🧠 **Armazenamento eficiente** de informações com metadados associados
 - 🔄 **Integração com LLMs** através do Protocolo MCP (Model Control Protocol)
 - 🛠️ **Ferramentas CLI** para indexação e consulta de dados
+- 📊 **Matrix Embedding Framework (MEF)** para estruturação padronizada do conhecimento
 
-O projeto foi desenhado com modularidade e extensibilidade em mente, permitindo fácil customização e ampliação de suas capacidades.
+O projeto foi desenhado com modularidade e extensibilidade em mente, permitindo fácil customização e ampliação de suas capacidades. Com suporte ao **Matrix Embedding Framework (MEF)**, o Synapstor oferece uma abordagem estruturada para organizar conhecimento em unidades atômicas interligadas (UKIs - Units of Knowledge Interlinked).
 
 ## 🏗️ Arquitetura
 
@@ -58,6 +59,7 @@ synapstor/
 ├── src/
 │   └── synapstor/           # Pacote principal
 │       ├── embeddings/      # Geradores de embeddings vetoriais
+│       ├── mef/             # Matrix Embedding Framework - parser e tipos para UKIs
 │       ├── plugins/         # Sistema de plugins extensível
 │       ├── tools/           # Utilitários e ferramentas CLI
 │       ├── utils/           # Funções auxiliares
@@ -247,6 +249,14 @@ synapstor-indexer --project meu-projeto --path /caminho/do/projeto \
   --max-file-size 5 \
   --verbose
 
+# Indexar com suporte MEF (Matrix Embedding Framework)
+synapstor-indexer --project meu-projeto --path /caminho/do/projeto \
+  --mef-enabled \
+  --mef-enforce-structure
+
+# Versões curtas dos argumentos MEF (mais prático)
+synapstor-indexer --project meu-projeto --path /caminho/do/projeto -m -e
+
 # Indexar e testar com uma consulta
 synapstor-indexer --project meu-projeto --path /caminho/do/projeto \
   --query "como implementar autenticação"
@@ -257,6 +267,9 @@ A ferramenta de indexação oferece funcionalidades avançadas:
 - Detecção automática de arquivos binários
 - Processamento paralelo para indexação rápida
 - IDs determinísticos para evitar duplicação de documentos
+- **Suporte ao Matrix Embedding Framework (MEF)** para estruturação de conhecimento
+- Validação automática de estruturas UKI quando MEF está ativo
+- Metadados semânticos enriquecidos para melhor contextualização por LLMs
 
 ## 🚀 Uso Rápido
 
@@ -269,6 +282,10 @@ QDRANT_URL=http://localhost:6333
 QDRANT_API_KEY=sua-chave-api
 COLLECTION_NAME=synapstor
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+
+# Matrix Embedding Framework (MEF)
+MEF_ENABLED=true                    # Ativar suporte MEF
+MEF_ENFORCE_STRUCTURE=true         # Validação rigorosa de estrutura UKI
 ```
 
 ### Exemplos de Uso
@@ -288,6 +305,10 @@ synapstor-server
 ```bash
 # Indexar um projeto usando a interface centralizada (recomendado)
 synapstor-ctl indexer --project meu-projeto --path /caminho/do/projeto
+
+# Indexar com Matrix Embedding Framework
+synapstor-ctl indexer --project meu-projeto --path /caminho/do/projeto --mef-enabled
+synapstor-ctl indexer --project meu-projeto --path /caminho/do/projeto -m -e
 
 # Ou usando o comando específico
 synapstor-indexer --project meu-projeto --path /caminho/do/projeto
@@ -499,6 +520,65 @@ docker-compose logs -f
 docker-compose down
 ```
 
+## 📊 Matrix Embedding Framework (MEF)
+
+O Synapstor oferece suporte completo ao **Matrix Embedding Framework (MEF)**, uma especificação padronizada para estruturar conhecimento em unidades atômicas interligadas.
+
+### 🎯 Por que usar MEF?
+
+- **Estruturação Padronizada**: Organiza conhecimento em UKIs (Units of Knowledge Interlinked) com metadados consistentes
+- **Melhor Contextualização**: LLMs recebem informações semânticas ricas para respostas mais precisas
+- **Busca Aprimorada**: Filtros por domínio, tipo, contexto e intenção de uso
+- **Relacionamentos Semânticos**: Links automáticos entre UKIs relacionadas
+- **Validação Automática**: Verificação de estrutura e consistência dos dados
+
+### 🔧 Como usar MEF
+
+#### Configuração via Variáveis de Ambiente
+```bash
+export MEF_ENABLED=true
+export MEF_ENFORCE_STRUCTURE=true  # Validação rigorosa (opcional)
+```
+
+#### Indexação com MEF
+```bash
+# Ativar MEF durante indexação
+synapstor-indexer --project knowledge-base --path ./docs --mef-enabled
+
+# Modo rigoroso (validação obrigatória)
+synapstor-indexer --project kb --path ./docs --mef-enabled --mef-enforce-structure
+
+# Versões curtas (-m = --mef-enabled, -e = --mef-enforce-structure)
+synapstor-indexer --project kb --path ./docs -m -e
+```
+
+#### Estrutura de Arquivo MEF
+```yaml
+# exemplo-uki.yaml
+id: unik-api-auth-pattern
+title: API Authentication Pattern
+domain: technical
+type: pattern
+context: implementation
+content: |
+  Este padrão define como implementar autenticação JWT...
+examples:
+  - input: Login request
+    output: JWT token
+intent_of_use:
+  - validate_implementation
+  - generate_code
+use_case_stage:
+  - implementation
+related_to:
+  - unik-jwt-validation
+```
+
+### 📖 Documentação Completa MEF
+
+Para informações detalhadas sobre MEF, consulte:
+- **[MEF Framework Documentation](MEF_MATRIX_EMBEDDING_FRAMEWORK.md)**: Especificação completa e exemplos avançados
+
 ## 📚 Documentação Detalhada
 
 O Synapstor possui documentação específica para cada módulo:
@@ -672,8 +752,9 @@ Synapstor is a complete solution for storing and retrieving information based on
 - 🧠 **Efficient storage** of information with associated metadata
 - 🔄 **Integration with LLMs** through the MCP (Model Control Protocol)
 - 🛠️ **CLI tools** for indexing and querying data
+- 📊 **Matrix Embedding Framework (MEF)** for standardized knowledge structuring
 
-The project was designed with modularity and extensibility in mind, allowing easy customization and expansion of its capabilities.
+The project was designed with modularity and extensibility in mind, allowing easy customization and expansion of its capabilities. With support for the **Matrix Embedding Framework (MEF)**, Synapstor offers a structured approach to organizing knowledge into interlinked atomic units (UKIs - Units of Knowledge Interlinked).
 
 ## 🏗️ Architecture
 
@@ -684,6 +765,7 @@ synapstor/
 ├── src/
 │   └── synapstor/           # Main package
 │       ├── embeddings/      # Vector embedding generators
+│       ├── mef/             # Matrix Embedding Framework - parser and types for UKIs
 │       ├── plugins/         # Extensible plugin system
 │       ├── tools/           # Utilities and CLI tools
 │       ├── utils/           # Helper functions
@@ -868,6 +950,14 @@ synapstor-indexer --project my-project --path /path/to/project \
   --max-file-size 5 \
   --verbose
 
+# Index with MEF (Matrix Embedding Framework) support
+synapstor-indexer --project my-project --path /path/to/project \
+  --mef-enabled \
+  --mef-enforce-structure
+
+# Short versions of MEF arguments (more practical)
+synapstor-indexer --project my-project --path /path/to/project -m -e
+
 # Index and test with a query
 synapstor-indexer --project my-project --path /path/to/project \
   --query "how to implement authentication"
@@ -878,6 +968,9 @@ The indexing tool offers advanced features:
 - Automatic detection of binary files
 - Parallel processing for fast indexing
 - Deterministic IDs to avoid document duplication
+- **Matrix Embedding Framework (MEF) support** for knowledge structuring
+- Automatic UKI structure validation when MEF is active
+- Enriched semantic metadata for better LLM contextualization
 
 ## 🚀 Quick Usage
 
@@ -890,6 +983,10 @@ QDRANT_URL=http://localhost:6333
 QDRANT_API_KEY=your-api-key
 COLLECTION_NAME=synapstor
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+
+# Matrix Embedding Framework (MEF)
+MEF_ENABLED=true                    # Enable MEF support
+MEF_ENFORCE_STRUCTURE=true         # Strict UKI structure validation
 ```
 
 ### Usage Examples
@@ -909,6 +1006,10 @@ synapstor-server
 ```bash
 # Index a project using the centralized interface (recommended)
 synapstor-ctl indexer --project my-project --path /path/to/project
+
+# Index with Matrix Embedding Framework
+synapstor-ctl indexer --project my-project --path /path/to/project --mef-enabled
+synapstor-ctl indexer --project my-project --path /path/to/project -m -e
 
 # Or using the specific command
 synapstor-indexer --project my-project --path /path/to/project
@@ -1115,6 +1216,65 @@ docker-compose logs -f
 # Stop all services
 docker-compose down
 ```
+
+## 📊 Matrix Embedding Framework (MEF)
+
+Synapstor offers complete support for the **Matrix Embedding Framework (MEF)**, a standardized specification for structuring knowledge into interlinked atomic units.
+
+### 🎯 Why use MEF?
+
+- **Standardized Structuring**: Organizes knowledge into UKIs (Units of Knowledge Interlinked) with consistent metadata
+- **Better Contextualization**: LLMs receive rich semantic information for more precise responses
+- **Enhanced Search**: Filters by domain, type, context, and usage intent
+- **Semantic Relationships**: Automatic links between related UKIs
+- **Automatic Validation**: Structure and data consistency verification
+
+### 🔧 How to use MEF
+
+#### Configuration via Environment Variables
+```bash
+export MEF_ENABLED=true
+export MEF_ENFORCE_STRUCTURE=true  # Strict validation (optional)
+```
+
+#### Indexing with MEF
+```bash
+# Enable MEF during indexing
+synapstor-indexer --project knowledge-base --path ./docs --mef-enabled
+
+# Strict mode (mandatory validation)
+synapstor-indexer --project kb --path ./docs --mef-enabled --mef-enforce-structure
+
+# Short versions (-m = --mef-enabled, -e = --mef-enforce-structure)
+synapstor-indexer --project kb --path ./docs -m -e
+```
+
+#### MEF File Structure
+```yaml
+# example-uki.yaml
+id: unik-api-auth-pattern
+title: API Authentication Pattern
+domain: technical
+type: pattern
+context: implementation
+content: |
+  This pattern defines how to implement JWT authentication...
+examples:
+  - input: Login request
+    output: JWT token
+intent_of_use:
+  - validate_implementation
+  - generate_code
+use_case_stage:
+  - implementation
+related_to:
+  - unik-jwt-validation
+```
+
+### 📖 Complete MEF Documentation
+
+For detailed information about MEF, see:
+- **[MEF Framework Documentation](MEF_MATRIX_EMBEDDING_FRAMEWORK.md)**: Complete specification and advanced examples
 
 ## 📚 Detailed Documentation
 

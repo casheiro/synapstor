@@ -57,6 +57,8 @@ python -m synapstor.tools.indexer --project <nome_projeto> --path <caminho_proje
 - `--verbose, -v`: Modo detalhado com mais informações
 - `--recreate-collection`: Recria a coleção caso ela já exista
 - `--query, -q`: Realiza uma busca após concluir a indexação
+- `--mef-enabled`: Ativar suporte ao Matrix Embedding Framework (MEF)
+- `--mef-enforce-structure`: Validação rigorosa de estrutura UKI (requer --mef-enabled)
 
 ### Exemplo de Uso Básico
 
@@ -71,6 +73,13 @@ python -m synapstor.tools.indexer \
     --collection colecao-personalizada \
     --workers 8 \
     --verbose
+
+# Indexar com suporte MEF
+python -m synapstor.tools.indexer \
+    --project knowledge-base \
+    --path /caminho/para/conhecimento \
+    --mef-enabled \
+    --mef-enforce-structure
 ```
 
 ### Através da CLI do Synapstor
@@ -119,6 +128,10 @@ QDRANT_URL=http://localhost:6333
 QDRANT_API_KEY=sua-chave-api
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 COLLECTION_NAME=synapstor
+
+# Matrix Embedding Framework (MEF)
+MEF_ENABLED=true
+MEF_ENFORCE_STRUCTURE=true
 ```
 
 ### Metadados Armazenados
@@ -134,6 +147,56 @@ Cada documento indexado contém os seguintes metadados:
 | `extensao` | Extensão do arquivo (sem ponto) |
 | `tamanho_bytes` | Tamanho do arquivo em bytes |
 | `data_modificacao` | Data da última modificação |
+
+### Matrix Embedding Framework (MEF)
+
+Quando MEF está ativado (`--mef-enabled`), o indexador detecta e processa arquivos UKI (Units of Knowledge Interlinked), adicionando metadados semânticos enriquecidos:
+
+#### Metadados MEF Adicionais
+
+| Campo | Descrição |
+|-------|-----------|
+| `uki_id` | ID único da UKI (quando aplicável) |
+| `uki_title` | Título da UKI |
+| `uki_domain` | Domínio do conhecimento |
+| `uki_type` | Tipo da UKI (pattern, concept, procedure, etc.) |
+| `uki_context` | Contexto de aplicação |
+| `intent_of_use` | Intenções de uso da UKI |
+| `use_case_stage` | Estágios de caso de uso |
+| `related_to` | UKIs relacionadas |
+
+#### Estrutura de Arquivo UKI
+
+```yaml
+# Exemplo: api-authentication.yaml
+id: unik-api-auth-jwt
+title: JWT Authentication Pattern
+domain: technical
+type: pattern
+context: implementation
+content: |
+  Implementação de autenticação JWT para APIs REST...
+examples:
+  - input: POST /auth/login
+    output: JWT token válido
+intent_of_use:
+  - validate_implementation
+  - generate_authentication_code
+use_case_stage:
+  - implementation
+  - code_review
+related_to:
+  - unik-jwt-validation
+  - unik-security-middleware
+```
+
+#### Vantagens do MEF
+
+- **Contextualização Rica**: LLMs recebem metadados semânticos detalhados
+- **Busca Aprimorada**: Filtros por domínio, tipo, contexto e intenção
+- **Relacionamentos**: Navegação automática entre conhecimento relacionado
+- **Validação**: Verificação automática da estrutura UKI
+- **Consistência**: Padrão unificado para organização do conhecimento
 
 ### Detalhes Técnicos
 
@@ -213,6 +276,8 @@ python -m synapstor.tools.indexer --project <project_name> --path <project_path>
 - `--verbose, -v`: Detailed mode with more information
 - `--recreate-collection`: Recreates the collection if it already exists
 - `--query, -q`: Performs a search after completing indexing
+- `--mef-enabled`: Enable Matrix Embedding Framework (MEF) support
+- `--mef-enforce-structure`: Strict UKI structure validation (requires --mef-enabled)
 
 ### Basic Usage Example
 
@@ -227,6 +292,13 @@ python -m synapstor.tools.indexer \
     --collection custom-collection \
     --workers 8 \
     --verbose
+
+# Index with MEF support
+python -m synapstor.tools.indexer \
+    --project knowledge-base \
+    --path /path/to/knowledge \
+    --mef-enabled \
+    --mef-enforce-structure
 ```
 
 ### Through Synapstor CLI
@@ -275,6 +347,10 @@ QDRANT_URL=http://localhost:6333
 QDRANT_API_KEY=your-api-key
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 COLLECTION_NAME=synapstor
+
+# Matrix Embedding Framework (MEF)
+MEF_ENABLED=true
+MEF_ENFORCE_STRUCTURE=true
 ```
 
 ### Stored Metadata
@@ -290,6 +366,56 @@ Each indexed document contains the following metadata:
 | `extension` | File extension (without dot) |
 | `size_bytes` | File size in bytes |
 | `modification_date` | Last modification date |
+
+### Matrix Embedding Framework (MEF)
+
+When MEF is enabled (`--mef-enabled`), the indexer detects and processes UKI (Units of Knowledge Interlinked) files, adding enriched semantic metadata:
+
+#### Additional MEF Metadata
+
+| Field | Description |
+|-------|-------------|
+| `uki_id` | Unique UKI ID (when applicable) |
+| `uki_title` | UKI title |
+| `uki_domain` | Knowledge domain |
+| `uki_type` | UKI type (pattern, concept, procedure, etc.) |
+| `uki_context` | Application context |
+| `intent_of_use` | Usage intents of the UKI |
+| `use_case_stage` | Use case stages |
+| `related_to` | Related UKIs |
+
+#### UKI File Structure
+
+```yaml
+# Example: api-authentication.yaml
+id: unik-api-auth-jwt
+title: JWT Authentication Pattern
+domain: technical
+type: pattern
+context: implementation
+content: |
+  Implementation of JWT authentication for REST APIs...
+examples:
+  - input: POST /auth/login
+    output: Valid JWT token
+intent_of_use:
+  - validate_implementation
+  - generate_authentication_code
+use_case_stage:
+  - implementation
+  - code_review
+related_to:
+  - unik-jwt-validation
+  - unik-security-middleware
+```
+
+#### MEF Advantages
+
+- **Rich Contextualization**: LLMs receive detailed semantic metadata
+- **Enhanced Search**: Filters by domain, type, context, and intent
+- **Relationships**: Automatic navigation between related knowledge
+- **Validation**: Automatic UKI structure verification
+- **Consistency**: Unified standard for knowledge organization
 
 ### Technical Details
 

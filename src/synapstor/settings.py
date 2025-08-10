@@ -92,3 +92,52 @@ class I18nSettings(BaseSettings):
     auto_detect: bool = Field(
         default=True, validation_alias="SYNAPSTOR_AUTO_DETECT_LANGUAGE"
     )
+
+
+class MEFSettings(BaseSettings):
+    """
+    Configuration for Matrix Embedding Framework (MEF).
+    """
+
+    enabled: bool = Field(default=False, validation_alias="MEF_ENABLED")
+    enforce_structure: bool = Field(
+        default=False, validation_alias="MEF_ENFORCE_STRUCTURE"
+    )
+    auto_detect: bool = Field(default=True, validation_alias="MEF_AUTO_DETECT")
+    required_fields: list[str] = Field(
+        default_factory=lambda: ["id", "title", "domain", "type", "content"],
+        validation_alias="MEF_REQUIRED_FIELDS",
+    )
+    supported_domains: list[str] = Field(
+        default_factory=lambda: [
+            "product",
+            "business",
+            "technical",
+            "strategy",
+            "culture",
+        ],
+        validation_alias="MEF_SUPPORTED_DOMAINS",
+    )
+    supported_types: list[str] = Field(
+        default_factory=lambda: [
+            "business_rule",
+            "function",
+            "template",
+            "guideline",
+            "pattern",
+            "decision",
+            "example",
+        ],
+        validation_alias="MEF_SUPPORTED_TYPES",
+    )
+    supported_contexts: list[str] = Field(
+        default_factory=lambda: [
+            "discovery",
+            "implementation",
+            "refinement",
+            "qa",
+            "documentation",
+            "support",
+        ],
+        validation_alias="MEF_SUPPORTED_CONTEXTS",
+    )

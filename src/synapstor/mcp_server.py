@@ -58,10 +58,90 @@ class QdrantMCPServer(FastMCP):
 
     def format_entry(self, entry: Entry) -> str:
         """
-        Feel free to override this method in your subclass to customize the entry format.
+        Format entry with MEF-aware presentation when available.
         """
+        if not entry.metadata:
+            return f"<entry><content>{entry.content}</content></entry>"
+
+        # Check if this is a MEF document
+        is_mef = entry.metadata.get("is_mef_document", False)
+
+        if is_mef:
+            return self._format_mef_entry(entry)
+        else:
+            return self._format_standard_entry(entry)
+
+    def _format_mef_entry(self, entry: Entry) -> str:
+        """Format MEF document entry with structured presentation."""
+        metadata = entry.metadata
+
+        # Build MEF-specific header
+        mef_info = []
+        if metadata.get("mef_id"):
+            mef_info.append(f"ID: {metadata['mef_id']}")
+        if metadata.get("mef_domain"):
+            mef_info.append(f"Domain: {metadata['mef_domain']}")
+        if metadata.get("mef_type"):
+            mef_info.append(f"Type: {metadata['mef_type']}")
+        if metadata.get("mef_context"):
+            mef_info.append(f"Context: {metadata['mef_context']}")
+
+        mef_header = f"[MEF: {' | '.join(mef_info)}]" if mef_info else "[MEF Document]"
+
+        # Add usage information if available
+        usage_info = []
+        if metadata.get("mef_intent_of_use"):
+            usage_info.append(f"Intent: {', '.join(metadata['mef_intent_of_use'])}")
+        if metadata.get("mef_use_case_stage"):
+            usage_info.append(f"Stages: {', '.join(metadata['mef_use_case_stage'])}")
+
+        usage_section = ""
+        if usage_info:
+            usage_section = f"<usage>{' | '.join(usage_info)}</usage>"
+
+        # Add related UKIs if available
+        related_section = ""
+        if metadata.get("mef_related_to"):
+            related_ukis = ", ".join(metadata["mef_related_to"])
+            related_section = f"<related_ukis>{related_ukis}</related_ukis>"
+
+        # File information
+        file_path = metadata.get("caminho_relativo", metadata.get("nome_arquivo", ""))
+        file_info = f"<file>{file_path}</file>" if file_path else ""
+
+        # Combine all parts
+        parts = [
+            f"<mef_header>{mef_header}</mef_header>",
+            file_info,
+            usage_section,
+            related_section,
+            f"<content>{entry.content}</content>",
+        ]
+
+        return f"<entry>{''.join(part for part in parts if part)}</entry>"
+
+    def _format_standard_entry(self, entry: Entry) -> str:
+        """Format standard (non-MEF) entry."""
+        # Include basic file information if available
+        file_info = ""
+        if entry.metadata:
+            file_path = entry.metadata.get(
+                "caminho_relativo", entry.metadata.get("nome_arquivo", "")
+            )
+            if file_path:
+                file_info = f"<file>{file_path}</file>"
+
+            # Add project information if available
+            if entry.metadata.get("projeto"):
+                project_info = f"<project>{entry.metadata['projeto']}</project>"
+                file_info = project_info + file_info
+
         entry_metadata = json.dumps(entry.metadata) if entry.metadata else ""
-        return f"<entry><content>{entry.content}</content><metadata>{entry_metadata}</metadata></entry>"
+        metadata_section = (
+            f"<metadata>{entry_metadata}</metadata>" if entry_metadata else ""
+        )
+
+        return f"<entry>{file_info}<content>{entry.content}</content>{metadata_section}</entry>"
 
     def setup_tools(self):
         async def store(

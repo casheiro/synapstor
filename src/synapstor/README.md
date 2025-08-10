@@ -31,6 +31,7 @@ O Synapstor é organizado em módulos especializados:
 ```
 src/synapstor/
 ├── embeddings/     # Geradores de embeddings vetoriais
+├── mef/            # Matrix Embedding Framework - parser e tipos para UKIs
 ├── plugins/        # Sistema de plugins extensível
 ├── tools/          # Utilitários e ferramentas CLI
 ├── utils/          # Funções auxiliares
@@ -84,6 +85,29 @@ embedding_provider = create_embedding_provider(settings)
 embeddings = await embedding_provider.embed_documents(["Texto de exemplo"])
 ```
 
+### 📊 Matrix Embedding Framework (`mef/`)
+
+Sistema para estruturar conhecimento em UKIs (Units of Knowledge Interlinked) com metadados semânticos padronizados.
+
+```python
+from synapstor.mef import MEFParser
+from synapstor.settings import MEFSettings
+
+# Configurar MEF
+settings = MEFSettings(
+    enabled=True,
+    enforce_structure=True
+)
+
+# Processar arquivos UKI
+parser = MEFParser()
+uki_data = parser.parse_file("knowledge/api-auth-pattern.yaml")
+
+# Validar estrutura
+if parser.validate_structure(uki_data):
+    print(f"UKI válida: {uki_data.title}")
+```
+
 ### ⚙️ Sistema de Plugins (`plugins/`)
 
 Arquitetura extensível para adicionar novas funcionalidades sem modificar o código principal.
@@ -109,6 +133,9 @@ Utilitários e ferramentas de linha de comando, incluindo o poderoso indexador p
 ```bash
 # Indexar um projeto completo
 python -m synapstor.tools.indexer --project meu-projeto --path /caminho/do/projeto
+
+# Indexar com suporte MEF
+python -m synapstor.tools.indexer --project meu-projeto --path /caminho/do/projeto --mef-enabled
 ```
 
 ### 🔧 Utilitários (`utils/`)
@@ -163,6 +190,10 @@ QDRANT_URL=http://localhost:6333
 QDRANT_API_KEY=sua-chave-api
 COLLECTION_NAME=synapstor
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+
+# Matrix Embedding Framework (MEF)
+MEF_ENABLED=true
+MEF_ENFORCE_STRUCTURE=true
 ```
 
 ### Servidor MCP
@@ -236,6 +267,7 @@ Synapstor is organized into specialized modules:
 ```
 src/synapstor/
 ├── embeddings/     # Vector embedding generators
+├── mef/            # Matrix Embedding Framework - parser and types for UKIs
 ├── plugins/        # Extensible plugin system
 ├── tools/          # Utilities and CLI tools
 ├── utils/          # Helper functions
@@ -289,6 +321,29 @@ embedding_provider = create_embedding_provider(settings)
 embeddings = await embedding_provider.embed_documents(["Example text"])
 ```
 
+### 📊 Matrix Embedding Framework (`mef/`)
+
+System for structuring knowledge into UKIs (Units of Knowledge Interlinked) with standardized semantic metadata.
+
+```python
+from synapstor.mef import MEFParser
+from synapstor.settings import MEFSettings
+
+# Configure MEF
+settings = MEFSettings(
+    enabled=True,
+    enforce_structure=True
+)
+
+# Process UKI files
+parser = MEFParser()
+uki_data = parser.parse_file("knowledge/api-auth-pattern.yaml")
+
+# Validate structure
+if parser.validate_structure(uki_data):
+    print(f"Valid UKI: {uki_data.title}")
+```
+
 ### ⚙️ Plugin System (`plugins/`)
 
 Extensible architecture for adding new functionalities without modifying the core code.
@@ -314,6 +369,9 @@ Utilities and command-line tools, including the powerful indexer for batch proce
 ```bash
 # Index a complete project
 python -m synapstor.tools.indexer --project my-project --path /path/to/project
+
+# Index with MEF support
+python -m synapstor.tools.indexer --project my-project --path /path/to/project --mef-enabled
 ```
 
 ### 🔧 Utilities (`utils/`)
@@ -368,6 +426,10 @@ QDRANT_URL=http://localhost:6333
 QDRANT_API_KEY=your-api-key
 COLLECTION_NAME=synapstor
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+
+# Matrix Embedding Framework (MEF)
+MEF_ENABLED=true
+MEF_ENFORCE_STRUCTURE=true
 ```
 
 ### MCP Server

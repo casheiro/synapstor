@@ -114,6 +114,11 @@ echo "Iniciando servidor Synapstor com configurações personalizadas..."
 export QDRANT_URL="http://localhost:6333"
 export COLLECTION_NAME="meu-projeto"
 export EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2"
+
+# Matrix Embedding Framework (MEF)
+export MEF_ENABLED="true"
+export MEF_ENFORCE_STRUCTURE="true"
+
 synapstor-server
 ```
 
@@ -131,11 +136,34 @@ $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 Write-Host ""
 ```
 
+### Configurar Matrix Embedding Framework (MEF)
+
+Para ativar o suporte ao MEF nos scripts de inicialização:
+
+```batch
+@echo off
+echo Iniciando servidor Synapstor com suporte MEF...
+set MEF_ENABLED=true
+set MEF_ENFORCE_STRUCTURE=true
+synapstor-server
+pause
+```
+
+```powershell
+#!/usr/bin/env pwsh
+
+Write-Host "Iniciando servidor Synapstor com MEF..." -ForegroundColor Green
+$env:MEF_ENABLED="true"
+$env:MEF_ENFORCE_STRUCTURE="true"
+synapstor-server
+```
+
 ## 📝 Notas
 
 - Estes scripts assumem que o Synapstor já está instalado e disponível no PATH do sistema
 - Para servidores de produção, considere usar sistemas de gerenciamento de processos como systemd (Linux) ou serviços do Windows em vez destes scripts
 - Você pode combinar estes scripts com arquivos `.env` para configurações mais complexas
+- O Matrix Embedding Framework (MEF) pode ser ativado definindo `MEF_ENABLED=true` nas variáveis de ambiente
 
 ---
 
@@ -247,6 +275,11 @@ echo "Starting Synapstor server with custom settings..."
 export QDRANT_URL="http://localhost:6333"
 export COLLECTION_NAME="my-project"
 export EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2"
+
+# Matrix Embedding Framework (MEF)
+export MEF_ENABLED="true"
+export MEF_ENFORCE_STRUCTURE="true"
+
 synapstor-server
 ```
 
@@ -264,8 +297,31 @@ $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 Write-Host ""
 ```
 
+### Configure Matrix Embedding Framework (MEF)
+
+To enable MEF support in startup scripts:
+
+```batch
+@echo off
+echo Starting Synapstor server with MEF support...
+set MEF_ENABLED=true
+set MEF_ENFORCE_STRUCTURE=true
+synapstor-server
+pause
+```
+
+```powershell
+#!/usr/bin/env pwsh
+
+Write-Host "Starting Synapstor server with MEF..." -ForegroundColor Green
+$env:MEF_ENABLED="true"
+$env:MEF_ENFORCE_STRUCTURE="true"
+synapstor-server
+```
+
 ## 📝 Notes
 
 - These scripts assume that Synapstor is already installed and available in the system PATH
 - For production servers, consider using process management systems like systemd (Linux) or Windows services instead of these scripts
 - You can combine these scripts with `.env` files for more complex configurations
+- Matrix Embedding Framework (MEF) can be enabled by setting `MEF_ENABLED=true` in environment variables
