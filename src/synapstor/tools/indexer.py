@@ -135,7 +135,7 @@ carregar_dotenv = load_dotenv_file
 
 
 # Silently checks dependencies
-def verificar_dependencias():
+def check_dependencies():
     """Checks necessary dependencies and installs them if not present"""
     deps = {
         "qdrant-client": "qdrant_client",
@@ -152,7 +152,7 @@ def verificar_dependencias():
             missing.append(pkg_name)
 
     if missing:
-        print(f"Installing dependencies: {', '.join(missing)}")
+        print(_("indexer.dependencies_installing", deps=", ".join(missing)))
         import subprocess
 
         for pkg in missing:
@@ -163,19 +163,19 @@ def verificar_dependencias():
                     stderr=subprocess.PIPE,
                 )
             except (subprocess.CalledProcessError, OSError) as e:
-                print(f"Error installing {pkg}: {e}")
+                print(_("indexer.dependency_install_error", package=pkg, error=e))
                 if pkg in ["qdrant-client", "tqdm"]:
                     sys.exit(1)
-        print("Dependencies successfully installed!")
+        print(_("indexer.dependencies_installed"))
 
 
 # Silently imports libraries
-def importar_bibliotecas():
+def import_libraries():
     try:
 
         return True
     except ImportError as e:
-        print(f"Error importing dependencies: {e}")
+        print(_("indexer.importing_dependencies_error", error=e))
         sys.exit(1)
 
 
@@ -183,7 +183,7 @@ def importar_bibliotecas():
 try:
     import pathspec
 except ImportError:
-    pass  # Will be handled by verificar_dependencias
+    pass  # Will be handled by check_dependencies
 
 # Default patterns to ignore (similar to .gitignore)
 DEFAULT_IGNORE_PATTERNS = [
@@ -285,7 +285,7 @@ class GitIgnoreFilter:
 
         # Add patterns from local .gitignore, if it exists
         if gitignore_path.exists():
-            print(f"✅ Using configurations from .gitignore file: {gitignore_path}")
+            print("✅", _("indexer.gitignore_file_found", path=gitignore_path))
             try:
                 with open(gitignore_path, "r", encoding="utf-8") as f:
                     gitignore_content = f.read()
@@ -296,9 +296,9 @@ class GitIgnoreFilter:
                     if line and not line.startswith("#"):
                         patterns.append(line)
             except Exception as e:
-                print(f"⚠️ Error reading .gitignore: {e}")
+                print("⚠️", _("indexer.gitignore_read_error", error=e))
         else:
-            print("ℹ️ .gitignore file not found, using default patterns.")
+            print("ℹ️", _("indexer.gitignore_not_found"))
 
         return patterns
 
@@ -318,7 +318,7 @@ class GitIgnoreFilter:
             # If the path is not relative to the project, don't ignore
             return False
         except Exception as e:
-            print(f"⚠️ Error checking ignore rules for {path}: {e}")
+            print("⚠️", _("indexer.gitignore_check_error", path=path, error=e))
             return True  # For safety, ignore in case of error
 
 
@@ -385,20 +385,20 @@ class DirectIndexer:
             else:
                 self.qdrant_client = QdrantClient(url=qdrant_url)
 
-            print(f"✅ Connected to Qdrant server: {qdrant_url}")
+            print("✅", _("indexer.qdrant_connected", url=qdrant_url))
         except Exception as e:
-            print(f"❌ Failed to connect to Qdrant: {e}")
+            print("❌", _("indexer.qdrant_connection_failed", error=e))
             raise ValueError(f"Could not connect to Qdrant server: {e}")
 
         # Initialize the embeddings model
         try:
             from sentence_transformers import SentenceTransformer
 
-            print(f"🧠 Loading embeddings model: {embedding_model}")
+            print("🧠", _("indexer.loading_embedding_model", model=embedding_model))
             self.embedding_model = SentenceTransformer(embedding_model)
-            print("✅ Embeddings model successfully loaded")
+            print("✅", _("indexer.embedding_model_loaded"))
         except Exception as e:
-            print(f"❌ Failed to load embeddings model: {e}")
+            print("❌", _("indexer.embedding_model_failed", error=e))
             raise ValueError(f"Could not load the embeddings model: {e}") from e
 
         # Initialize the file filter based on .gitignore
@@ -412,10 +412,7 @@ class DirectIndexer:
 
         # Check if the directory exists
         if not self.project_path.exists() or not self.project_path.is_dir():
-            raise ValueError(
-                f"The project path does not exist or is not a directory: "
-                f"{project_path}"
-            )
+            raise ValueError(_("indexer.directory_not_exist", path=project_path))
 
         # Ensure the collection exists
         self._ensure_collection()
@@ -429,7 +426,10 @@ class DirectIndexer:
             )
 
             if not collection_exists:
-                print(f"🔍 Creating collection: {self.collection_name}")
+                print(
+                    "🔍",
+                    _("indexer.creating_collection", collection=self.collection_name),
+                )
 
                 # Get the embedding dimension from the model
                 vector_size = self.embedding_model.get_sentence_embedding_dimension()
@@ -447,72 +447,92 @@ class DirectIndexer:
                     vectors_config=vector_config,
                 )
                 print(
-                    f"✅ Collection '{self.collection_name}' successfully created "
-                    f"using vector name '{self.vector_name}'!"
+                    "✅",
+                    _(
+                        "indexer.collection_created_success",
+                        collection=self.collection_name,
+                        vector_name=self.vector_name,
+                    ),
                 )
             else:
-                print(f"✅ Collection '{self.collection_name}' already exists.")
+                print(
+                    "✅",
+                    _(
+                        "indexer.collection_already_exists",
+                        collection=self.collection_name,
+                    ),
+                )
                 # Get the collection configuration to get the vector name
-                self._obter_configuracao_colecao()
+                self._get_collection_config()
         except (ValueError, ConnectionError, RuntimeError) as e:
             print(f"❌ Error checking or creating collection: {e}")
             raise ValueError(f"Could not check or create the collection: {e}")
 
-    def _obter_configuracao_colecao(self):
+    def _get_collection_config(self):
         """Gets the existing collection configuration to determine the vector name"""
         try:
             # Get the collection configuration
-            colecao_info = self.qdrant_client.get_collection(self.collection_name)
+            collection_info = self.qdrant_client.get_collection(self.collection_name)
 
             # Detailed debug information about the collection
             if logging.getLogger().level <= logging.DEBUG:
-                self._imprimir_info_colecao(colecao_info)
+                self._print_collection_info(collection_info)
 
             # Check if there's vector configuration
             if (
-                hasattr(colecao_info, "config")
-                and hasattr(colecao_info.config, "params")
-                and hasattr(colecao_info.config.params, "vectors")
+                hasattr(collection_info, "config")
+                and hasattr(collection_info.config, "params")
+                and hasattr(collection_info.config.params, "vectors")
             ):
                 # If the configuration has multiple vectors, get the first one
-                vector_config = colecao_info.config.params.vectors
+                vector_config = collection_info.config.params.vectors
                 if isinstance(vector_config, dict) and vector_config:
                     # Get the first vector name from the keys
                     self.vector_name = next(iter(vector_config.keys()))
-                    print(f"✅ Using existing vector name: {self.vector_name}")
+                    print(
+                        "✅",
+                        _("indexer.using_vector_name", vector_name=self.vector_name),
+                    )
                     return
 
             # If can't determine, use the default
             self.vector_name = "fast-all-minilm-l6-v2"
             print(
-                f"⚠️ Could not determine the vector name. "
-                f"Using default: {self.vector_name}"
+                "⚠️",
+                _(
+                    "indexer.could_not_determine_vector_name",
+                    vector_name=self.vector_name,
+                ),
             )
 
         except (ValueError, ConnectionError, RuntimeError, AttributeError) as e:
             # In case of error, use the default
             self.vector_name = "fast-all-minilm-l6-v2"
             print(
-                f"⚠️ Error getting collection configuration: {e}. "
-                f"Using default vector name: {self.vector_name}"
+                "⚠️",
+                _(
+                    "indexer.collection_config_error",
+                    error=e,
+                    vector_name=self.vector_name,
+                ),
             )
 
-    def _imprimir_info_colecao(self, colecao_info):
+    def _print_collection_info(self, collection_info):
         """Prints detailed information about the collection for debugging"""
-        print("🔍 Detailed collection information:")
+        print("🔍", _("indexer.collection_info_debug"))
 
         try:
             # Basic information
-            print(f"  Name: {colecao_info.name}")
+            print("  ", _("indexer.collection_info_name", name=collection_info.name))
 
             # Vector configuration
-            if hasattr(colecao_info, "config") and hasattr(
-                colecao_info.config, "params"
+            if hasattr(collection_info, "config") and hasattr(
+                collection_info.config, "params"
             ):
-                print("  Vector configuration:")
+                print("  ", _("indexer.collection_info_vector_config"))
 
-                if hasattr(colecao_info.config.params, "vectors"):
-                    vectors_config = colecao_info.config.params.vectors
+                if hasattr(collection_info.config.params, "vectors"):
+                    vectors_config = collection_info.config.params.vectors
                     if isinstance(vectors_config, dict):
                         for vector_name, vector_params in vectors_config.items():
                             size = getattr(vector_params, "size", "N/A")
@@ -521,20 +541,35 @@ class DirectIndexer:
                                 f"    - {vector_name}: size={size}, distance={distance}"
                             )
                     else:
-                        print(f"    - Single vector configuration: {vectors_config}")
+                        print(
+                            "    - ",
+                            _(
+                                "indexer.collection_info_single_vector",
+                                config=vectors_config,
+                            ),
+                        )
                 else:
-                    print("    No vector configuration found")
+                    print("    ", _("indexer.collection_info_no_vector_config"))
 
             # Point count
-            if hasattr(colecao_info, "vectors_count"):
-                print(f"  Total points: {colecao_info.vectors_count}")
+            if hasattr(collection_info, "vectors_count"):
+                print(
+                    "  ",
+                    _(
+                        "indexer.collection_info_total_points",
+                        count=collection_info.vectors_count,
+                    ),
+                )
 
             # Collection status
-            if hasattr(colecao_info, "status"):
-                print(f"  Status: {colecao_info.status}")
+            if hasattr(collection_info, "status"):
+                print(
+                    "  ",
+                    _("indexer.collection_info_status", status=collection_info.status),
+                )
 
         except (ValueError, AttributeError, TypeError, OSError) as e:
-            print(f"  Error printing detailed information: {e}")
+            print("  ", _("indexer.collection_info_error", error=e))
 
     def _is_binary_file(self, file_path: Path) -> bool:
         """Checks if a file is binary through multiple heuristics"""
@@ -720,10 +755,17 @@ class DirectIndexer:
                     relative_path = metadata.get("relative_path", "") or metadata.get(
                         "caminho_relativo", "unknown"
                     )
-                    print(f"🔑 ID generated for {relative_path}: {deterministic_id}")
+                    print(
+                        "🔑",
+                        _(
+                            "indexer.id_generated_debug",
+                            path=relative_path,
+                            id=deterministic_id,
+                        ),
+                    )
             except Exception as e:
-                print(f"❌ Error generating deterministic ID: {e}")
-                print(f"⚠️ Metadata used: {metadata}")
+                print("❌", _("indexer.id_generation_error", error=e))
+                print("⚠️", _("indexer.metadata_used_debug", metadata=metadata))
                 # Don't use UUID! Return failure
                 return False
 
@@ -740,17 +782,17 @@ class DirectIndexer:
             )
             return True
         except Exception as e:
-            print(f"❌ Error storing in Qdrant: {str(e)}")
+            print("❌", _("indexer.qdrant_store_error", error=str(e)))
             return False
 
-    def _formatar_tamanho(self, tamanho_bytes: int) -> str:
+    def _format_size(self, size_bytes: int) -> str:
         """Formats the size in bytes to a readable representation"""
-        tamanho_formatado = float(tamanho_bytes)  # Explicitly convert to float
+        formatted_size = float(size_bytes)  # Explicitly convert to float
         for unit in ["B", "KB", "MB", "GB"]:
-            if tamanho_formatado < 1024.0 or unit == "GB":
+            if formatted_size < 1024.0 or unit == "GB":
                 break
-            tamanho_formatado /= 1024.0
-        return f"{tamanho_formatado:.2f} {unit}"
+            formatted_size /= 1024.0
+        return f"{formatted_size:.2f} {unit}"
 
     def _process_file(self, file_path: Path) -> bool:
         """Processes a single file for indexing with MEF support"""
@@ -824,10 +866,10 @@ class DirectIndexer:
             files_to_process = []
 
             # Progress bar for file discovery
-            print(f"🔍 Discovering files in: {self.project_path}")
+            print("🔍", _("indexer.discovering_files", path=self.project_path))
 
             # Traverse all files recursively
-            for root, _, files in os.walk(self.project_path):
+            for root, not_used, files in os.walk(self.project_path):
                 root_path = Path(root)
                 for file in files:
                     total_files += 1
@@ -945,10 +987,10 @@ class DirectIndexer:
             return True
 
         except KeyboardInterrupt:
-            print("\n⚠️ Indexing interrupted by user.")
+            print("\n⚠️", _("indexer.indexing_interrupted"))
             return False
         except (OSError, PermissionError, ValueError, RuntimeError) as e:
-            print(f"\n❌ Error during indexing: {str(e)}")
+            print("\n❌", _("indexer.indexing_error", error=str(e)))
             return False
 
     def search(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
@@ -977,7 +1019,7 @@ class DirectIndexer:
 
             return formatted_results
         except (ValueError, ConnectionError, RuntimeError) as e:
-            print("❌", _("indexer.file_error", file="Qdrant", error=str(e)))
+            print("❌", _("indexer.qdrant_store_error", error=str(e)))
             return []
 
     # Backward compatibility alias
@@ -988,92 +1030,80 @@ class DirectIndexer:
 
 def main():
     """Main function for command line usage"""
-    parser = argparse.ArgumentParser(
-        description="Indexer for Qdrant - Indexes projects for semantic search"
-    )
+    parser = argparse.ArgumentParser(description=_("indexer.argparse_description"))
 
     parser.add_argument(
         "--project",
         "-p",
         required=True,
-        help="Project name (used as metadata for filtering)",
+        help=_("indexer.arg_project_help"),
     )
     parser.add_argument(
         "--path",
         "-d",
         required=True,
-        help="Path to the project directory to be indexed",
+        help=_("indexer.arg_path_help"),
     )
     parser.add_argument(
         "--collection",
         "-c",
         default="synapstor",
-        help="Collection name in Qdrant (default: synapstor)",
+        help=_("indexer.arg_collection_help"),
     )
     parser.add_argument(
         "--qdrant-url",
-        help="Qdrant Cloud URL (by default, uses the QDRANT_URL value from .env)",
+        help=_("indexer.arg_qdrant_url_help"),
     )
     parser.add_argument(
         "--qdrant-api-key",
-        help=(
-            "Qdrant Cloud API Key (by default, uses the QDRANT_API_KEY value from .env)"
-        ),
+        help=_("indexer.arg_qdrant_api_key_help"),
     )
     parser.add_argument(
         "--embedding-model",
         default="sentence-transformers/all-MiniLM-L6-v2",
-        help=(
-            "Embedding model to be used "
-            "(default: sentence-transformers/all-MiniLM-L6-v2)"
-        ),
+        help=_("indexer.arg_embedding_model_help"),
     )
     parser.add_argument(
         "--vector-name",
         default=None,
-        help=(
-            "Vector name in the Qdrant collection "
-            "(if not specified, will be detected automatically)"
-        ),
+        help=_("indexer.arg_vector_name_help"),
     )
-    parser.add_argument(
-        "--query", "-q", help="Optional: performs a search after indexing"
-    )
+    parser.add_argument("--query", "-q", help=_("indexer.arg_query_help"))
     parser.add_argument(
         "--workers",
         "-w",
         type=int,
         default=4,
-        help="Number of parallel workers for indexing (default: 4)",
+        help=_("indexer.arg_workers_help"),
     )
     parser.add_argument(
         "--max-file-size",
         type=int,
         default=5,
-        help="Maximum file size in MB (default: 5)",
+        help=_("indexer.arg_max_file_size_help"),
     )
     parser.add_argument(
         "--verbose",
         "-v",
         action="store_true",
-        help="Verbose mode (shows more messages)",
+        help=_("indexer.arg_verbose_help"),
     )
     parser.add_argument(
         "--recreate-collection",
         action="store_true",
-        help="Recreates the collection if it already exists",
+        help=_("indexer.arg_recreate_collection_help"),
     )
     parser.add_argument(
         "--mef-enabled",
         "-m",
         action="store_true",
-        help="Enable MEF (Matrix Embedding Framework) processing for YAML files",
+        help=_("indexer.arg_mef_enabled_help"),
     )
     parser.add_argument(
         "--mef-enforce-structure",
         "-e",
         action="store_true",
-        help="Enforce strict MEF structure validation (requires --mef-enabled)",
+        help=_("indexer.arg_mef_enforce_structure_help"),
     )
 
     args = parser.parse_args()
@@ -1083,8 +1113,8 @@ def main():
     console = ConsolePrinter(verbose=args.verbose)
 
     # Prepare environment - silently
-    carregar_dotenv()
-    verificar_dependencias()
+    load_dotenv_file()
+    check_dependencies()
 
     try:
         # Create the indexer with minimalist interface and MEF support
@@ -1109,13 +1139,16 @@ def main():
 
         # If a query was provided, perform the search
         if args.query and success:
-            print(f"\n🔍 Searching: '{args.query}'")
+            print("\n🔍", _("indexer.search_query", query=args.query))
             results = indexer.search(args.query)
 
             if results:
-                print(f"🔎 Found {len(results)} results:")
+                print("🔎", _("indexer.search_results_found", count=len(results)))
                 for i, res in enumerate(results, 1):
-                    print(f"\n--- Result {i} (Score: {res['score']:.4f}) ---")
+                    print(
+                        "\n",
+                        _("indexer.search_result_entry", number=i, score=res["score"]),
+                    )
                     metadata = res["metadata"]
                     relative_path = metadata.get("relative_path", "") or metadata.get(
                         "caminho_relativo", "Unknown"
@@ -1128,12 +1161,12 @@ def main():
                     snippet = doc[:max_chars] + ("..." if len(doc) > max_chars else "")
                     print(f"📄 {snippet}")
             else:
-                print("❓ No results found")
+                print("❓", _("indexer.search_no_results"))
 
         return 0 if success else 1
 
     except (ValueError, OSError, ImportError, RuntimeError) as e:
-        print(f"\n❌ Error: {e}")
+        print("\n❌", _("common.error"), e)
         return 1
 
 
