@@ -132,8 +132,9 @@ class QdrantMCPServer(FastMCP):
                 file_info = f"<file>{file_path}</file>"
 
             # Add project information if available
-            if entry.metadata.get("projeto"):
-                project_info = f"<project>{entry.metadata['projeto']}</project>"
+            project = entry.metadata.get("project") or entry.metadata.get("projeto")
+            if project:
+                project_info = f"<project>{project}</project>"
                 file_info = project_info + file_info
 
         entry_metadata = json.dumps(entry.metadata) if entry.metadata else ""

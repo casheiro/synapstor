@@ -155,5 +155,22 @@
     "stored": "Entry stored successfully",
     "searching": "Searching in collection {collection}",
     "search_results": "Found {count} results"
+  },
+  "id_generator": {
+    "insufficient_metadata": "Insufficient metadata to generate deterministic ID"
+  },
+  "indexer": {
+    "indexed_files": "Indexed files: {count} ({percentage:.1f}%)",
+    "processing": "Processing...",
+    "total_files": "Total files to process: {count}",
+    "loading_env": "Loading environment variables...",
+    "gitignore_loaded": ".gitignore patterns loaded",
+    "binary_file_detected": "Binary file detected, skipping: {file}",
+    "file_error": "Error processing file {file}: {error}",
+    "search_query": "Searching for: {query}",
+    "search_results": "Search results ({count} found):",
+    "mef_processing": "MEF processing enabled",
+    "mef_validation_failed": "MEF validation failed for {file}: {error}",
+    "uki_processed": "UKI processed: {id}"
   }
 }

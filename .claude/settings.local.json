@@ -27,7 +27,8 @@
       "Bash(cat:*)",
       "Bash(git log:*)",
       "Bash(synapstor-ctl indexer:*)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(ruff check:*)"
     ],
     "deny": []
   }

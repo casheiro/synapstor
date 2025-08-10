@@ -22,7 +22,7 @@ def main():
     """
     try:
         # Import the main function from the indexer
-        from synapstor.tools.indexer import main as indexer_main
+        from src.synapstor.tools.indexer import main as indexer_main
 
         # Execute the main function of the indexer with the same arguments
         return indexer_main()

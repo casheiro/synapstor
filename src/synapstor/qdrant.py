@@ -22,9 +22,7 @@ except ImportError:
 
 # Import the deterministic ID generator
 try:
-    from synapstor.utils.id_generator import (
-        gerar_id_determinista as generate_deterministic_id,
-    )
+    from synapstor.utils.id_generator import generate_deterministic_id
 except ImportError:
     # Fallback if the module doesn't exist yet
     import hashlib
@@ -32,8 +30,8 @@ except ImportError:
     def generate_deterministic_id(metadata: Dict[str, Any]) -> str:
         """Internal fallback version of the deterministic ID generator"""
         # Extract data for identification
-        project = metadata.get("projeto", "")
-        path = metadata.get("caminho_absoluto", "")
+        project = metadata.get("project", "") or metadata.get("projeto", "")
+        path = metadata.get("absolute_path", "") or metadata.get("caminho_absoluto", "")
 
         if project and path:
             content_hash = f"{project}:{path}"

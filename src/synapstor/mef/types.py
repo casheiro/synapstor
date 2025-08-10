@@ -119,12 +119,21 @@ class MEFMetadata(BaseModel):
     """
 
     # Standard metadata (from existing indexer)
-    projeto: str
-    caminho_absoluto: str
-    caminho_relativo: str
-    nome_arquivo: str
-    extensao: str
-    tamanho_bytes: int
+    project: str
+    absolute_path: str
+    relative_path: str
+    filename: str
+    extension: str
+    size_bytes: int
+    modification_date: Optional[str] = None
+
+    # Backward compatibility aliases
+    projeto: Optional[str] = None
+    caminho_absoluto: Optional[str] = None
+    caminho_relativo: Optional[str] = None
+    nome_arquivo: Optional[str] = None
+    extensao: Optional[str] = None
+    tamanho_bytes: Optional[int] = None
     data_modificacao: Optional[str] = None
 
     # MEF-specific metadata

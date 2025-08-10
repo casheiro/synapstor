@@ -268,8 +268,8 @@ class PromptBuilder:
 
         for i, doc in enumerate(context.documents, 1):
             metadata = doc.get("metadata", {})
-            project = metadata.get("projeto", "")
-            filename = metadata.get("nome_arquivo", "")
+            project = metadata.get("project", "") or metadata.get("projeto", "")
+            filename = metadata.get("filename", "") or metadata.get("nome_arquivo", "")
 
             source = (
                 f" {translator.translate('modo_synapstor.source_prefix', source=f'{project}/{filename}')}"

@@ -6,7 +6,8 @@ This script directly indexes files in Qdrant Cloud, without MCP Server dependenc
 It uses the official Qdrant Python client directly.
 
 Usage:
-    python indexer.py --project <project_name> --path <project_path> [--collection <collection_name>]
+    python indexer.py --project <project_name> --path <project_path>
+    [--collection <collection_name>]
 
 Example:
     python indexer.py --project my-project --path "/path/to/project"
@@ -30,7 +31,7 @@ logger = logging.getLogger("indexer")
 
 # Try to import the deterministic ID generation module and MEF support
 try:
-    from synapstor.utils.id_generator import gerar_id_determinista
+    from src.synapstor.utils.id_generator import gerar_id_determinista
 
     print("✅ Using deterministic ID generator from synapstor.utils")
 except ImportError:
@@ -67,12 +68,13 @@ except ImportError:
         return hashlib.md5(content_hash.encode("utf-8")).hexdigest()
 
     print(
-        "⚠️\t Module synapstor.utils not found, using internal version of gerar_id_determinista"
+        "⚠️\t Module synapstor.utils not found, "
+        "using internal version of gerar_id_determinista"
     )
 
 # Try to import MEF support
 try:
-    from synapstor.mef import MEFParser
+    from src.synapstor.mef import MEFParser
 
     MEF_AVAILABLE = True
     print("✅ MEF support available")
@@ -81,8 +83,14 @@ except ImportError:
     print("⚠️\t MEF support not available")
 
 
-# Class to replace the print function with a version that only prints in verbose mode
 class ConsolePrinter:
+    """A class that handles console output with verbose mode control.
+
+    This class provides methods to print messages conditionally based on a
+    verbose flag, allowing for controlled debug/info output while ensuring
+    errors are always displayed.
+    """
+
     def __init__(self, verbose=False):
         self.verbose = verbose
 
@@ -139,7 +147,7 @@ def verificar_dependencias():
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.PIPE,
                 )
-            except Exception as e:
+            except (subprocess.CalledProcessError, OSError) as e:
                 print(f"Error installing {pkg}: {e}")
                 if pkg in ["qdrant-client", "tqdm"]:
                     sys.exit(1)
@@ -339,9 +347,10 @@ class IndexadorDireto:
             try:
                 self.mef_parser = MEFParser(enforce_structure=mef_enforce_structure)
                 print(
-                    f"✅ MEF processing enabled (enforce_structure={mef_enforce_structure})"
+                    f"✅ MEF processing enabled "
+                    f"(enforce_structure={mef_enforce_structure})"
                 )
-            except Exception as e:
+            except (ImportError, ValueError, TypeError) as e:
                 print(f"⚠️ Failed to initialize MEF parser: {e}")
                 self.mef_enabled = False
 
@@ -392,7 +401,8 @@ class IndexadorDireto:
         # Check if the directory exists
         if not self.caminho_projeto.exists() or not self.caminho_projeto.is_dir():
             raise ValueError(
-                f"The project path does not exist or is not a directory: {caminho_projeto}"
+                f"The project path does not exist or is not a directory: "
+                f"{caminho_projeto}"
             )
 
         # Ensure the collection exists
@@ -425,13 +435,14 @@ class IndexadorDireto:
                     vectors_config=vector_config,
                 )
                 print(
-                    f"✅ Collection '{self.collection_name}' successfully created using vector name '{self.vector_name}'!"
+                    f"✅ Collection '{self.collection_name}' successfully created "
+                    f"using vector name '{self.vector_name}'!"
                 )
             else:
                 print(f"✅ Collection '{self.collection_name}' already exists.")
                 # Get the collection configuration to get the vector name
                 self._obter_configuracao_colecao()
-        except Exception as e:
+        except (ValueError, ConnectionError, RuntimeError) as e:
             print(f"❌ Error checking or creating collection: {e}")
             raise ValueError(f"Could not check or create the collection: {e}")
 
@@ -462,14 +473,16 @@ class IndexadorDireto:
             # If can't determine, use the default
             self.vector_name = "fast-all-minilm-l6-v2"
             print(
-                f"⚠️ Could not determine the vector name. Using default: {self.vector_name}"
+                f"⚠️ Could not determine the vector name. "
+                f"Using default: {self.vector_name}"
             )
 
         except Exception as e:
             # In case of error, use the default
             self.vector_name = "fast-all-minilm-l6-v2"
             print(
-                f"⚠️ Error getting collection configuration: {e}. Using default vector name: {self.vector_name}"
+                f"⚠️ Error getting collection configuration: {e}. "
+                f"Using default vector name: {self.vector_name}"
             )
 
     def _imprimir_info_colecao(self, colecao_info):
@@ -490,8 +503,10 @@ class IndexadorDireto:
                     vectors_config = colecao_info.config.params.vectors
                     if isinstance(vectors_config, dict):
                         for vector_name, vector_params in vectors_config.items():
+                            size = getattr(vector_params, "size", "N/A")
+                            distance = getattr(vector_params, "distance", "N/A")
                             print(
-                                f"    - {vector_name}: size={getattr(vector_params, 'size', 'N/A')}, distance={getattr(vector_params, 'distance', 'N/A')}"
+                                f"    - {vector_name}: size={size}, distance={distance}"
                             )
                     else:
                         print(f"    - Single vector configuration: {vectors_config}")
@@ -520,7 +535,7 @@ class IndexadorDireto:
         try:
             if caminho.stat().st_size > self.tamanho_maximo_arquivo:
                 return True
-        except Exception:
+        except (OSError, PermissionError):
             return True  # In case of error checking size, assume binary
 
         # 3. Check by content
@@ -549,7 +564,7 @@ class IndexadorDireto:
                     ):
                         return True
             return False
-        except Exception:
+        except (OSError, PermissionError, UnicodeDecodeError):
             return True  # In case of error, assume binary for safety
 
     def deve_ignorar(self, caminho: Path) -> bool:
@@ -615,7 +630,7 @@ class IndexadorDireto:
             data_modificacao = time.strftime(
                 "%Y-%m-%dT%H:%M:%S", time.localtime(stats.st_mtime)
             )
-        except Exception:
+        except (OSError, PermissionError):
             tamanho_bytes = 0
             data_modificacao = None
 
@@ -643,7 +658,7 @@ class IndexadorDireto:
                 if self.verbose and mef_metadata.is_mef_document:
                     print(f"📄 MEF document detected: {mef_metadata.mef_id}")
 
-            except Exception as e:
+            except (ValueError, TypeError, ImportError) as e:
                 if self.verbose:
                     print(f"⚠️ MEF processing failed for {caminho_relativo}: {e}")
 
@@ -740,7 +755,7 @@ class IndexadorDireto:
                     else:
                         # Fallback to regular content reading
                         conteudo = self._ler_arquivo(caminho)
-                except Exception as e:
+                except (ValueError, TypeError, ImportError) as e:
                     if self.verbose:
                         print(f"⚠️ MEF content extraction failed for {rel_path}: {e}")
                     conteudo = self._ler_arquivo(caminho)
@@ -759,13 +774,13 @@ class IndexadorDireto:
 
             # Send to Qdrant
             if self._enviar_para_qdrant(conteudo, metadados):
-                # We don't need to log each indexed file, the progress bar already shows it
+                # Progress bar already shows indexing status
                 return True
             else:
                 print(f"❌ Failed to index: {rel_path}")
                 return False
 
-        except Exception as e:
+        except (OSError, PermissionError, ValueError) as e:
             print(f"❌ Error processing file {caminho}: {e}")
             return False
 
@@ -802,13 +817,16 @@ class IndexadorDireto:
             self.arquivos_ignorados = 0
 
             # Main progress bar for indexing
+            progress_format = (
+                "{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} "
+                "[{elapsed}<{remaining}, {rate_fmt}]"
+            )
             with tqdm(
                 total=total_para_processar,
                 desc="Indexing",
                 unit="file",
-                bar_format="{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]",
+                bar_format=progress_format,
             ) as pbar:
-
                 # Parallel processing (if applicable)
                 if total_para_processar > 20 and self.max_workers > 1:
                     with concurrent.futures.ThreadPoolExecutor(
@@ -817,9 +835,12 @@ class IndexadorDireto:
                         # Define function for processing with progress
                         def processar_com_progresso(caminho):
                             rel_path = str(caminho.relative_to(self.caminho_projeto))
-                            pbar.set_description(
-                                f"Indexing: {rel_path[:40]}{'...' if len(rel_path) > 40 else ''}"
+                            truncated_path = (
+                                f"{rel_path[:40]}..."
+                                if len(rel_path) > 40
+                                else rel_path
                             )
+                            pbar.set_description(f"Indexing: {truncated_path}")
                             resultado = self._processar_arquivo(caminho)
                             pbar.update(1)
                             return resultado
@@ -841,8 +862,8 @@ class IndexadorDireto:
                                 indexados += 1
                             # Update statistics in real-time
                             pbar.set_postfix(
-                                indexed=f"{indexados}/{i+1}",
-                                rate=f"{(indexados/(i+1))*100:.1f}%",
+                                indexed=f"{indexados}/{i + 1}",
+                                rate=f"{(indexados / (i + 1)) * 100:.1f}%",
                             )
 
                         # Update final counters
@@ -854,17 +875,18 @@ class IndexadorDireto:
                     indexados = 0
                     for i, caminho in enumerate(arquivos_para_processar):
                         rel_path = str(caminho.relative_to(self.caminho_projeto))
-                        pbar.set_description(
-                            f"Indexing: {rel_path[:40]}{'...' if len(rel_path) > 40 else ''}"
+                        truncated_path = (
+                            f"{rel_path[:40]}..." if len(rel_path) > 40 else rel_path
                         )
+                        pbar.set_description(f"Indexing: {truncated_path}")
 
                         if self._processar_arquivo(caminho):
                             indexados += 1
 
                         # Update statistics in real-time
                         pbar.set_postfix(
-                            indexed=f"{indexados}/{i+1}",
-                            rate=f"{(indexados/(i+1))*100:.1f}%",
+                            indexed=f"{indexados}/{i + 1}",
+                            rate=f"{(indexados / (i + 1)) * 100:.1f}%",
                         )
                         pbar.update(1)
 
@@ -876,19 +898,19 @@ class IndexadorDireto:
             print("\n✅ Indexing completed!")
             print("📊 Statistics:")
             print(f"   Total files found: {total_arquivos}")
+            processable_pct = (total_para_processar / total_arquivos) * 100
+            indexed_pct = (self.arquivos_indexados / total_para_processar) * 100
             print(
-                f"   Processable files: {total_para_processar} ({(total_para_processar/total_arquivos)*100:.1f}%)"
+                f"   Processable files: {total_para_processar} ({processable_pct:.1f}%)"
             )
-            print(
-                f"   Indexed files: {self.arquivos_indexados} ({(self.arquivos_indexados/total_para_processar)*100:.1f}%)"
-            )
+            print(f"   Indexed files: {self.arquivos_indexados} ({indexed_pct:.1f}%)")
 
             return True
 
         except KeyboardInterrupt:
             print("\n⚠️ Indexing interrupted by user.")
             return False
-        except Exception as e:
+        except (OSError, PermissionError, ValueError, RuntimeError) as e:
             print(f"\n❌ Error during indexing: {str(e)}")
             return False
 
@@ -917,7 +939,7 @@ class IndexadorDireto:
                 )
 
             return resultados_formatados
-        except Exception as e:
+        except (ValueError, ConnectionError, RuntimeError) as e:
             print(f"❌ Error searching in Qdrant: {str(e)}")
             return []
 
@@ -952,17 +974,25 @@ def main():
     )
     parser.add_argument(
         "--qdrant-api-key",
-        help="Qdrant Cloud API Key (by default, uses the QDRANT_API_KEY value from .env)",
+        help=(
+            "Qdrant Cloud API Key (by default, uses the QDRANT_API_KEY value from .env)"
+        ),
     )
     parser.add_argument(
         "--embedding-model",
         default="sentence-transformers/all-MiniLM-L6-v2",
-        help="Embedding model to be used (default: sentence-transformers/all-MiniLM-L6-v2)",
+        help=(
+            "Embedding model to be used "
+            "(default: sentence-transformers/all-MiniLM-L6-v2)"
+        ),
     )
     parser.add_argument(
         "--vector-name",
         default=None,
-        help="Vector name in the Qdrant collection (if not specified, will be detected automatically)",
+        help=(
+            "Vector name in the Qdrant collection "
+            "(if not specified, will be detected automatically)"
+        ),
     )
     parser.add_argument(
         "--query", "-q", help="Optional: performs a search after indexing"
@@ -1058,7 +1088,7 @@ def main():
 
         return 0 if success else 1
 
-    except Exception as e:
+    except (ValueError, OSError, ImportError, RuntimeError) as e:
         print(f"\n❌ Error: {e}")
         return 1
 

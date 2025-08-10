@@ -24,7 +24,7 @@ logging.basicConfig(
 logger = logging.getLogger("synapstor-config")
 
 
-class ConfiguradorInterativo:
+class InteractiveConfigurator:
     """
     Interactive interface for configuring Synapstor
     """
@@ -39,7 +39,7 @@ class ConfiguradorInterativo:
         self.env_path = env_path or Path.cwd() / ".env"
         self.config_values: Dict[str, str] = {}
 
-    def _ler_env_existente(self) -> Dict[str, str]:
+    def _read_existing_env(self) -> Dict[str, str]:
         """
         Reads an existing .env file
 
@@ -65,23 +65,23 @@ class ConfiguradorInterativo:
 
         return env_vars
 
-    def _solicitar_valores(
-        self, variaveis: List[str], existentes: Dict[str, str]
+    def _request_values(
+        self, variables: List[str], existing: Dict[str, str]
     ) -> Dict[str, str]:
         """
         Interactively requests values for variables
 
         Args:
-            variaveis: List of variables to be requested
-            existentes: Dictionary with existing values
+            variables: List of variables to be requested
+            existing: Dictionary with existing values
 
         Returns:
             Dict[str, str]: Dictionary with values provided by the user
         """
-        valores = {}
+        values = {}
 
         # Descriptions for each variable (English)
-        descricoes = {
+        descriptions = {
             "QDRANT_URL": "Qdrant server URL (e.g. http://localhost:6333 or https://your-qdrant-server.cloud:6333)",
             "QDRANT_API_KEY": "Qdrant server API key (leave blank for no authentication)",
             "COLLECTION_NAME": "Collection name in Qdrant (e.g. synapstor)",
@@ -95,7 +95,7 @@ class ConfiguradorInterativo:
         }
 
         # Default values for each variable
-        padroes = {
+        defaults = {
             "QDRANT_URL": "http://localhost:6333",
             "COLLECTION_NAME": "synapstor",
             "EMBEDDING_PROVIDER": "FASTEMBED",
@@ -108,36 +108,36 @@ class ConfiguradorInterativo:
         print("Synapstor Configuration")
         print("=" * 50)
 
-        for var in variaveis:
-            valor_atual = existentes.get(var, "")
-            padrao = valor_atual or padroes.get(var, "")
+        for var in variables:
+            current_value = existing.get(var, "")
+            default = current_value or defaults.get(var, "")
 
             if var in REQUIRED_VARS:
                 print(f"\n{var} (Required)")
             else:
                 print(f"\n{var} (Optional)")
 
-            if var in descricoes:
-                print(f"  {descricoes[var]}")
+            if var in descriptions:
+                print(f"  {descriptions[var]}")
 
-            if padrao:
-                prompt = f"  Value [{padrao}]: "
+            if default:
+                prompt = f"  Value [{default}]: "
             else:
                 prompt = "  Value: "
 
-            novo_valor = input(prompt)
+            new_value = input(prompt)
 
             # If the user doesn't enter anything, use the default value
-            valores[var] = novo_valor or padrao
+            values[var] = new_value or default
 
-        return valores
+        return values
 
-    def _salvar_env(self, valores: Dict[str, str]) -> bool:
+    def _save_env(self, values: Dict[str, str]) -> bool:
         """
         Saves the values to the .env file
 
         Args:
-            valores: Dictionary with values to be saved
+            values: Dictionary with values to be saved
 
         Returns:
             bool: True if the file was successfully saved, False otherwise
@@ -150,13 +150,13 @@ class ConfiguradorInterativo:
                 # Writes the required variables first
                 f.write("# Qdrant Configuration (required)\n")
                 for var in REQUIRED_VARS:
-                    f.write(f"{var}={valores.get(var, '')}\n")
+                    f.write(f"{var}={values.get(var, '')}\n")
 
                 # Writes the optional variables
                 f.write("\n# Optional Settings\n")
                 for var in OPTIONAL_VARS:
-                    if var in valores and valores[var]:
-                        f.write(f"{var}={valores.get(var, '')}\n")
+                    if var in values and values[var]:
+                        f.write(f"{var}={values.get(var, '')}\n")
 
             logger.info(f".env file saved successfully at {self.env_path}")
             return True
@@ -165,7 +165,7 @@ class ConfiguradorInterativo:
             logger.error(f"Error saving .env file: {e}")
             return False
 
-    def configurar(self) -> bool:
+    def configure(self) -> bool:
         """
         Executes the interactive configuration
 
@@ -173,33 +173,29 @@ class ConfiguradorInterativo:
             bool: True if the configuration was successfully completed, False otherwise
         """
         # Reads existing values if the file already exists
-        valores_existentes = self._ler_env_existente()
+        existing_values = self._read_existing_env()
 
         # Requests required values
         print("\nLet's configure the required variables:")
-        valores_obrigatorios = self._solicitar_valores(
-            REQUIRED_VARS, valores_existentes
-        )
+        required_values = self._request_values(REQUIRED_VARS, existing_values)
 
         # Asks if you want to configure optional values
         print("\nDo you want to configure optional variables? (y/n)")
-        configura_opcionais = input().strip().lower() in ["y", "yes"]
+        configure_optional = input().strip().lower() in ["y", "yes"]
 
-        if configura_opcionais:
+        if configure_optional:
             print("\nLet's configure the optional variables:")
-            valores_opcionais = self._solicitar_valores(
-                OPTIONAL_VARS, valores_existentes
-            )
+            optional_values = self._request_values(OPTIONAL_VARS, existing_values)
         else:
-            valores_opcionais = {
-                var: valores_existentes.get(var, "") for var in OPTIONAL_VARS
+            optional_values = {
+                var: existing_values.get(var, "") for var in OPTIONAL_VARS
             }
 
         # Combines all values
-        todos_valores = {**valores_obrigatorios, **valores_opcionais}
+        all_values = {**required_values, **optional_values}
 
         # Saves the values to the .env file
-        return self._salvar_env(todos_valores)
+        return self._save_env(all_values)
 
     def verificar_dependencias(self) -> bool:
         """
@@ -273,7 +269,7 @@ def main():
     print("=" * 50)
     print("\nThis tool will guide you through configuring Synapstor.")
 
-    configurador = ConfiguradorInterativo(env_path)
+    configurador = InteractiveConfigurator(env_path)
 
     # Check dependencies first
     if not configurador.verificar_dependencias():
@@ -283,7 +279,7 @@ def main():
         return 1
 
     # Run interactive configuration
-    if configurador.configurar():
+    if configurador.configure():
         print("\n✅ Configuration completed successfully!")
         print(f".env file was created at: {env_path.absolute()}")
         print("\nYou can start the server with:")
@@ -294,6 +290,10 @@ def main():
     else:
         print("\n❌ Failed to complete the configuration.")
         return 1
+
+
+# Backward compatibility aliases
+ConfiguradorInterativo = InteractiveConfigurator
 
 
 if __name__ == "__main__":
