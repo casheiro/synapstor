@@ -29,7 +29,27 @@
       "Bash(synapstor-ctl indexer:*)",
       "Bash(pip install:*)",
       "Bash(ruff check:*)",
-      "Bash(SYNAPSTOR_LANGUAGE=pt synapstor-ctl --help)"
+      "Bash(SYNAPSTOR_LANGUAGE=pt synapstor-ctl --help)",
+      "Bash(SYNAPSTOR_LANGUAGE=en python -m cli.ctl --help)",
+      "Bash(SYNAPSTOR_LANGUAGE=pt python -m cli.ctl --help)",
+      "Bash(SYNAPSTOR_LANGUAGE=pt python -m cli.ctl start --help)",
+      "Bash(SYNAPSTOR_LANGUAGE=en python -m cli.server --help)",
+      "Bash(SYNAPSTOR_LANGUAGE=pt python -m cli.server --help)",
+      "Bash(SYNAPSTOR_LANGUAGE=en python cli/setup.py --help)",
+      "Bash(SYNAPSTOR_LANGUAGE=en python cli/reindex.py --help)",
+      "Bash(SYNAPSTOR_LANGUAGE=pt python cli/reindex.py --help)",
+      "Bash(SYNAPSTOR_LANGUAGE=en python cli/ctl.py --help)",
+      "Bash(SYNAPSTOR_LANGUAGE=pt python cli/ctl.py --help)",
+      "Bash(SYNAPSTOR_LANGUAGE=en python cli/server.py --help)",
+      "Bash(SYNAPSTOR_LANGUAGE=pt python cli/server.py --help)",
+      "Bash(SYNAPSTOR_LANGUAGE=en python cli/indexer.py --help)",
+      "Bash(SYNAPSTOR_LANGUAGE=pt python cli/indexer.py --help)",
+      "Bash(SYNAPSTOR_LANGUAGE=en python cli/config.py --help)",
+      "Bash(SYNAPSTOR_LANGUAGE=pt python cli/config.py --help)",
+      "Bash(SYNAPSTOR_LANGUAGE=en python cli/ctl.py start --help)",
+      "Bash(SYNAPSTOR_LANGUAGE=pt python cli/ctl.py start --help)",
+      "Bash(sed:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": []
   }

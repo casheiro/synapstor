@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 #############################################################################
 
 # Types of commits from the Conventional Commits standard
-TIPOS_COMMITS = {
+COMMIT_TYPES = {
     "feat": "Features",
     "fix": "Bug Fixes",
     "perf": "Performance Improvements",
@@ -42,28 +42,28 @@ COMMIT_PATTERN = r"^(\w+)(?:\(([^\)]+)\))?(!)?: (.+)$"
 # Default format for the changelog
 CHANGELOG_TEMPLATE = """# Changelog
 
-{conteudo}
+{content}
 
-## {versao} ({data})
+## {version} ({date})
 
-{detalhes}
+{details}
 
 """
 
 # Format for each section
-SECTION_TEMPLATE = """### {tipo}
+SECTION_TEMPLATE = """### {type}
 
-{itens}
+{items}
 
 """
 
 # Format for each item
-ITEM_TEMPLATE = "- {escopo}{mensagem} ({hash})\n"
+ITEM_TEMPLATE = "- {scope}{message} ({hash})\n"
 
 # Format for breaking changes
 BREAKING_CHANGE_TEMPLATE = """### BREAKING CHANGES
 
-{itens}
+{items}
 
 """
 
@@ -72,11 +72,11 @@ BREAKING_CHANGE_TEMPLATE = """### BREAKING CHANGES
 #############################################################################
 
 
-def _executar_comando_git(comando: List[str]) -> str:
+def _execute_git_command(command: List[str]) -> str:
     """Executes a git command with Windows/Linux compatibility."""
     try:
         # First try the default git path
-        git_cmd = comando[0]
+        git_cmd = command[0]
         if os.name == "nt":  # Windows
             # Check if we need to use the full Git path
             if not shutil.which(git_cmd):
@@ -86,106 +86,106 @@ def _executar_comando_git(comando: List[str]) -> str:
                     r"C:\Program Files (x86)\Git\bin\git.exe",
                 ]:
                     if os.path.exists(path):
-                        comando[0] = path
+                        command[0] = path
                         break
 
-        resultado = subprocess.run(
-            comando,
+        result = subprocess.run(
+            command,
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True,
             encoding="utf-8",
         )
-        return resultado.stdout.strip()
+        return result.stdout.strip()
     except subprocess.CalledProcessError as e:
         logger.error(f"Error executing git command: {e}")
         logger.error(f"Error: {e.stderr}")
         raise Exception(f"Error executing git command: {e}")
 
 
-def _obter_commits(
-    desde: Optional[str] = None, ate: Optional[str] = None
+def _get_commits(
+    since: Optional[str] = None, until: Optional[str] = None
 ) -> List[Dict[str, Any]]:
     """
     Gets the list of commits between two references.
 
     Args:
-        desde: Reference from where to start (tag, branch, commit)
-        ate: Reference up to where to get (tag, branch, commit)
+        since: Reference from where to start (tag, branch, commit)
+        until: Reference up to where to get (tag, branch, commit)
 
     Returns:
         List[Dict[str, Any]]: List of dictionaries with commit information.
     """
-    formato = "%H|%s|%b"  # hash, subject, body
-    comando = ["git", "log", f"--pretty=format:{formato}"]
+    format_str = "%H|%s|%b"  # hash, subject, body
+    command = ["git", "log", f"--pretty=format:{format_str}"]
 
     # Add the range if specified
-    if desde or ate:
+    if since or until:
         range_ref = ""
-        if desde:
-            range_ref = desde
-        if ate:
-            range_ref += f"..{ate}"
-        comando.append(range_ref)
+        if since:
+            range_ref = since
+        if until:
+            range_ref += f"..{until}"
+        command.append(range_ref)
 
     # Execute the git command
-    saida = _executar_comando_git(comando)
+    output = _execute_git_command(command)
 
     # Process the output
     commits = []
-    for linha in saida.split("\n"):
-        if not linha.strip():
+    for line in output.split("\n"):
+        if not line.strip():
             continue
 
-        partes = linha.split("|", 2)
-        if len(partes) < 3:
-            partes.append("")  # body can be empty
+        parts = line.split("|", 2)
+        if len(parts) < 3:
+            parts.append("")  # body can be empty
 
-        hash_commit, assunto, corpo = partes
+        commit_hash, subject, body = parts
 
         # Parse the subject to extract type, scope and message
-        match = re.match(COMMIT_PATTERN, assunto)
+        match = re.match(COMMIT_PATTERN, subject)
         if match:
-            tipo, escopo, breaking, mensagem = match.groups()
+            type_name, scope, breaking, message = match.groups()
 
             # Check if there are breaking changes in the body
             breaking_change = ""
-            if corpo and "BREAKING CHANGE:" in corpo:
-                for linha in corpo.split("\n"):
-                    if linha.startswith("BREAKING CHANGE:"):
-                        breaking_change = linha.replace("BREAKING CHANGE:", "").strip()
+            if body and "BREAKING CHANGE:" in body:
+                for line in body.split("\n"):
+                    if line.startswith("BREAKING CHANGE:"):
+                        breaking_change = line.replace("BREAKING CHANGE:", "").strip()
                         break
 
             commits.append(
                 {
-                    "hash": hash_commit[:7],  # Use only the first 7 characters
-                    "tipo": tipo,
-                    "escopo": escopo or "",
-                    "mensagem": mensagem,
+                    "hash": commit_hash[:7],  # Use only the first 7 characters
+                    "type": type_name,
+                    "scope": scope or "",
+                    "message": message,
                     "breaking": bool(breaking or breaking_change),
                     "breaking_desc": breaking_change,
-                    "corpo": corpo,
+                    "body": body,
                 }
             )
         else:
             # Commits that don't follow the pattern are treated as "others"
             commits.append(
                 {
-                    "hash": hash_commit[:7],
-                    "tipo": "others",
-                    "escopo": "",
-                    "mensagem": assunto,
+                    "hash": commit_hash[:7],
+                    "type": "others",
+                    "scope": "",
+                    "message": subject,
                     "breaking": False,
                     "breaking_desc": "",
-                    "corpo": corpo,
+                    "body": body,
                 }
             )
 
     return commits
 
 
-def _obter_ultima_tag() -> str:
+def _get_latest_tag() -> str:
     """
     Gets the latest tag from the repository.
 
@@ -193,176 +193,176 @@ def _obter_ultima_tag() -> str:
         str: Name of the latest tag or empty string if there is none.
     """
     try:
-        return _executar_comando_git(["git", "describe", "--tags", "--abbrev=0"])
+        return _execute_git_command(["git", "describe", "--tags", "--abbrev=0"])
     except Exception:
         return ""
 
 
-def _gerar_proxima_versao(ultima_versao: str, commits: List[Dict[str, Any]]) -> str:
+def _generate_next_version(last_version: str, commits: List[Dict[str, Any]]) -> str:
     """
     Generates the next version based on the last version and commits.
 
     Args:
-        ultima_versao: Last version (semver)
+        last_version: Last version (semver)
         commits: List of analyzed commits
 
     Returns:
         str: Next version following SemVer
     """
     # Remove the initial 'v', if any
-    if ultima_versao.startswith("v"):
-        ultima_versao = ultima_versao[1:]
+    if last_version.startswith("v"):
+        last_version = last_version[1:]
 
     # Initialize with 0.1.0 if there's no previous version
-    if not ultima_versao:
+    if not last_version:
         return "0.1.0"
 
     # Split the version into parts
     try:
-        partes = ultima_versao.split(".")
-        if len(partes) < 3:
-            partes = ["0", "1", "0"]  # Fallback to 0.1.0
+        parts = last_version.split(".")
+        if len(parts) < 3:
+            parts = ["0", "1", "0"]  # Fallback to 0.1.0
 
-        major, minor, patch = map(int, partes[:3])
+        major, minor, patch = map(int, parts[:3])
     except ValueError:
         major, minor, patch = 0, 1, 0  # Fallback to 0.1.0
 
     # Determine the type of update based on the commits
-    tem_breaking = any(commit["breaking"] for commit in commits)
-    tem_feature = any(commit["tipo"] == "feat" for commit in commits)
-    tem_fix = any(commit["tipo"] == "fix" for commit in commits)
+    has_breaking = any(commit["breaking"] for commit in commits)
+    has_feature = any(commit["type"] == "feat" for commit in commits)
+    has_fix = any(commit["type"] == "fix" for commit in commits)
 
     # Apply SemVer rules
-    if tem_breaking:
+    if has_breaking:
         return f"{major + 1}.0.0"  # Increment major, reset minor and patch
-    elif tem_feature:
+    elif has_feature:
         return f"{major}.{minor + 1}.0"  # Increment minor, reset patch
-    elif tem_fix:
+    elif has_fix:
         return f"{major}.{minor}.{patch + 1}"  # Increment only patch
     else:
         return f"{major}.{minor}.{patch + 1}"  # Default: increment patch
 
 
-def _formatar_changelog(commits: List[Dict[str, Any]], versao: str) -> str:
+def _format_changelog(commits: List[Dict[str, Any]], version: str) -> str:
     """
     Formats the changelog based on the commits.
 
     Args:
         commits: List of analyzed commits
-        versao: Version for the changelog
+        version: Version for the changelog
 
     Returns:
         str: Formatted changelog content
     """
     # Sort by type
-    commits_por_tipo: Dict[str, List[Dict[str, Any]]] = {}
+    commits_by_type: Dict[str, List[Dict[str, Any]]] = {}
 
     # Separate breaking changes
     breaking_changes = []
 
     for commit in commits:
-        tipo = commit["tipo"]
+        type_name = commit["type"]
 
         # If the type is not among known ones, put it in "others"
-        if tipo not in TIPOS_COMMITS and tipo != "others":
-            tipo = "others"
+        if type_name not in COMMIT_TYPES and type_name != "others":
+            type_name = "others"
 
-        if tipo not in commits_por_tipo:
-            commits_por_tipo[tipo] = []
+        if type_name not in commits_by_type:
+            commits_by_type[type_name] = []
 
-        commits_por_tipo[tipo].append(commit)
+        commits_by_type[type_name].append(commit)
 
         # Add to breaking changes if necessary
         if commit["breaking"]:
             breaking_changes.append(commit)
 
     # Build the changelog
-    secoes = []
+    sections = []
 
     # Priority for the most important types
-    for tipo in ["feat", "fix", "perf"]:
-        if tipo in commits_por_tipo and commits_por_tipo[tipo]:
-            titulo = TIPOS_COMMITS.get(tipo, tipo.capitalize())
-            itens = ""
+    for type_name in ["feat", "fix", "perf"]:
+        if type_name in commits_by_type and commits_by_type[type_name]:
+            title = COMMIT_TYPES.get(type_name, type_name.capitalize())
+            items = ""
 
-            for commit in commits_por_tipo[tipo]:
-                escopo = f"**{commit['escopo']}**: " if commit["escopo"] else ""
-                mensagem = commit["mensagem"]
-                hash_commit = commit["hash"]
+            for commit in commits_by_type[type_name]:
+                scope = f"**{commit['scope']}**: " if commit["scope"] else ""
+                message = commit["message"]
+                commit_hash = commit["hash"]
 
-                itens += ITEM_TEMPLATE.format(
-                    escopo=escopo, mensagem=mensagem, hash=hash_commit
+                items += ITEM_TEMPLATE.format(
+                    scope=scope, message=message, hash=commit_hash
                 )
 
-            secoes.append(SECTION_TEMPLATE.format(tipo=titulo, itens=itens.strip()))
+            sections.append(SECTION_TEMPLATE.format(type=title, items=items.strip()))
 
     # Add other types
-    for tipo, commits_tipo in sorted(commits_por_tipo.items()):
+    for type_name, commits_of_type in sorted(commits_by_type.items()):
         # Skip types that have already been processed
-        if tipo in ["feat", "fix", "perf"] or not commits_tipo:
+        if type_name in ["feat", "fix", "perf"] or not commits_of_type:
             continue
 
-        titulo = TIPOS_COMMITS.get(tipo, tipo.capitalize())
-        itens = ""
+        title = COMMIT_TYPES.get(type_name, type_name.capitalize())
+        items = ""
 
-        for commit in commits_tipo:
-            escopo = f"**{commit['escopo']}**: " if commit["escopo"] else ""
-            mensagem = commit["mensagem"]
-            hash_commit = commit["hash"]
+        for commit in commits_of_type:
+            scope = f"**{commit['scope']}**: " if commit["scope"] else ""
+            message = commit["message"]
+            commit_hash = commit["hash"]
 
-            itens += ITEM_TEMPLATE.format(
-                escopo=escopo, mensagem=mensagem, hash=hash_commit
+            items += ITEM_TEMPLATE.format(
+                scope=scope, message=message, hash=commit_hash
             )
 
-        secoes.append(SECTION_TEMPLATE.format(tipo=titulo, itens=itens.strip()))
+        sections.append(SECTION_TEMPLATE.format(type=title, items=items.strip()))
 
     # Add breaking changes, if any
     if breaking_changes:
-        itens = ""
+        items = ""
         for commit in breaking_changes:
-            escopo = f"**{commit['escopo']}**: " if commit["escopo"] else ""
-            mensagem = (
+            scope = f"**{commit['scope']}**: " if commit["scope"] else ""
+            message = (
                 commit["breaking_desc"]
                 if commit["breaking_desc"]
-                else commit["mensagem"]
+                else commit["message"]
             )
-            hash_commit = commit["hash"]
+            commit_hash = commit["hash"]
 
-            itens += ITEM_TEMPLATE.format(
-                escopo=escopo, mensagem=mensagem, hash=hash_commit
+            items += ITEM_TEMPLATE.format(
+                scope=scope, message=message, hash=commit_hash
             )
 
-        secoes.append(BREAKING_CHANGE_TEMPLATE.format(itens=itens.strip()))
+        sections.append(BREAKING_CHANGE_TEMPLATE.format(items=items.strip()))
 
     # Join everything
-    data_atual = datetime.now().strftime("%Y-%m-%d")
-    detalhes = "\n\n".join(secoes)
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    details = "\n\n".join(sections)
 
     # Read existing changelog, if any
-    conteudo_existente = ""
+    existing_content = ""
     try:
         if os.path.exists("CHANGELOG.md"):
             with open("CHANGELOG.md", "r", encoding="utf-8") as f:
-                conteudo = f.read()
+                content = f.read()
                 # Remove the header and get the rest
-                partes = conteudo.split("# Changelog", 1)
-                if len(partes) > 1:
-                    conteudo_existente = partes[1].strip()
+                parts = content.split("# Changelog", 1)
+                if len(parts) > 1:
+                    existing_content = parts[1].strip()
     except Exception as e:
         logger.warning(f"Error reading existing changelog: {e}")
 
     return CHANGELOG_TEMPLATE.format(
-        conteudo=conteudo_existente, versao=versao, data=data_atual, detalhes=detalhes
+        content=existing_content, version=version, date=current_date, details=details
     )
 
 
-def _salvar_changelog(conteudo: str, caminho: str = "CHANGELOG.md") -> str:
+def _save_changelog(content: str, path: str = "CHANGELOG.md") -> str:
     """
     Saves the changelog content to the specified file.
 
     Args:
-        conteudo: Changelog content
-        caminho: File path
+        content: Changelog content
+        path: File path
 
     Returns:
         str: Path of the saved file
@@ -377,9 +377,9 @@ def _salvar_changelog(conteudo: str, caminho: str = "CHANGELOG.md") -> str:
 
         # And use it when opening files
         encoding = _determinar_encoding()
-        with open(caminho, "w", encoding=encoding) as f:
-            f.write(conteudo)
-        return caminho
+        with open(path, "w", encoding=encoding) as f:
+            f.write(content)
+        return path
     except Exception as e:
         logger.error(f"Error saving the changelog: {e}")
         raise Exception(f"Error saving the changelog: {e}")
@@ -390,13 +390,13 @@ def _salvar_changelog(conteudo: str, caminho: str = "CHANGELOG.md") -> str:
 #############################################################################
 
 
-async def gerar_changelog(
+async def generate_changelog(
     ctx: Context,
-    desde: Optional[str] = None,
-    ate: Optional[str] = None,
-    arquivo_saida: str = "CHANGELOG.md",
-    proxima_versao: Optional[str] = None,
-    incluir_todos: bool = False,
+    since: Optional[str] = None,
+    until: Optional[str] = None,
+    output_file: str = "CHANGELOG.md",
+    next_version: Optional[str] = None,
+    include_all: bool = False,
 ) -> str:
     """
     Generates a changelog based on the Conventional Commits standard.
@@ -406,39 +406,37 @@ async def gerar_changelog(
     commits to include in the changelog.
 
     :param ctx: The MCP request context.
-    :param desde: Tag, branch or commit from where to start the analysis (default: latest tag)
-    :param ate: Tag, branch or commit up to where to analyze (default: HEAD)
-    :param arquivo_saida: Name of the file where to save the changelog
-    :param proxima_versao: Version to be used (if not specified, it will be calculated automatically)
-    :param incluir_todos: Whether to include all commits, even those that don't follow the pattern
+    :param since: Tag, branch or commit from where to start the analysis (default: latest tag)
+    :param until: Tag, branch or commit up to where to analyze (default: HEAD)
+    :param output_file: Name of the file where to save the changelog
+    :param next_version: Version to be used (if not specified, it will be calculated automatically)
+    :param include_all: Whether to include all commits, even those that don't follow the pattern
     :return: Path of the generated changelog file or error message.
     """
     await ctx.debug(
-        f"Generating changelog from: {desde}, to: {ate}, file: {arquivo_saida}"
+        f"Generating changelog from: {since}, to: {until}, file: {output_file}"
     )
 
     try:
         # Check if we're in a git repository
         try:
-            _executar_comando_git(["git", "rev-parse", "--is-inside-work-tree"])
+            _execute_git_command(["git", "rev-parse", "--is-inside-work-tree"])
         except Exception as e:
             return f"Error: Not a valid Git repository. {str(e)}"
 
         # If not specified from where to start, use the latest tag
-        if not desde:
-            desde = _obter_ultima_tag()
-            await ctx.debug(f"Latest tag found: {desde}")
+        if not since:
+            since = _get_latest_tag()
+            await ctx.debug(f"Latest tag found: {since}")
 
         # Get the commits
-        commits = _obter_commits(desde, ate)
+        commits = _get_commits(since, until)
         await ctx.debug(f"Found {len(commits)} commits for analysis")
 
         # Filter commits that don't follow the pattern, if necessary
-        if not incluir_todos:
+        if not include_all:
             commits = [
-                c
-                for c in commits
-                if c["tipo"] in TIPOS_COMMITS or c["tipo"] == "others"
+                c for c in commits if c["type"] in COMMIT_TYPES or c["type"] == "others"
             ]
 
         # If there are no commits, inform
@@ -446,18 +444,18 @@ async def gerar_changelog(
             return "No commits found to generate the changelog"
 
         # Determine the next version, if not specified
-        if not proxima_versao:
-            ultima_versao = desde if desde else ""
-            proxima_versao = _gerar_proxima_versao(ultima_versao, commits)
-            await ctx.debug(f"Calculated version: {proxima_versao}")
+        if not next_version:
+            last_version = since if since else ""
+            next_version = _generate_next_version(last_version, commits)
+            await ctx.debug(f"Calculated version: {next_version}")
 
         # Format the changelog
-        conteudo = _formatar_changelog(commits, proxima_versao)
+        content = _format_changelog(commits, next_version)
 
         # Save the file
-        caminho_salvo = _salvar_changelog(conteudo, arquivo_saida)
+        saved_path = _save_changelog(content, output_file)
 
-        return f"Changelog successfully generated at: {caminho_salvo}"
+        return f"Changelog successfully generated at: {saved_path}"
     except Exception as e:
         await ctx.debug(f"Error generating changelog: {e}")
         return f"Error generating changelog: {str(e)}"
@@ -468,11 +466,11 @@ async def gerar_changelog(
 #############################################################################
 
 
-async def verificar_commits(
+async def verify_commits(
     ctx: Context,
-    desde: Optional[str] = None,
-    ate: Optional[str] = None,
-    detalhado: bool = False,
+    since: Optional[str] = None,
+    until: Optional[str] = None,
+    detailed: bool = False,
 ) -> List[str]:
     """
     Checks the compliance of commits with the Conventional Commits standard.
@@ -481,79 +479,79 @@ async def verificar_commits(
     about their compliance with the Conventional Commits standard.
 
     :param ctx: The MCP request context.
-    :param desde: Tag, branch or commit from where to start the analysis (default: latest tag)
-    :param ate: Tag, branch or commit up to where to analyze (default: HEAD)
-    :param detalhado: Whether to show detailed information about each commit
+    :param since: Tag, branch or commit from where to start the analysis (default: latest tag)
+    :param until: Tag, branch or commit up to where to analyze (default: HEAD)
+    :param detailed: Whether to show detailed information about each commit
     :return: List of verification results.
     """
-    await ctx.debug(f"Checking commits from: {desde}, to: {ate}")
+    await ctx.debug(f"Checking commits from: {since}, to: {until}")
 
-    resultados = []
+    results = []
 
     try:
         # Check if we're in a git repository
         try:
-            _executar_comando_git(["git", "rev-parse", "--is-inside-work-tree"])
+            _execute_git_command(["git", "rev-parse", "--is-inside-work-tree"])
         except Exception as e:
             return [f"Error: Not a valid Git repository. {str(e)}"]
 
         # If not specified from where to start, use the latest tag
-        if not desde:
-            desde = _obter_ultima_tag()
-            if desde:
-                resultados.append(f"Checking commits from tag: {desde}")
+        if not since:
+            since = _get_latest_tag()
+            if since:
+                results.append(f"Checking commits from tag: {since}")
 
         # Get the commits
-        commits = _obter_commits(desde, ate)
+        commits = _get_commits(since, until)
 
         if not commits:
             return ["No commits found for verification"]
 
         # Count for each type
-        contagem: Dict[str, int] = {}
+        count: Dict[str, int] = {}
 
         # Count commits by type
         for commit in commits:
-            tipo = commit["tipo"]
+            type_name = commit["type"]
 
-            if tipo in TIPOS_COMMITS:
-                contagem[tipo] = contagem.get(tipo, 0) + 1
+            if type_name in COMMIT_TYPES:
+                count[type_name] = count.get(type_name, 0) + 1
             else:
-                contagem["non-compliant"] = contagem.get("non-compliant", 0) + 1
+                count["non-compliant"] = count.get("non-compliant", 0) + 1
 
         # Add statistics
         total = len(commits)
-        resultados.append(f"Total commits analyzed: {total}")
-        resultados.append(
-            f"Compliant commits: {total - contagem['non-compliant']} ({int((total - contagem['non-compliant'])/total*100)}%)"
+        results.append(f"Total commits analyzed: {total}")
+        results.append(
+            f"Compliant commits: {total - count['non-compliant']} ({int((total - count['non-compliant'])/total*100)}%)"
         )
-        resultados.append(
-            f"Non-compliant commits: {contagem['non-compliant']} ({int(contagem['non-compliant']/total*100)}%)"
+        results.append(
+            f"Non-compliant commits: {count['non-compliant']} ({int(count['non-compliant']/total*100)}%)"
         )
 
-        resultados.append("\nDistribution by type:")
-        for tipo, qtd in sorted(contagem.items(), key=lambda x: x[1], reverse=True):
-            if tipo in TIPOS_COMMITS:
-                nome_tipo = TIPOS_COMMITS[tipo]
-                resultados.append(f"  {nome_tipo} ({tipo}): {qtd}")
+        results.append("\nDistribution by type:")
+        for type_name, qty in sorted(count.items(), key=lambda x: x[1], reverse=True):
+            if type_name in COMMIT_TYPES:
+                type_title = COMMIT_TYPES[type_name]
+                results.append(f"  {type_title} ({type_name}): {qty}")
             else:
-                resultados.append(f"  {tipo}: {qtd}")
+                results.append(f"  {type_name}: {qty}")
 
         # If detailed, show information about each commit
-        if detalhado:
-            resultados.append("\nCommit details:")
+        if detailed:
+            results.append("\nCommit details:")
             for commit in commits:
-                conforme = "✅" if commit["tipo"] in TIPOS_COMMITS else "❌"
-                hash_commit = commit["hash"]
-                tipo = commit["tipo"]
-                escopo = f"({commit['escopo']})" if commit["escopo"] else ""
-                mensagem = commit["mensagem"]
+                compliant = "✅" if commit["type"] in COMMIT_TYPES else "❌"
+                commit_hash = commit["hash"]
+                type_name = commit["type"]
+                scope = f"({commit['scope']})" if commit["scope"] else ""
+                message = commit["message"]
 
-                resultados.append(
-                    f"{conforme} {hash_commit}: {tipo}{escopo}: {mensagem}"
+                results.append(
+                    f"{compliant} {commit_hash}: {type_name}{scope}: {message}"
                 )
 
-        return resultados
+        return results
     except Exception as e:
         await ctx.debug(f"Error verifying commits: {e}")
         return [f"Error verifying commits: {str(e)}"]
@@ -581,14 +579,14 @@ def setup_tools(server) -> List[str]:
 
     # Registering the main tool
     server.add_tool(
-        gerar_changelog,
+        generate_changelog,
         name="generate-changelog",
         description="Generates a changelog based on the Conventional Commits standard from the Git commit history.",
     )
 
     # Registering the verification tool
     server.add_tool(
-        verificar_commits,
+        verify_commits,
         name="verify-commits",
         description="Checks the compliance of commits with the Conventional Commits standard.",
     )

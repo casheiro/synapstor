@@ -21,6 +21,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 # Import existing tools
 from cli.config import InteractiveConfigurator
+from src.synapstor.i18n import set_language
+from src.synapstor.i18n import _ as translate
+from src.synapstor.i18n.languages import Language
 
 # Basic logging configuration
 logging.basicConfig(
@@ -63,7 +66,7 @@ def is_running():
 def start_server(args):
     """Starts the server in the background"""
     if is_running():
-        logger.info("⚠️ The server is already running")
+        logger.info(translate("cli.ctl.messages.server_already_running"))
         return 0
 
     ensure_dir_exists()
@@ -71,21 +74,19 @@ def start_server(args):
     # If --configure was specified, run the interactive configurator
     if args.configure:
         env_path = Path(args.env_file) if args.env_file else Path.cwd() / ".env"
-        logger.info("🔧 Configuring Synapstor before starting the server...")
+        logger.info(translate("cli.ctl.messages.configuring_before_start"))
         configurator = InteractiveConfigurator(env_path)
 
         # Check dependencies
         if not configurator.check_dependencies():
-            logger.error("❌ Failed to check or install dependencies")
+            logger.error(translate("cli.ctl.messages.configuration_failed"))
             return 1
 
         # Run configuration
         if not configurator.configure():
-            logger.error(
-                "❌ Failed to configure Synapstor. The server will not be started."
-            )
+            logger.error(translate("cli.server.messages.configuration_failed"))
             return 1
-        logger.info("✅ Configuration completed")
+        logger.info(translate("cli.ctl.messages.configuration_completed"))
 
     # Prepare arguments for synapstor-server
     server_cmd = ["synapstor-server"]
@@ -117,21 +118,21 @@ def start_server(args):
         # Wait a moment to check if the server started correctly
         time.sleep(2)
         if is_running():
-            logger.info(f"✅ Server started with PID {process.pid}")
-            logger.info(f"📝 Logs available at: {LOG_FILE}")
+            logger.info(translate("cli.ctl.messages.server_starting", pid=process.pid))
+            logger.info(translate("cli.ctl.messages.logs_available", path=LOG_FILE))
             return 0
         else:
-            logger.error("❌ Server failed to start. Check the logs for more details.")
+            logger.error(translate("cli.ctl.messages.server_start_failed"))
             return 1
     except Exception as e:
-        logger.error(f"❌ Error starting the server: {e}")
+        logger.error(translate("cli.ctl.messages.server_start_error", error=str(e)))
         return 1
 
 
 def stop_server():
     """Stops the running server"""
     if not is_running():
-        logger.info("⚠️ The server is not running")
+        logger.info(translate("cli.ctl.messages.server_not_running"))
         return 0
 
     try:
@@ -154,9 +155,7 @@ def stop_server():
                 break
         else:
             # If we got here, the process didn't terminate after the maximum time
-            logger.warning(
-                "⚠️ The server did not respond to SIGTERM, sending SIGKILL..."
-            )
+            logger.warning(translate("cli.ctl.messages.server_stop_timeout"))
             try:
                 # Windows doesn't support SIGKILL, so check if it's available
                 if hasattr(signal, "SIGKILL"):
@@ -170,20 +169,20 @@ def stop_server():
         # Remove the PID file
         os.remove(PID_FILE)
 
-        logger.info("✅ Server stopped successfully")
+        logger.info(translate("cli.ctl.messages.server_stopped"))
         return 0
     except (FileNotFoundError, ValueError) as e:
-        logger.error(f"❌ Error reading PID: {e}")
+        logger.error(translate("cli.ctl.messages.pid_read_error", error=str(e)))
         return 1
     except OSError as e:
-        logger.error(f"❌ Error stopping the server: {e}")
+        logger.error(translate("cli.ctl.messages.server_stop_error", error=str(e)))
         return 1
 
 
 def status_server():
     """Checks the status of the server"""
     if not is_running():
-        logger.info("🔴 The server is not running")
+        logger.info(translate("cli.ctl.messages.status_not_running"))
         return 1
 
     try:
@@ -230,10 +229,12 @@ def status_server():
             env_file = "Not found"
 
         # Detailed status
+        status_header = translate("cli.ctl.messages.status_header")
         print("\n" + "=" * 30)
-        print(" SYNAPSTOR - SERVER STATUS ")
+        print(f" {status_header} ")
         print("=" * 30)
-        print("Status:         🟢 Running")
+        status_running = translate("cli.ctl.messages.status_running")
+        print(f"Status:         {status_running}")
         print(f"PID:            {pid}")
         print(f"Uptime:         {uptime_str}")
         print(f"Memory:         {memory_mb:.2f} MB")
@@ -244,21 +245,21 @@ def status_server():
 
         return 0
     except Exception as e:
-        logger.error(f"❌ Error checking status: {e}")
+        logger.error(translate("cli.ctl.messages.status_check_error", error=str(e)))
         return 1
 
 
 def log_server(args):
     """Shows the server logs"""
     if not os.path.exists(LOG_FILE):
-        logger.info("⚠️ Log file not found")
+        logger.info(translate("cli.ctl.messages.log_file_not_found"))
         return 1
 
     try:
         # If --clear was specified, clear the log file
         if args.clear:
             open(LOG_FILE, "w").close()
-            logger.info("✅ Log file cleared successfully")
+            logger.info(translate("cli.ctl.messages.log_file_cleared"))
             return 0
 
         # If --follow was specified, use tail -f
@@ -331,18 +332,18 @@ def reindex_project(args):
         reindex_cmd.append("--force")
 
     try:
-        logger.info("🔄 Starting reindexing...")
+        logger.info(translate("cli.ctl.messages.reindex_starting"))
         process = subprocess.Popen(reindex_cmd)
         process.wait()
 
         if process.returncode == 0:
-            logger.info("✅ Reindexing completed successfully")
+            logger.info(translate("cli.ctl.messages.reindex_completed"))
         else:
-            logger.error("❌ Reindexing failed")
+            logger.error(translate("cli.ctl.messages.reindex_failed"))
 
         return process.returncode
     except Exception as e:
-        logger.error(f"❌ Error executing reindexing: {e}")
+        logger.error(translate("cli.ctl.messages.reindex_error", error=str(e)))
         return 1
 
 
@@ -351,18 +352,18 @@ def setup_client(args):
     setup_cmd = ["synapstor-setup"]
 
     try:
-        logger.info("🔧 Starting Synapstor setup...")
+        logger.info(translate("cli.ctl.messages.setup_starting"))
         process = subprocess.Popen(setup_cmd)
         process.wait()
 
         if process.returncode == 0:
-            logger.info("✅ Setup completed successfully")
+            logger.info(translate("cli.ctl.messages.setup_completed"))
         else:
-            logger.error("❌ Setup failed")
+            logger.error(translate("cli.ctl.messages.setup_failed"))
 
         return process.returncode
     except Exception as e:
-        logger.error(f"❌ Error executing setup: {e}")
+        logger.error(translate("cli.ctl.messages.setup_error", error=str(e)))
         return 1
 
 
@@ -390,18 +391,18 @@ def run_indexer(args):
         indexer_cmd.append("--mef-enforce-structure")
 
     try:
-        logger.info("🔄 Starting indexer...")
+        logger.info(translate("cli.ctl.messages.indexer_starting"))
         process = subprocess.Popen(indexer_cmd)
         process.wait()
 
         if process.returncode == 0:
-            logger.info("✅ Indexing completed successfully")
+            logger.info(translate("cli.ctl.messages.indexer_completed"))
         else:
-            logger.error("❌ Indexing failed")
+            logger.error(translate("cli.ctl.messages.indexer_failed"))
 
         return process.returncode
     except Exception as e:
-        logger.error(f"❌ Error executing indexer: {e}")
+        logger.error(translate("cli.ctl.messages.indexer_error", error=str(e)))
         return 1
 
 
@@ -409,105 +410,121 @@ def main():
     """
     Main function for managing the Synapstor service
     """
-    parser = argparse.ArgumentParser(
-        description="Manages the Synapstor server as a service"
+    # Configure language from environment variable
+    lang_code = os.environ.get("SYNAPSTOR_LANGUAGE", "en")
+    if lang_code == "pt":
+        set_language(Language.PORTUGUESE)
+    else:
+        set_language(Language.ENGLISH)
+
+    parser = argparse.ArgumentParser(description=translate("cli.ctl.description"))
+    subparsers = parser.add_subparsers(
+        dest="command", help=translate("cli.ctl.available_commands")
     )
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Subcommand to start the server
-    start_parser = subparsers.add_parser(
-        "start", help="Starts the server in the background"
-    )
+    start_parser = subparsers.add_parser("start", help=translate("cli.ctl.start.help"))
     start_parser.add_argument(
         "--transport",
         choices=["stdio", "sse", "http"],
-        help="Transport protocol (stdio, sse, or http)",
-    )
-    start_parser.add_argument("--env-file", help="Path to the .env file")
-    start_parser.add_argument(
-        "--host", help="Host address for HTTP transport (default: from .env or 0.0.0.0)"
+        help=translate("cli.ctl.start.transport_help"),
     )
     start_parser.add_argument(
-        "--port", type=int, help="Port for HTTP transport (default: from .env or 8000)"
+        "--env-file", help=translate("cli.ctl.start.env_file_help")
+    )
+    start_parser.add_argument("--host", help=translate("cli.ctl.start.host_help"))
+    start_parser.add_argument(
+        "--port", type=int, help=translate("cli.ctl.start.port_help")
     )
     start_parser.add_argument(
         "--configure",
         action="store_true",
-        help="Configure the environment before starting the server",
+        help=translate("cli.ctl.start.configure_help"),
     )
 
     # Subcommand to stop the server
-    subparsers.add_parser("stop", help="Stops the running server")
+    subparsers.add_parser("stop", help=translate("cli.ctl.stop.help"))
 
     # Subcommand to check status
-    subparsers.add_parser("status", help="Checks the status of the server")
+    subparsers.add_parser("status", help=translate("cli.ctl.status.help"))
 
     # Subcommand to show logs
-    log_parser = subparsers.add_parser("logs", help="Shows the server logs")
+    log_parser = subparsers.add_parser("logs", help=translate("cli.ctl.logs.help"))
     log_parser.add_argument(
-        "-f", "--follow", action="store_true", help="Follows logs in real time"
+        "-f",
+        "--follow",
+        action="store_true",
+        help=translate("cli.ctl.logs.follow_help"),
     )
     log_parser.add_argument(
         "-n",
         "--tail",
         type=int,
         default=0,
-        help="Shows only the last N lines of log",
+        help=translate("cli.ctl.logs.tail_help"),
     )
-    log_parser.add_argument("--clear", action="store_true", help="Clears the log file")
+    log_parser.add_argument(
+        "--clear", action="store_true", help=translate("cli.ctl.logs.clear_help")
+    )
 
     # Subcommand to reindex a project
-    reindex_parser = subparsers.add_parser("reindex", help="Reindexes a project")
-    reindex_parser.add_argument(
-        "--project", required=True, help="Name of the project to be indexed"
+    reindex_parser = subparsers.add_parser(
+        "reindex", help=translate("cli.ctl.reindex.help")
     )
-    reindex_parser.add_argument("--path", help="Path of the project to be indexed")
-    reindex_parser.add_argument("--env-file", help="Path to the .env file")
+    reindex_parser.add_argument(
+        "--project", required=True, help=translate("cli.ctl.reindex.project_help")
+    )
+    reindex_parser.add_argument("--path", help=translate("cli.ctl.reindex.path_help"))
+    reindex_parser.add_argument(
+        "--env-file", help=translate("cli.ctl.reindex.env_file_help")
+    )
     reindex_parser.add_argument(
         "--force",
         action="store_true",
-        help="Force reindexing even if there are no changes",
+        help=translate("cli.ctl.reindex.force_help"),
     )
 
     # Subcommand to setup
-    subparsers.add_parser("setup", help="Executes initial setup of Synapstor")
+    subparsers.add_parser("setup", help=translate("cli.ctl.setup.help"))
 
     # Subcommand for the indexer
     indexer_parser = subparsers.add_parser(
-        "indexer", help="Executes the Synapstor indexer"
+        "indexer", help=translate("cli.ctl.indexer.help")
     )
     indexer_parser.add_argument(
-        "--project", required=True, help="Name of the project to be indexed"
+        "--project", required=True, help=translate("cli.ctl.indexer.project_help")
     )
     indexer_parser.add_argument(
-        "--path", required=True, help="Path of the project to be indexed"
+        "--path", required=True, help=translate("cli.ctl.indexer.path_help")
     )
     indexer_parser.add_argument(
         "--collection",
-        help="Name of the collection to store (optional, uses the default from .env if not specified)",
+        help=translate("cli.ctl.indexer.collection_help"),
     )
-    indexer_parser.add_argument("--env-file", help="Path to the .env file")
+    indexer_parser.add_argument(
+        "--env-file", help=translate("cli.ctl.indexer.env_file_help")
+    )
     indexer_parser.add_argument(
         "--verbose",
         action="store_true",
-        help="Shows detailed information during indexing",
+        help=translate("cli.ctl.indexer.verbose_help"),
     )
     indexer_parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Simulates indexing without sending to Qdrant",
+        help=translate("cli.ctl.indexer.dry_run_help"),
     )
     indexer_parser.add_argument(
         "--mef-enabled",
         "-m",
         action="store_true",
-        help="Enable MEF (Matrix Embedding Framework) processing for YAML files",
+        help=translate("cli.ctl.indexer.mef_enabled_help"),
     )
     indexer_parser.add_argument(
         "--mef-enforce-structure",
         "-e",
         action="store_true",
-        help="Enforce strict MEF structure validation (requires --mef-enabled)",
+        help=translate("cli.ctl.indexer.mef_enforce_structure_help"),
     )
 
     args = parser.parse_args()

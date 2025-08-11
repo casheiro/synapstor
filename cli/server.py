@@ -14,6 +14,10 @@ from pathlib import Path
 # Adds the root directory to the path to import the module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+from src.synapstor.i18n import set_language
+from src.synapstor.i18n import _ as translate
+from src.synapstor.i18n.languages import Language
+
 
 def main():
     """
@@ -24,36 +28,43 @@ def main():
     - Selection of custom .env file
     - Creation of .env file if it doesn't exist
     """
-    parser = argparse.ArgumentParser(description="Starts the Synapstor server")
+    # Configure language from environment variable
+    lang_code = os.environ.get("SYNAPSTOR_LANGUAGE", "en")
+    if lang_code == "pt":
+        set_language(Language.PORTUGUESE)
+    else:
+        set_language(Language.ENGLISH)
+
+    parser = argparse.ArgumentParser(description=translate("cli.server.description"))
     parser.add_argument(
         "--transport",
         choices=["stdio", "sse", "http"],
         default="stdio",
-        help="Transport protocol (stdio, sse, or http, default: stdio)",
+        help=translate("cli.server.transport_help"),
     )
     parser.add_argument(
-        "--env-file", default=".env", help="Path to the .env file (default: .env)"
+        "--env-file", default=".env", help=translate("cli.server.env_file_help")
     )
     parser.add_argument(
         "--host",
         default=None,
-        help="Host address for HTTP transport (default: from .env or 0.0.0.0)",
+        help=translate("cli.server.host_help"),
     )
     parser.add_argument(
         "--port",
         type=int,
         default=None,
-        help="Port for HTTP transport (default: from .env or 8000)",
+        help=translate("cli.server.port_help"),
     )
     parser.add_argument(
         "--create-env",
         action="store_true",
-        help="Creates a sample .env file if it doesn't exist",
+        help=translate("cli.server.create_env_help"),
     )
     parser.add_argument(
         "--configure",
         action="store_true",
-        help="Configures the environment before starting the server",
+        help=translate("cli.server.configure_help"),
     )
 
     args = parser.parse_args()
@@ -63,21 +74,21 @@ def main():
         from synapstor.env_loader import create_env_file_template
 
         create_env_file_template()
-        print(f"✅ Sample .env file created as {args.env_file}")
-        print("Please edit it with your settings and run again.")
+        print(translate("cli.server.messages.env_created", file=args.env_file))
+        print(translate("cli.server.messages.edit_env_message"))
         return 0
 
     # If --configure was specified, run the interactive configurator
     if args.configure:
-        from cli.config import ConfiguradorInterativo
+        from cli.config import InteractiveConfigurator
 
         env_path = Path(args.env_file)
-        print("🔧 Configuring Synapstor before starting the server...")
-        configurador = ConfiguradorInterativo(env_path)
-        if not configurador.configurar():
-            print("❌ Failed to configure Synapstor. The server will not be started.")
+        print(translate("cli.server.messages.configuring_server"))
+        configurator = InteractiveConfigurator(env_path)
+        if not configurator.configure():
+            print(translate("cli.server.messages.configuration_failed"))
             return 1
-        print("✅ Configuration completed. Starting the server...")
+        print(translate("cli.server.messages.configuration_completed"))
 
     # Import and run the MCP server
     try:
@@ -118,7 +129,7 @@ def main():
 
         return mcp_main()
     except Exception as e:
-        print(f"❌ Error starting the server: {e}")
+        print(translate("cli.server.messages.server_start_error", error=str(e)))
         return 1
 
 

@@ -550,9 +550,9 @@ def setup_tools(server) -> List[str]:
 
     server.add_tool(
         configure_synapstor,
-        name="configurar-synapstor",
+        name="configure-synapstor",
         description="Allows custom configuration of Synapstor mode with custom personalities.",
     )
 
     # IMPORTANT: Return list with the names of all registered tools
-    return ["modo-synapstor", "info-modo-synapstor", "configurar-synapstor"]
+    return ["modo-synapstor", "info-modo-synapstor", "configure-synapstor"]

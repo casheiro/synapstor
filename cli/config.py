@@ -15,6 +15,11 @@ from synapstor.env_loader import REQUIRED_VARS, OPTIONAL_VARS
 # Adds the root directory to the path to import the module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+# Import i18n support
+from src.synapstor.i18n import set_language
+from src.synapstor.i18n import _ as translate
+from src.synapstor.i18n.languages import Language
+
 # Basic logging configuration
 logging.basicConfig(
     level=logging.INFO,
@@ -61,7 +66,7 @@ class InteractiveConfigurator:
                         key, value = line.split("=", 1)
                         env_vars[key.strip()] = value.strip()
         except Exception as e:
-            logger.error(f"Error reading existing .env file: {e}")
+            logger.error(translate("cli.config.errors.read_failed", error=str(e)))
 
         return env_vars
 
@@ -80,18 +85,20 @@ class InteractiveConfigurator:
         """
         values = {}
 
-        # Descriptions for each variable (English)
+        # Descriptions for each variable (localized)
         descriptions = {
-            "QDRANT_URL": "Qdrant server URL (e.g. http://localhost:6333 or https://your-qdrant-server.cloud:6333)",
-            "QDRANT_API_KEY": "Qdrant server API key (leave blank for no authentication)",
-            "COLLECTION_NAME": "Collection name in Qdrant (e.g. synapstor)",
-            "QDRANT_LOCAL_PATH": "Path for local Qdrant storage (optional, leave blank to use the server in the URL)",
-            "EMBEDDING_PROVIDER": "Embeddings provider [FASTEMBED]",
-            "EMBEDDING_MODEL": "Embeddings model (e.g. sentence-transformers/all-MiniLM-L6-v2)",
-            "QDRANT_SEARCH_LIMIT": "Search results limit (e.g. 10)",
-            "TOOL_STORE_DESCRIPTION": "Description of the 'store' tool",
-            "TOOL_FIND_DESCRIPTION": "Description of the 'find' tool",
-            "LOG_LEVEL": "Log level [INFO, DEBUG, WARNING, ERROR]",
+            "QDRANT_URL": translate("cli.config.descriptions.qdrant_url"),
+            "QDRANT_API_KEY": translate("cli.config.descriptions.qdrant_api_key"),
+            "COLLECTION_NAME": translate("cli.config.descriptions.collection_name"),
+            "QDRANT_LOCAL_PATH": translate("cli.config.descriptions.qdrant_local_path"),
+            "EMBEDDING_PROVIDER": translate(
+                "cli.config.descriptions.embedding_provider"
+            ),
+            "EMBEDDING_MODEL": translate("cli.config.descriptions.embedding_model"),
+            "QDRANT_SEARCH_LIMIT": translate("cli.config.descriptions.search_limit"),
+            "TOOL_STORE_DESCRIPTION": translate("cli.config.descriptions.tool_store"),
+            "TOOL_FIND_DESCRIPTION": translate("cli.config.descriptions.tool_find"),
+            "LOG_LEVEL": translate("cli.config.descriptions.log_level"),
         }
 
         # Default values for each variable
@@ -105,7 +112,7 @@ class InteractiveConfigurator:
         }
 
         print("\n" + "=" * 50)
-        print("Synapstor Configuration")
+        print(translate("cli.config.titles.configuration"))
         print("=" * 50)
 
         for var in variables:
@@ -113,17 +120,17 @@ class InteractiveConfigurator:
             default = current_value or defaults.get(var, "")
 
             if var in REQUIRED_VARS:
-                print(f"\n{var} (Required)")
+                print(f"\n{var} ({translate('cli.config.labels.required')})")
             else:
-                print(f"\n{var} (Optional)")
+                print(f"\n{var} ({translate('cli.config.labels.optional')})")
 
             if var in descriptions:
                 print(f"  {descriptions[var]}")
 
             if default:
-                prompt = f"  Value [{default}]: "
+                prompt = f"  {translate('cli.config.prompts.value_with_default', default=default)}: "
             else:
-                prompt = "  Value: "
+                prompt = f"  {translate('cli.config.prompts.value')}: "
 
             new_value = input(prompt)
 
@@ -144,25 +151,29 @@ class InteractiveConfigurator:
         """
         try:
             with open(self.env_path, "w", encoding="utf-8") as f:
-                f.write("# Synapstor Configuration\n")
-                f.write("# Automatically generated file\n\n")
+                f.write(f"# {translate('cli.config.file_headers.title')}\n")
+                f.write(f"# {translate('cli.config.file_headers.auto_generated')}\n\n")
 
                 # Writes the required variables first
-                f.write("# Qdrant Configuration (required)\n")
+                f.write(f"# {translate('cli.config.file_headers.required_section')}\n")
                 for var in REQUIRED_VARS:
                     f.write(f"{var}={values.get(var, '')}\n")
 
                 # Writes the optional variables
-                f.write("\n# Optional Settings\n")
+                f.write(
+                    f"\n# {translate('cli.config.file_headers.optional_section')}\n"
+                )
                 for var in OPTIONAL_VARS:
                     if var in values and values[var]:
                         f.write(f"{var}={values.get(var, '')}\n")
 
-            logger.info(f".env file saved successfully at {self.env_path}")
+            logger.info(
+                translate("cli.config.messages.env_saved", path=str(self.env_path))
+            )
             return True
 
         except Exception as e:
-            logger.error(f"Error saving .env file: {e}")
+            logger.error(translate("cli.config.errors.save_failed", error=str(e)))
             return False
 
     def configure(self) -> bool:
@@ -176,15 +187,15 @@ class InteractiveConfigurator:
         existing_values = self._read_existing_env()
 
         # Requests required values
-        print("\nLet's configure the required variables:")
+        print(translate("cli.config.messages.configure_required"))
         required_values = self._request_values(REQUIRED_VARS, existing_values)
 
         # Asks if you want to configure optional values
-        print("\nDo you want to configure optional variables? (y/n)")
-        configure_optional = input().strip().lower() in ["y", "yes"]
+        print(translate("cli.config.prompts.configure_optional"))
+        configure_optional = input().strip().lower() in ["y", "yes", "s", "sim"]
 
         if configure_optional:
-            print("\nLet's configure the optional variables:")
+            print(translate("cli.config.messages.configure_optional"))
             optional_values = self._request_values(OPTIONAL_VARS, existing_values)
         else:
             optional_values = {
@@ -212,37 +223,52 @@ class InteractiveConfigurator:
             "python-dotenv": "dotenv",
         }
 
-        print("\nChecking dependencies...")
+        print(translate("cli.config.messages.checking_dependencies"))
         missing = []
 
         for pkg_name, import_name in deps.items():
             try:
                 __import__(import_name)
-                print(f"✓ {pkg_name}")
+                print(f"✅ {pkg_name}")
             except ImportError:
-                print(f"✗ {pkg_name}")
+                print(f"❌ {pkg_name}")
                 missing.append(pkg_name)
 
         if missing:
-            print(f"\nInstalling dependencies: {', '.join(missing)}")
+            print(
+                translate(
+                    "cli.config.messages.installing_dependencies",
+                    deps=", ".join(missing),
+                )
+            )
             import subprocess
 
             for pkg in missing:
                 try:
-                    print(f"Installing {pkg}...")
+                    print(
+                        translate("cli.config.messages.installing_package", package=pkg)
+                    )
                     subprocess.check_call(
                         [sys.executable, "-m", "pip", "install", pkg],
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
                     )
-                    print(f"✓ {pkg} installed successfully")
+                    print(
+                        translate("cli.config.messages.package_installed", package=pkg)
+                    )
                 except Exception as e:
-                    print(f"✗ Error installing {pkg}: {e}")
+                    print(
+                        translate(
+                            "cli.config.errors.package_install_failed",
+                            package=pkg,
+                            error=str(e),
+                        )
+                    )
                     return False
 
-            print("✓ All dependencies installed successfully")
+            print(translate("cli.config.messages.all_dependencies_installed"))
         else:
-            print("✓ All dependencies are already installed")
+            print(translate("cli.config.messages.dependencies_already_installed"))
 
         return True
 
@@ -253,11 +279,18 @@ def main():
     """
     import argparse
 
-    parser = argparse.ArgumentParser(description="Synapstor Configurator")
+    # Configure language from environment variable
+    lang_code = os.environ.get("SYNAPSTOR_LANGUAGE", "en")
+    if lang_code == "pt":
+        set_language(Language.PORTUGUESE)
+    else:
+        set_language(Language.ENGLISH)
+
+    parser = argparse.ArgumentParser(description=translate("cli.config.description"))
     parser.add_argument(
         "--env-file",
         default=".env",
-        help="Path to the .env file (default: .env in the current folder)",
+        help=translate("cli.config.args.env_file_help"),
     )
 
     args = parser.parse_args()
@@ -265,30 +298,32 @@ def main():
     env_path = Path(args.env_file)
 
     print("=" * 50)
-    print("SYNAPSTOR CONFIGURATION")
+    print(translate("cli.config.titles.main_title"))
     print("=" * 50)
-    print("\nThis tool will guide you through configuring Synapstor.")
+    print(translate("cli.config.messages.intro"))
 
     configurator = InteractiveConfigurator(env_path)
 
     # Check dependencies first
     if not configurator.check_dependencies():
-        print("\n❌ Failed to check or install dependencies.")
-        print("Please try to install manually with:")
+        print(translate("cli.config.errors.dependency_check_failed"))
+        print(translate("cli.config.messages.manual_install_instruction"))
         print("pip install mcp[cli] fastembed qdrant-client pydantic python-dotenv")
         return 1
 
     # Run interactive configuration
     if configurator.configure():
-        print("\n✅ Configuration completed successfully!")
-        print(f".env file was created at: {env_path.absolute()}")
-        print("\nYou can start the server with:")
+        print(translate("cli.config.messages.configuration_success"))
+        print(
+            translate("cli.config.messages.env_file_location", path=env_path.absolute())
+        )
+        print(translate("cli.config.messages.server_start_options"))
         print("  synapstor-server")
-        print("or:")
+        print(translate("cli.config.messages.or"))
         print("  python -m synapstor.main")
         return 0
     else:
-        print("\n❌ Failed to complete the configuration.")
+        print(translate("cli.config.errors.configuration_failed"))
         return 1
 
 

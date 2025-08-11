@@ -20,6 +20,13 @@ from dotenv import load_dotenv
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 
+# Add i18n support
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from src.synapstor.i18n import set_language
+from src.synapstor.i18n import _ as translate
+from src.synapstor.i18n.languages import Language
+
 # Check dependencies
 required_dependencies = {
     "dotenv": "python-dotenv",
@@ -78,13 +85,13 @@ def send_to_qdrant(
     try:
         # Generate deterministic ID
         doc_id = generate_deterministic_id(
-            metadata.get("projeto", "unknown"),
-            metadata.get("caminho_absoluto", "unknown"),
+            metadata.get("project", "unknown"),
+            metadata.get("absolute_path", "unknown"),
         )
 
         if dry_run:
             print(
-                f"[DRY RUN] Generated ID: {doc_id} for: {metadata.get('caminho_absoluto')}"
+                f"[DRY RUN] Generated ID: {doc_id} for: {metadata.get('absolute_path')}"
             )
             return doc_id
 
@@ -103,7 +110,7 @@ def send_to_qdrant(
         )
         return doc_id
     except Exception as e:
-        print(f"Error sending to Qdrant: {str(e)}")
+        print(translate("cli.reindex.errors.qdrant_send_failed", error=str(e)))
         return None
 
 
@@ -182,11 +189,11 @@ def process_file(
 
         # Create metadata
         metadata = {
-            "projeto": project_name,
-            "caminho_absoluto": str(file_path.absolute()),
-            "extensao": file_path.suffix.lstrip("."),
-            "nome_arquivo": file_path.name,
-            "tamanho_bytes": file_path.stat().st_size,
+            "project": project_name,
+            "absolute_path": str(file_path.absolute()),
+            "extension": file_path.suffix.lstrip("."),
+            "filename": file_path.name,
+            "size_bytes": file_path.stat().st_size,
         }
 
         # Send to Qdrant
@@ -201,7 +208,11 @@ def process_file(
             dry_run=dry_run,
         )
     except Exception as e:
-        print(f"Error processing file {path}: {str(e)}")
+        print(
+            translate(
+                "cli.reindex.errors.file_processing_error", path=path, error=str(e)
+            )
+        )
         return None
 
 
@@ -261,51 +272,56 @@ def process_directory(
 
 def main():
     """Main function of the reindexing script."""
-    parser = argparse.ArgumentParser(
-        description="Reindex content in Qdrant without duplication"
-    )
+    # Configure language from environment variable
+    lang_code = os.environ.get("SYNAPSTOR_LANGUAGE", "en")
+    if lang_code == "pt":
+        set_language(Language.PORTUGUESE)
+    else:
+        set_language(Language.ENGLISH)
+
+    parser = argparse.ArgumentParser(description=translate("cli.reindex.description"))
 
     parser.add_argument(
         "--project",
         "-p",
         required=True,
-        help="Project name for document identification",
+        help=translate("cli.reindex.project_help"),
     )
 
     parser.add_argument(
-        "--path", required=True, help="Path to file or directory to be indexed"
+        "--path", required=True, help=translate("cli.reindex.path_help")
     )
 
     parser.add_argument(
         "--collection",
         "-c",
         default=os.environ.get("QDRANT_COLLECTION", "documents"),
-        help="Name of the collection in Qdrant (default env: QDRANT_COLLECTION or 'documents')",
+        help=translate("cli.reindex.collection_help"),
     )
 
     parser.add_argument(
         "--url",
         default=os.environ.get("QDRANT_URL", "http://localhost:6333"),
-        help="Qdrant server URL (default env: QDRANT_URL or 'http://localhost:6333')",
+        help=translate("cli.reindex.url_help"),
     )
 
     parser.add_argument(
         "--api-key",
         default=os.environ.get("QDRANT_API_KEY", ""),
-        help="API key for Qdrant (default env: QDRANT_API_KEY)",
+        help=translate("cli.reindex.api_key_help"),
     )
 
     parser.add_argument(
         "--verbose",
         "-v",
         action="store_true",
-        help="Show additional information during processing",
+        help=translate("cli.reindex.verbose_help"),
     )
 
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Executes without sending data to Qdrant (only simulates)",
+        help=translate("cli.reindex.dry_run_help"),
     )
 
     args = parser.parse_args()
@@ -315,13 +331,13 @@ def main():
 
     # Check if the collection was specified
     if not args.collection:
-        print("Error: Collection name not provided")
+        print(translate("cli.reindex.errors.collection_not_provided"))
         parser.print_help()
         sys.exit(1)
 
     # Check if the path exists
     if not os.path.exists(args.path):
-        print(f"Error: Path not found: {args.path}")
+        print(translate("cli.reindex.errors.path_not_found", path=args.path))
         sys.exit(1)
 
     # Configure Qdrant client
@@ -339,10 +355,10 @@ def main():
         client.get_collections()
 
         if args.verbose:
-            print(f"Connected to Qdrant at {args.url}")
+            print(translate("cli.reindex.messages.connected_to_qdrant", url=args.url))
 
     except Exception as e:
-        print(f"Error connecting to Qdrant: {str(e)}")
+        print(translate("cli.reindex.errors.qdrant_connection_failed", error=str(e)))
         sys.exit(1)
 
     # Check if the collection exists
@@ -351,11 +367,16 @@ def main():
         collection_names = [col.name for col in collections]
 
         if args.collection not in collection_names:
-            print(f"Warning: Collection '{args.collection}' does not exist.")
+            print(
+                translate(
+                    "cli.reindex.warnings.collection_not_exists",
+                    collection=args.collection,
+                )
+            )
 
             if not args.dry_run:
                 create = (
-                    input("Do you want to create the collection? (y/n): ").lower()
+                    input(translate("cli.reindex.prompts.create_collection")).lower()
                     == "y"
                 )
                 if create:
@@ -369,12 +390,17 @@ def main():
                             )
                         },
                     )
-                    print(f"Collection '{args.collection}' created successfully.")
+                    print(
+                        translate(
+                            "cli.reindex.messages.collection_created",
+                            collection=args.collection,
+                        )
+                    )
                 else:
-                    print("Operation cancelled.")
+                    print(translate("cli.reindex.messages.operation_cancelled"))
                     sys.exit(0)
     except Exception as e:
-        print(f"Error checking collections: {str(e)}")
+        print(translate("cli.reindex.errors.collection_check_failed", error=str(e)))
         if not args.dry_run:
             sys.exit(1)
 
@@ -382,7 +408,7 @@ def main():
     try:
         if os.path.isfile(args.path):
             if args.verbose:
-                print(f"Processing file: {args.path}")
+                print(translate("cli.reindex.messages.processing_file", path=args.path))
 
             result = process_file(
                 path=args.path,
@@ -394,13 +420,21 @@ def main():
             )
 
             if result:
-                print(f"File processed successfully. ID: {result}")
+                print(
+                    translate(
+                        "cli.reindex.messages.file_processed_successfully", id=result
+                    )
+                )
             else:
-                print("Failed to process file.")
+                print(translate("cli.reindex.messages.file_processing_failed"))
 
         elif os.path.isdir(args.path):
             if args.verbose:
-                print(f"Processing directory: {args.path}")
+                print(
+                    translate(
+                        "cli.reindex.messages.processing_directory", path=args.path
+                    )
+                )
 
             results = process_directory(
                 directory=args.path,
@@ -414,15 +448,19 @@ def main():
             # Count successful results
             success = [r for r in results if r is not None]
             print(
-                f"Processing completed. {len(success)} of {len(results)} files indexed."
+                translate(
+                    "cli.reindex.messages.processing_completed",
+                    success=len(success),
+                    total=len(results),
+                )
             )
 
         else:
-            print(f"Error: Specified path is not valid: {args.path}")
+            print(translate("cli.reindex.errors.invalid_path", path=args.path))
             sys.exit(1)
 
     except Exception as e:
-        print(f"Error during processing: {str(e)}")
+        print(translate("cli.reindex.errors.processing_failed", error=str(e)))
         sys.exit(1)
 
 

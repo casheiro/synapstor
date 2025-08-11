@@ -250,5 +250,68 @@
     "arg_recreate_collection_help": "Recria a coleção se ela já existir",
     "arg_mef_enabled_help": "Habilita o processamento MEF (Matrix Embedding Framework) para arquivos YAML",
     "arg_mef_enforce_structure_help": "Força validação rigorosa da estrutura MEF (requer --mef-enabled)"
+  },
+  "cli": {
+    "config": {
+      "description": "Configurador do Synapstor",
+      "args": {
+        "env_file_help": "Caminho para o arquivo .env (padrão: .env no diretório atual)"
+      },
+      "titles": {
+        "main_title": "CONFIGURAÇÃO DO SYNAPSTOR",
+        "configuration": "Configuração do Synapstor"
+      },
+      "labels": {
+        "required": "Obrigatório",
+        "optional": "Opcional"
+      },
+      "prompts": {
+        "value_with_default": "Valor [{default}]",
+        "value": "Valor",
+        "configure_optional": "\nDeseja configurar variáveis opcionais? (s/n)"
+      },
+      "messages": {
+        "env_saved": "Arquivo .env salvo com sucesso em {path}",
+        "configure_required": "\nVamos configurar as variáveis obrigatórias:",
+        "configure_optional": "\nVamos configurar as variáveis opcionais:",
+        "checking_dependencies": "\nVerificando dependências...",
+        "installing_dependencies": "\nInstalando dependências: {deps}",
+        "installing_package": "Instalando {package}...",
+        "package_installed": "✅ {package} instalado com sucesso",
+        "all_dependencies_installed": "✅ Todas as dependências foram instaladas com sucesso",
+        "dependencies_already_installed": "✅ Todas as dependências já estão instaladas",
+        "intro": "\nEsta ferramenta irá guiá-lo pela configuração do Synapstor.",
+        "configuration_success": "\n✅ Configuração concluída com sucesso!",
+        "env_file_location": "Arquivo .env foi criado em: {path}",
+        "server_start_options": "\nVocê pode iniciar o servidor com:",
+        "or": "ou:",
+        "manual_install_instruction": "Tente instalar manualmente com:"
+      },
+      "file_headers": {
+        "title": "Configuração do Synapstor",
+        "auto_generated": "Arquivo gerado automaticamente",
+        "required_section": "Configuração do Qdrant (obrigatório)",
+        "optional_section": "Configurações Opcionais"
+      },
+      "descriptions": {
+        "qdrant_url": "URL do servidor Qdrant (ex.: http://localhost:6333 ou https://seu-qdrant-server.cloud:6333)",
+        "qdrant_api_key": "Chave da API do servidor Qdrant (deixe em branco para sem autenticação)",
+        "collection_name": "Nome da coleção no Qdrant (ex.: synapstor)",
+        "qdrant_local_path": "Caminho para armazenamento local do Qdrant (opcional, deixe em branco para usar o servidor na URL)",
+        "embedding_provider": "Provedor de embeddings [FASTEMBED]",
+        "embedding_model": "Modelo de embeddings (ex.: sentence-transformers/all-MiniLM-L6-v2)",
+        "search_limit": "Limite de resultados de busca (ex.: 10)",
+        "tool_store": "Descrição da ferramenta 'store'",
+        "tool_find": "Descrição da ferramenta 'find'",
+        "log_level": "Nível de log [INFO, DEBUG, WARNING, ERROR]"
+      },
+      "errors": {
+        "save_failed": "Erro ao salvar arquivo .env: {error}",
+        "read_failed": "Erro ao ler arquivo .env existente: {error}",
+        "package_install_failed": "❌ Erro ao instalar {package}: {error}",
+        "dependency_check_failed": "\n❌ Falha ao verificar ou instalar dependências.",
+        "configuration_failed": "\n❌ Falha ao completar a configuração."
+      }
+    }
   }
 }
