@@ -43,16 +43,14 @@ except ImportError:
     def generate_deterministic_id(metadata: Dict[str, Any]) -> str:
         """Internal fallback version of the deterministic ID generator"""
         # Extract identification data
-        project = metadata.get("project", "") or metadata.get("projeto", "")
-        absolute_path = metadata.get("absolute_path", "") or metadata.get(
-            "caminho_absoluto", ""
-        )
+        project = metadata.get("project", "")
+        absolute_path = metadata.get("absolute_path", "")
 
         # If there's no project and path, try to use other identifiers
         if not (project and absolute_path):
             content_hash = ""
             # Try to use filename if available
-            filename = metadata.get("filename", "") or metadata.get("nome_arquivo", "")
+            filename = metadata.get("filename", "")
             if filename:
                 content_hash += f"file:{filename};"
 
@@ -60,11 +58,8 @@ except ImportError:
             for key in sorted(metadata.keys()):
                 if key not in [
                     "project",
-                    "projeto",
                     "absolute_path",
-                    "caminho_absoluto",
                     "filename",
-                    "nome_arquivo",
                 ]:
                     value = str(metadata[key])
                     if value:
@@ -128,10 +123,6 @@ def load_dotenv_file():
         return True
     except ImportError:
         return False
-
-
-# Backward compatibility alias
-carregar_dotenv = load_dotenv_file
 
 
 # Silently checks dependencies
@@ -690,13 +681,6 @@ class DirectIndexer:
             "filename": filename,
             "extension": extension,
             "size_bytes": size_bytes,
-            # Backward compatibility
-            "projeto": self.project_name,
-            "caminho_absoluto": str(file_path.absolute()),
-            "caminho_relativo": relative_path,
-            "nome_arquivo": filename,
-            "extensao": extension,
-            "tamanho_bytes": size_bytes,
         }
 
         # Check for MEF processing
@@ -752,9 +736,7 @@ class DirectIndexer:
                 deterministic_id = generate_deterministic_id(metadata)
 
                 if self.verbose:
-                    relative_path = metadata.get("relative_path", "") or metadata.get(
-                        "caminho_relativo", "unknown"
-                    )
+                    relative_path = metadata.get("relative_path", "unknown")
                     print(
                         "🔑",
                         _(
@@ -1022,11 +1004,6 @@ class DirectIndexer:
             print("❌", _("indexer.qdrant_store_error", error=str(e)))
             return []
 
-    # Backward compatibility alias
-    def buscar(self, consulta: str, limite: int = 10) -> List[Dict[str, Any]]:
-        """Backward compatibility method"""
-        return self.search(consulta, limite)
-
 
 def main():
     """Main function for command line usage"""
@@ -1150,9 +1127,7 @@ def main():
                         _("indexer.search_result_entry", number=i, score=res["score"]),
                     )
                     metadata = res["metadata"]
-                    relative_path = metadata.get("relative_path", "") or metadata.get(
-                        "caminho_relativo", "Unknown"
-                    )
+                    relative_path = metadata.get("relative_path", "Unknown")
                     print(f"📂 {relative_path}")
 
                     # Show a snippet of the document
@@ -1168,10 +1143,6 @@ def main():
     except (ValueError, OSError, ImportError, RuntimeError) as e:
         print("\n❌", _("common.error"), e)
         return 1
-
-
-# Backward compatibility aliases
-IndexadorDireto = DirectIndexer
 
 
 if __name__ == "__main__":

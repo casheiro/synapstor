@@ -20,7 +20,7 @@ from pathlib import Path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Import existing tools
-from cli.config import ConfiguradorInterativo
+from cli.config import InteractiveConfigurator
 
 # Basic logging configuration
 logging.basicConfig(
@@ -72,15 +72,15 @@ def start_server(args):
     if args.configure:
         env_path = Path(args.env_file) if args.env_file else Path.cwd() / ".env"
         logger.info("🔧 Configuring Synapstor before starting the server...")
-        configurador = ConfiguradorInterativo(env_path)
+        configurator = InteractiveConfigurator(env_path)
 
         # Check dependencies
-        if not configurador.verificar_dependencias():
+        if not configurator.check_dependencies():
             logger.error("❌ Failed to check or install dependencies")
             return 1
 
         # Run configuration
-        if not configurador.configurar():
+        if not configurator.configure():
             logger.error(
                 "❌ Failed to configure Synapstor. The server will not be started."
             )

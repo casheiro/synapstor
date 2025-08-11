@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Import the configurator
-from cli.config import ConfiguradorInterativo
+from cli.config import InteractiveConfigurator
 
 
 def main():
@@ -34,10 +34,10 @@ def main():
     env_path = current_directory / ".env"
 
     # Create the configurator
-    configurador = ConfiguradorInterativo(env_path)
+    configurator = InteractiveConfigurator(env_path)
 
     # Check dependencies
-    if not configurador.verificar_dependencias():
+    if not configurator.check_dependencies():
         print("\n❌ Failed to check or install dependencies.")
         return 1
 
@@ -145,7 +145,7 @@ def main():
 
     # Run the interactive configuration
     print("\nLet's configure Synapstor...")
-    if configurador.configurar():
+    if configurator.configure():
         print("\n✅ Configuration completed successfully!")
         print(f".env file was created at: {env_path.absolute()}")
 

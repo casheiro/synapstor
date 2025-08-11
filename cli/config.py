@@ -197,7 +197,7 @@ class InteractiveConfigurator:
         # Saves the values to the .env file
         return self._save_env(all_values)
 
-    def verificar_dependencias(self) -> bool:
+    def check_dependencies(self) -> bool:
         """
         Checks if all dependencies are installed and installs them if necessary
 
@@ -269,17 +269,17 @@ def main():
     print("=" * 50)
     print("\nThis tool will guide you through configuring Synapstor.")
 
-    configurador = InteractiveConfigurator(env_path)
+    configurator = InteractiveConfigurator(env_path)
 
     # Check dependencies first
-    if not configurador.verificar_dependencias():
+    if not configurator.check_dependencies():
         print("\n❌ Failed to check or install dependencies.")
         print("Please try to install manually with:")
         print("pip install mcp[cli] fastembed qdrant-client pydantic python-dotenv")
         return 1
 
     # Run interactive configuration
-    if configurador.configure():
+    if configurator.configure():
         print("\n✅ Configuration completed successfully!")
         print(f".env file was created at: {env_path.absolute()}")
         print("\nYou can start the server with:")
@@ -292,7 +292,7 @@ def main():
         return 1
 
 
-# Backward compatibility aliases
+# Backward compatibility alias
 ConfiguradorInterativo = InteractiveConfigurator
 
 
