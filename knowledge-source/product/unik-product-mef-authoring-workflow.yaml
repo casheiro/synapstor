@@ -1,0 +1,123 @@
+id: unik-product-mef-authoring-workflow
+title: MEF Document Authoring User Workflow
+domain: product
+type: template
+context: implementation
+language: en_US
+content: |
+  Standardized workflow template for creating, editing, and maintaining MEF (Matrix Embedding Framework) documents within teams.
+  
+  ## Document Creation Workflow
+  
+  ### Phase 1: Planning and Preparation
+  1. **Identify Knowledge Gap**: Recognize need for documentation of a pattern, rule, or process
+  2. **Determine MEF Domain**: Classify content as business, technical, product, strategy, or culture
+  3. **Choose Content Type**: Select appropriate type (business_rule, pattern, guideline, decision, example)
+  4. **Plan Relationships**: Identify existing UKIs that should be linked
+  
+  ### Phase 2: Content Development
+  1. **Create Unique ID**: Generate ID following `unik-[domain]-[descriptive-slug]` format
+  2. **Write Descriptive Title**: Create clear, actionable title (max 80 characters)
+  3. **Develop Core Content**: Write comprehensive but concise content using structured format:
+     - Brief description (1-2 sentences)
+     - Detailed context and explanation
+     - Implementation details (if applicable)
+     - Important considerations or constraints
+  
+  ### Phase 3: Enhancement and Validation
+  1. **Add Practical Examples**: Include realistic input/output examples
+  2. **Define Intent of Use**: Specify how and when this UKI should be used
+  3. **Set Use Case Stages**: Identify applicable project phases
+  4. **Link Related Content**: Add references to related UKIs
+  5. **Validate Structure**: Run MEF validation to ensure compliance
+  
+  ## Document Maintenance Workflow
+  
+  ### Regular Review Cycle
+  1. **Quarterly Content Review**: Check accuracy and relevance
+  2. **Update Validation Date**: Record last validation in YYYY-MM-DD format
+  3. **Refresh Examples**: Ensure examples remain current and accurate
+  4. **Review Relationships**: Add/remove links to related UKIs as needed
+  
+  ### Change Management Process
+  1. **Impact Assessment**: Evaluate changes to related UKIs
+  2. **Version Documentation**: Track significant changes
+  3. **Stakeholder Review**: Get approval for changes affecting shared processes
+  4. **Propagation Check**: Update dependent documentation
+  
+  ## Quality Assurance Guidelines
+  
+  ### Content Quality Standards
+  - Clear, jargon-free language appropriate for target audience
+  - Actionable information that enables practical implementation
+  - Comprehensive coverage without unnecessary complexity
+  - Consistent formatting and structure across all UKIs
+  
+  ### Technical Validation
+  - MEF schema compliance verification
+  - ID uniqueness and format validation
+  - Required field completion check
+  - Relationship integrity validation
+  
+  ### Peer Review Process
+  1. **Author Self-Review**: Complete initial quality check
+  2. **Technical Review**: Validate accuracy and completeness
+  3. **Editorial Review**: Check language, clarity, and consistency
+  4. **Domain Expert Review**: Confirm subject matter accuracy
+  
+  ## Collaboration Patterns
+  
+  ### Team Authoring
+  - **Subject Matter Expert**: Provides core content and expertise
+  - **Technical Writer**: Ensures clarity and structure
+  - **Domain Owner**: Reviews and approves domain-specific content
+  - **UX Designer**: Reviews user-facing process documentation
+  
+  ### Review and Approval
+  - **Draft Phase**: Internal team review and iteration
+  - **Review Phase**: Cross-team validation and feedback
+  - **Approval Phase**: Final sign-off from domain owners
+  - **Publication Phase**: Integration into knowledge base
+  
+  ## Tooling and Environment
+  
+  ### Recommended Tools
+  - YAML-aware text editors with syntax highlighting
+  - MEF validation tools for real-time feedback
+  - Version control integration for change tracking
+  - Preview tools for rendered content review
+  
+  ### File Organization
+  - Consistent directory structure by domain
+  - Descriptive file names matching UKI IDs
+  - README files explaining domain-specific guidelines
+  - Template files for common UKI types
+
+examples:
+  - input: "Developer identifies need to document API authentication pattern"
+    output: "Creates unik-technical-api-auth-pattern.yaml in technical/ directory with comprehensive JWT implementation guide"
+  - input: "Business analyst documents new pricing rule"
+    output: "Follows workflow to create unik-business-pricing-tier-calculation.yaml with examples and validation logic"
+  - input: "Team lead wants to standardize code review process"
+    output: "Authors unik-culture-code-review-standards.yaml with step-by-step process and quality criteria"
+
+intent_of_use:
+  - standardize_authoring_process
+  - ensure_content_quality
+  - facilitate_collaboration
+  - maintain_consistency
+  - accelerate_documentation
+
+use_case_stage:
+  - planning
+  - implementation
+  - documentation
+  - peer_review
+  - maintenance
+
+related_to:
+  - unik-business-mef-validation-rules
+  - unik-culture-documentation-standards
+  - unik-technical-mef-implementation
+
+last_validation: 2024-12-08

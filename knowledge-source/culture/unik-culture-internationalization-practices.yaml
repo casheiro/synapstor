@@ -1,0 +1,173 @@
+id: unik-culture-internationalization-practices
+title: Internationalization Development and Maintenance Practices
+domain: culture
+type: guideline
+context: implementation
+language: en_US
+content: |
+  Team practices and guidelines for developing, maintaining, and extending internationalization (i18n) support across Synapstor components.
+  
+  ## Core I18n Principles
+  
+  ### Language Support Philosophy
+  1. **Primary Languages**: Portuguese (pt_BR) and English (en_US) as first-class citizens
+  2. **Fallback Strategy**: English as universal fallback for missing translations
+  3. **Cultural Adaptation**: Consider cultural context, not just literal translation
+  4. **User Choice**: Respect user language preferences through environment variables
+  
+  ### Implementation Standards
+  - **Consistent Key Naming**: Use hierarchical, descriptive translation keys
+  - **Context Preservation**: Maintain context information for translators
+  - **Variable Support**: Use `{variable}` syntax for dynamic content insertion
+  - **Thread Safety**: Ensure translation system works in concurrent environments
+  
+  ## Development Workflow
+  
+  ### Adding New Translatable Content
+  1. **Identify Text**: Mark all user-facing text for translation
+  2. **Create Keys**: Use descriptive, hierarchical keys (e.g., `cli.indexer.progress.starting`)
+  3. **Add to Files**: Update both `en.json` and `pt.json` translation files
+  4. **Use Translator**: Implement using `get_translator()` function
+  5. **Test Both Languages**: Verify functionality in both supported languages
+  
+  ### Translation Key Structure
+  ```json
+  {
+    "module": {
+      "component": {
+        "action": {
+          "message": "Translatable text with {variable} support"
+        }
+      }
+    }
+  }
+  ```
+  
+  ### Code Implementation Pattern
+  ```python
+  from synapstor.i18n import get_translator
+  
+  def some_function():
+      t = get_translator()
+      message = t("cli.indexer.progress.starting", project_name="MyProject")
+      print(message)
+  ```
+  
+  ## Translation Management
+  
+  ### File Organization
+  - **Location**: `src/synapstor/i18n/translations/`
+  - **Naming**: `{language_code}.json` (e.g., `en.json`, `pt.json`)
+  - **Structure**: Hierarchical JSON with nested objects for organization
+  - **Encoding**: UTF-8 encoding for all translation files
+  
+  ### Quality Assurance
+  1. **Completeness Check**: Ensure all keys exist in all language files
+  2. **Variable Consistency**: Verify variable placeholders match across languages
+  3. **Context Review**: Validate translations make sense in actual usage context
+  4. **Native Speaker Review**: Have native speakers review translations for accuracy
+  
+  ### Translation Update Process
+  1. **Source Changes**: When English text changes, update translation key
+  2. **Batch Updates**: Group translation updates for efficiency
+  3. **Review Cycle**: Regular review of translation quality and completeness
+  4. **Version Tracking**: Track translation updates in version control
+  
+  ## Cultural Considerations
+  
+  ### Portuguese (Brazil) Adaptations
+  - **Formal vs. Informal**: Use appropriate level of formality for technical documentation
+  - **Technical Terms**: Balance between English technical terms and Portuguese equivalents
+  - **Date/Time Formats**: Use Brazilian conventions (DD/MM/YYYY)
+  - **Cultural Context**: Adapt examples and metaphors for Brazilian context
+  
+  ### English (US) Standards
+  - **Technical Writing**: Clear, concise technical communication style
+  - **Consistency**: Maintain consistent terminology across all components
+  - **Accessibility**: Use inclusive language and clear explanations
+  - **International Audience**: Consider non-native English speakers
+  
+  ## CLI and User Interface Guidelines
+  
+  ### Command Line Interfaces
+  - **Help Text**: Translate all help messages, descriptions, and error messages
+  - **Progress Indicators**: Localize progress messages and status updates
+  - **Error Messages**: Provide clear, actionable error messages in user's language
+  - **Examples**: Use culturally appropriate examples in help documentation
+  
+  ### Configuration and Environment
+  - **Environment Variables**: Use `SYNAPSTOR_LANGUAGE` for language selection
+  - **Auto-Detection**: Support automatic language detection when possible
+  - **Override Capability**: Allow explicit language override in all contexts
+  - **Documentation**: Document language configuration in multiple languages
+  
+  ## Testing and Validation
+  
+  ### Automated Testing
+  - **Translation Loading**: Test translation file loading and parsing
+  - **Key Existence**: Verify all used translation keys exist
+  - **Variable Substitution**: Test dynamic content insertion
+  - **Fallback Behavior**: Validate fallback to English when translations missing
+  
+  ### Manual Testing Process
+  1. **Full Workflow Testing**: Test complete user workflows in both languages
+  2. **Edge Case Validation**: Test with missing translations and edge cases
+  3. **Cultural Review**: Validate cultural appropriateness of translations
+  4. **User Experience**: Ensure natural flow in translated interfaces
+  
+  ## Extension and Future Languages
+  
+  ### Adding New Languages
+  1. **Market Research**: Validate demand for new language support
+  2. **Translation File Creation**: Create new language JSON file
+  3. **Language Code Registration**: Add language to supported languages list
+  4. **Quality Assurance**: Establish QA process for new language
+  5. **Community Engagement**: Engage native speaker community for ongoing support
+  
+  ### Community Contributions
+  - **Translation Guidelines**: Provide clear guidelines for community translators
+  - **Review Process**: Establish review process for community-contributed translations
+  - **Recognition**: Acknowledge and credit community translation contributors
+  - **Tools Access**: Provide tools and resources for translation contributors
+  
+  ## Maintenance and Evolution
+  
+  ### Regular Maintenance Tasks
+  - **Translation Audits**: Regular completeness and quality audits
+  - **Terminology Updates**: Keep technical terminology current
+  - **User Feedback Integration**: Incorporate user feedback on translations
+  - **Performance Monitoring**: Monitor i18n system performance impact
+  
+  ### Evolution Strategy
+  - **Gradual Expansion**: Add language support based on user demand
+  - **Technology Updates**: Keep i18n infrastructure current with best practices
+  - **Integration Enhancement**: Improve integration with development workflow
+  - **Community Building**: Build active translator community for sustainability
+
+examples:
+  - input: "Developer adds new CLI command with help text"
+    output: "Creates translation keys in both en.json and pt.json, implements using translator with proper key hierarchy"
+  - input: "User reports confusing error message in Portuguese"
+    output: "Review translation context, improve clarity, update pt.json, and test with native speakers"
+  - input: "Community volunteer offers Spanish translation support"
+    output: "Provide translation guidelines, create es.json template, establish review process with community"
+
+intent_of_use:
+  - maintain_translation_quality
+  - guide_development_practices
+  - ensure_cultural_appropriateness
+  - facilitate_community_contributions
+  - standardize_i18n_processes
+
+use_case_stage:
+  - implementation
+  - maintenance
+  - community_building
+  - quality_assurance
+
+related_to:
+  - unik-product-cli-interface-design
+  - unik-culture-contribution-guidelines
+  - unik-technical-i18n-implementation
+
+last_validation: 2024-12-08

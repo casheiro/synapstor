@@ -1,0 +1,115 @@
+id: unik-product-experiencia-busca-conhecimento
+title: Diretrizes de Experiência do Usuário para Busca de Conhecimento
+domain: product
+type: guideline
+context: implementation
+language: pt_BR
+content: |
+  Diretrizes para projetar experiências de busca de conhecimento intuitivas e eficazes dentro do ecossistema Synapstor.
+  
+  ## Princípios Centrais de Busca
+  
+  1. **Linguagem Natural Primeiro**: Usuários devem poder buscar usando consultas em linguagem natural sem aprender sintaxe especial ou comandos.
+  
+  2. **Resultados Conscientes de Contexto**: Resultados de busca devem considerar o contexto atual do usuário, projeto e interações anteriores.
+  
+  3. **Compreensão Semântica**: Aproveitar embeddings vetoriais para entender intenção e significado além de correspondência de palavras-chave.
+  
+  4. **Refinamento Progressivo**: Permitir que usuários refinem iterativamente sua busca através de filtros, facetas e sugestões relacionadas.
+  
+  ## Design de Interface de Busca
+  
+  ### Padrões de Entrada de Consulta
+  - Entrada de texto simples para consultas em linguagem natural
+  - Sugestões de auto-completar baseadas em conteúdo indexado
+  - Histórico de consultas para buscas repetidas
+  - Suporte a entrada por voz onde aplicável
+  
+  ### Apresentação de Resultados
+  - Resultados classificados por relevância com pontuação clara
+  - Snippets ricos mostrando contexto e destaques
+  - Atribuição de fonte com caminhos de arquivo e projetos
+  - Indicadores de confiança para qualidade do resultado
+  
+  ### Filtragem e Facetamento
+  - Filtros baseados em domínio (business, technical, product)
+  - Opções de busca com escopo de projeto
+  - Filtros de tipo de conteúdo (código, documentação, UKIs)
+  - Opções de intervalo de data e recência
+  
+  ## Recursos de Busca Aprimorados pelo MEF
+  
+  1. **Busca Específica por Domínio**: Filtrar resultados por domínios MEF para focar em áreas específicas de conhecimento
+  2. **Filtragem Baseada em Intenção**: Buscar por caso de uso pretendido (validate_implementation, generate_code)
+  3. **Sugestões Conscientes de Contexto**: Recomendar UKIs relacionadas baseadas no contexto de busca atual
+  4. **Navegação de Grafo de Conhecimento**: Exploração visual de conceitos e dependências relacionadas
+  
+  ## Padrões de Integração
+  
+  ### Integração com LLM
+  - Transição perfeita entre busca e conversa
+  - Preservação de contexto através de interações
+  - Citação automática de fontes em respostas
+  - Capacidade de fazer perguntas de acompanhamento
+  
+  ### Integração com Ferramentas de Desenvolvimento
+  - Painéis de busca no IDE e integração com barra lateral
+  - Busca contextual baseada em arquivo atual ou projeto
+  - Inserção de snippet de código dos resultados de busca
+  - Busca em tempo real conforme usuário digita
+  
+  ### Interface Web
+  - Design responsivo para vários tamanhos de tela
+  - Atalhos de teclado para usuários avançados
+  - URLs de resultado de busca compartilháveis
+  - Capacidades de exportação para conjuntos de resultados
+  
+  ## Diretrizes de Performance
+  
+  1. **Tempo de Resposta Sub-segundo**: Resultados de busca devem aparecer em 500ms para boa experiência do usuário
+  2. **Carregamento Incremental**: Carregar resultados iniciais rapidamente, depois refinar com contexto adicional
+  3. **Estratégia de Cache**: Cache de consultas frequentes e conjuntos de resultados específicos do usuário
+  4. **Degradação Graciosa**: Fornecer resultados significativos mesmo quando alguns serviços estão indisponíveis
+  
+  ## Padrões de Acessibilidade
+  
+  - Compatibilidade com leitor de tela com rótulos ARIA apropriados
+  - Navegação por teclado para todas as funções de busca
+  - Suporte a modo de alto contraste
+  - Compatibilidade com escala de texto
+  - Texto alternativo para elementos visuais
+  
+  ## Suporte Multilíngue
+  
+  - Tradução de interface para pt_BR e en_US
+  - Capacidades de busca de conteúdo entre idiomas
+  - Classificação de resultados específica por idioma
+  - Adaptação cultural de padrões de busca
+
+examples:
+  - input: "Usuário busca por 'como implementar autenticação'"
+    output: "Retorna UKIs MEF marcadas com padrões de autenticação, exemplos de código e regras de negócio relacionadas com destaque de contexto"
+  - input: "Desenvolvedor procura padrões específicos do projeto enquanto codifica"
+    output: "Integração IDE mostra resultados de busca contextuais filtrados para projeto atual com sugestões de código inline"
+  - input: "Analista de negócio busca por regras de preços"
+    output: "Resultados filtrados por domínio mostrando regras de negócio, registros de decisão e diretrizes relacionadas com atribuição clara de fonte"
+
+intent_of_use:
+  - projetar_interfaces_busca
+  - otimizar_workflows_usuario
+  - melhorar_descoberta_conhecimento
+  - aumentar_produtividade
+  - padronizar_interacoes
+
+use_case_stage:
+  - design
+  - implementation
+  - user_testing
+  - optimization
+
+related_to:
+  - unik-business-regras-indexacao-conhecimento
+  - unik-technical-implementacao-busca-semantica
+  - unik-product-design-interface-cli
+
+last_validation: 2024-12-08

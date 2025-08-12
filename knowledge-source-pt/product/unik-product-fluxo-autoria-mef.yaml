@@ -1,0 +1,123 @@
+id: unik-product-fluxo-autoria-mef
+title: Fluxo de Trabalho do Usuário para Autoria de Documentos MEF
+domain: product
+type: template
+context: implementation
+language: pt_BR
+content: |
+  Template de fluxo de trabalho padronizado para criar, editar e manter documentos MEF (Matrix Embedding Framework) dentro de equipes.
+  
+  ## Fluxo de Trabalho de Criação de Documento
+  
+  ### Fase 1: Planejamento e Preparação
+  1. **Identificar Lacuna de Conhecimento**: Reconhecer necessidade de documentação de um padrão, regra ou processo
+  2. **Determinar Domínio MEF**: Classificar conteúdo como business, technical, product, strategy ou culture
+  3. **Escolher Tipo de Conteúdo**: Selecionar tipo apropriado (business_rule, pattern, guideline, decision, example)
+  4. **Planejar Relacionamentos**: Identificar UKIs existentes que devem ser vinculadas
+  
+  ### Fase 2: Desenvolvimento de Conteúdo
+  1. **Criar ID Único**: Gerar ID seguindo formato `unik-[dominio]-[slug-descritivo]`
+  2. **Escrever Título Descritivo**: Criar título claro e acionável (máximo 80 caracteres)
+  3. **Desenvolver Conteúdo Central**: Escrever conteúdo abrangente mas conciso usando formato estruturado:
+     - Descrição breve (1-2 frases)
+     - Contexto detalhado e explicação
+     - Detalhes de implementação (se aplicável)
+     - Considerações importantes ou restrições
+  
+  ### Fase 3: Aprimoramento e Validação
+  1. **Adicionar Exemplos Práticos**: Incluir exemplos realistas de entrada/saída
+  2. **Definir Intenção de Uso**: Especificar como e quando esta UKI deve ser usada
+  3. **Definir Estágios de Caso de Uso**: Identificar fases de projeto aplicáveis
+  4. **Vincular Conteúdo Relacionado**: Adicionar referências a UKIs relacionadas
+  5. **Validar Estrutura**: Executar validação MEF para garantir conformidade
+  
+  ## Fluxo de Trabalho de Manutenção de Documento
+  
+  ### Ciclo de Revisão Regular
+  1. **Revisão Trimestral de Conteúdo**: Verificar precisão e relevância
+  2. **Atualizar Data de Validação**: Registrar última validação em formato YYYY-MM-DD
+  3. **Atualizar Exemplos**: Garantir que exemplos permaneçam atuais e precisos
+  4. **Revisar Relacionamentos**: Adicionar/remover links para UKIs relacionadas conforme necessário
+  
+  ### Processo de Gestão de Mudanças
+  1. **Avaliação de Impacto**: Avaliar mudanças para UKIs relacionadas
+  2. **Documentação de Versão**: Rastrear mudanças significativas
+  3. **Revisão de Stakeholder**: Obter aprovação para mudanças afetando processos compartilhados
+  4. **Verificação de Propagação**: Atualizar documentação dependente
+  
+  ## Diretrizes de Garantia de Qualidade
+  
+  ### Padrões de Qualidade de Conteúdo
+  - Linguagem clara e livre de jargão apropriada para audiência-alvo
+  - Informação acionável que habilita implementação prática
+  - Cobertura abrangente sem complexidade desnecessária
+  - Formatação e estrutura consistentes através de todas as UKIs
+  
+  ### Validação Técnica
+  - Verificação de conformidade com schema MEF
+  - Validação de unicidade e formato de ID
+  - Verificação de conclusão de campos obrigatórios
+  - Validação de integridade de relacionamento
+  
+  ### Processo de Revisão por Pares
+  1. **Auto-revisão do Autor**: Completar verificação inicial de qualidade
+  2. **Revisão Técnica**: Validar precisão e completude
+  3. **Revisão Editorial**: Verificar linguagem, clareza e consistência
+  4. **Revisão de Especialista de Domínio**: Confirmar precisão do assunto
+  
+  ## Padrões de Colaboração
+  
+  ### Autoria em Equipe
+  - **Especialista no Assunto**: Fornece conteúdo central e expertise
+  - **Redator Técnico**: Garante clareza e estrutura
+  - **Proprietário de Domínio**: Revisa e aprova conteúdo específico de domínio
+  - **Designer UX**: Revisa documentação de processo voltada ao usuário
+  
+  ### Revisão e Aprovação
+  - **Fase de Rascunho**: Revisão interna da equipe e iteração
+  - **Fase de Revisão**: Validação entre equipes e feedback
+  - **Fase de Aprovação**: Aprovação final dos proprietários de domínio
+  - **Fase de Publicação**: Integração na base de conhecimento
+  
+  ## Ferramentas e Ambiente
+  
+  ### Ferramentas Recomendadas
+  - Editores de texto conscientes de YAML com destaque de sintaxe
+  - Ferramentas de validação MEF para feedback em tempo real
+  - Integração de controle de versão para rastreamento de mudanças
+  - Ferramentas de preview para revisão de conteúdo renderizado
+  
+  ### Organização de Arquivos
+  - Estrutura de diretório consistente por domínio
+  - Nomes de arquivo descritivos correspondendo a IDs UKI
+  - Arquivos README explicando diretrizes específicas de domínio
+  - Arquivos template para tipos comuns de UKI
+
+examples:
+  - input: "Desenvolvedor identifica necessidade de documentar padrão de autenticação de API"
+    output: "Cria unik-technical-padrao-auth-api.yaml no diretório technical/ com guia abrangente de implementação JWT"
+  - input: "Analista de negócio documenta nova regra de preços"
+    output: "Segue fluxo de trabalho para criar unik-business-calculo-preco-nivel.yaml com exemplos e lógica de validação"
+  - input: "Líder de equipe quer padronizar processo de revisão de código"
+    output: "Autora unik-culture-padroes-revisao-codigo.yaml com processo passo-a-passo e critérios de qualidade"
+
+intent_of_use:
+  - padronizar_processo_autoria
+  - garantir_qualidade_conteudo
+  - facilitar_colaboracao
+  - manter_consistencia
+  - acelerar_documentacao
+
+use_case_stage:
+  - planning
+  - implementation
+  - documentation
+  - peer_review
+  - maintenance
+
+related_to:
+  - unik-business-regras-validacao-mef
+  - unik-culture-padroes-documentacao
+  - unik-technical-implementacao-mef
+
+last_validation: 2024-12-08

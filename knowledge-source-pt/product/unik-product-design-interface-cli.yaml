@@ -1,0 +1,102 @@
+id: unik-product-design-interface-cli
+title: Diretrizes de Design para Interface de Linha de Comando
+domain: product
+type: guideline
+context: implementation
+language: pt_BR
+content: |
+  Princípios de design e diretrizes para criar interfaces de linha de comando consistentes e amigáveis ao usuário no Synapstor.
+  
+  ## Princípios Centrais de Design
+  
+  1. **Interface de Controle Unificada**: Usar `synapstor-ctl` como ponto de entrada principal para todas as operações para reduzir carga cognitiva e fornecer experiência consistente do usuário.
+  
+  2. **Divulgação Progressiva**: Começar com comandos simples e fornecer opções adicionais através de flags e subcomandos.
+  
+  3. **Convenção de Nomenclatura Consistente**: Seguir padrões previsíveis:
+     - Verbos orientados a ação (start, stop, index, reindex)
+     - Flags claras e descritivas (--project, --path, --verbose)
+     - Subcomandos hierárquicos (ctl start, ctl indexer)
+  
+  4. **Padrões Úteis**: Fornecer padrões sensatos que funcionam para a maioria dos casos de uso enquanto permite personalização quando necessário.
+  
+  ## Padrões de Estrutura de Comando
+  
+  ### Comandos Primários
+  ```bash
+  synapstor-ctl start      # Iniciar servidor MCP
+  synapstor-ctl stop       # Parar servidor MCP
+  synapstor-ctl status     # Mostrar status do sistema
+  synapstor-ctl setup      # Configuração interativa
+  ```
+  
+  ### Subcomandos com Contexto
+  ```bash
+  synapstor-ctl indexer --project nome --path /caminho
+  synapstor-ctl reindex --project nome
+  synapstor-ctl logs --follow
+  ```
+  
+  ### Ferramentas Especializadas (Suporte Legado)
+  ```bash
+  synapstor-server      # Controle direto do servidor
+  synapstor-indexer     # Ferramenta direta de indexação
+  synapstor-config      # Gestão de configuração
+  ```
+  
+  ## Diretrizes de Experiência do Usuário
+  
+  1. **Mensagens de Erro Claras**: Fornecer mensagens de erro acionáveis com soluções sugeridas
+  2. **Indicadores de Progresso**: Mostrar progresso para operações de longa duração
+  3. **Prompts de Confirmação**: Solicitar confirmação para operações destrutivas
+  4. **Documentação de Ajuda**: Saída --help abrangente para todos os comandos
+  5. **Codificação por Cores**: Usar cores consistentemente (verde=sucesso, vermelho=erro, amarelo=aviso)
+  
+  ## Padrões de Internacionalização
+  
+  - Suporte a interfaces em português (pt_BR) e inglês (en_US)
+  - Usar variável de ambiente SYNAPSTOR_LANGUAGE para seleção de idioma
+  - Fornecer traduções consistentes para todo texto voltado ao usuário
+  - Padrão para inglês para compatibilidade internacional
+  
+  ## Considerações de Acessibilidade
+  
+  - Trabalhar efetivamente em ambientes interativos e não-interativos
+  - Suporte a leitores de tela através de saída de texto clara
+  - Fornecer indicadores de progresso alternativos baseados em texto
+  - Garantir operação apenas por teclado
+  
+  ## Gestão de Configuração
+  
+  - Suporte a variáveis de ambiente e arquivos .env
+  - Fornecer configuração interativa para usuários iniciantes
+  - Permitir validação e teste de configuração
+  - Documentação clara de todas as opções de configuração
+
+examples:
+  - input: "Novo usuário quer começar a usar o Synapstor"
+    output: "synapstor-ctl setup orienta através da configuração, depois synapstor-ctl start lança o serviço"
+  - input: "Desenvolvedor precisa indexar um projeto grande"
+    output: "synapstor-ctl indexer --project meuapp --path ./src --verbose fornece feedback de progresso e logging detalhado"
+  - input: "Usuário encontra erro de configuração"
+    output: "Mensagem de erro clara com caminho específico do arquivo e correção de configuração sugerida"
+
+intent_of_use:
+  - padronizar_interface_usuario
+  - melhorar_experiencia_usuario
+  - reduzir_curva_aprendizado
+  - garantir_consistencia
+  - orientar_desenvolvimento
+
+use_case_stage:
+  - design
+  - implementation
+  - user_testing
+  - documentation
+
+related_to:
+  - unik-business-modelo-integracao-mcp
+  - unik-technical-implementacao-cli
+  - unik-culture-padroes-experiencia-usuario
+
+last_validation: 2024-12-08

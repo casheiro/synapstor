@@ -1,0 +1,115 @@
+id: unik-product-knowledge-search-experience
+title: Knowledge Search User Experience Guidelines
+domain: product
+type: guideline
+context: implementation
+language: en_US
+content: |
+  Guidelines for designing intuitive and effective knowledge search experiences within Synapstor ecosystem.
+  
+  ## Core Search Principles
+  
+  1. **Natural Language First**: Users should be able to search using natural language queries without learning special syntax or commands.
+  
+  2. **Context-Aware Results**: Search results should consider the user's current context, project, and previous interactions.
+  
+  3. **Semantic Understanding**: Leverage vector embeddings to understand intent and meaning beyond keyword matching.
+  
+  4. **Progressive Refinement**: Allow users to iteratively refine their search through filters, facets, and related suggestions.
+  
+  ## Search Interface Design
+  
+  ### Query Input Patterns
+  - Simple text input for natural language queries
+  - Auto-complete suggestions based on indexed content
+  - Query history for repeated searches
+  - Voice input support where applicable
+  
+  ### Result Presentation
+  - Relevance-ranked results with clear scoring
+  - Rich snippets showing context and highlights
+  - Source attribution with file paths and projects
+  - Confidence indicators for result quality
+  
+  ### Filtering and Faceting
+  - Domain-based filters (business, technical, product)
+  - Project-scoped search options  
+  - Content type filters (code, documentation, UKIs)
+  - Date range and recency options
+  
+  ## MEF-Enhanced Search Features
+  
+  1. **Domain-Specific Search**: Filter results by MEF domains to focus on specific knowledge areas
+  2. **Intent-Based Filtering**: Search by intended use case (validate_implementation, generate_code)
+  3. **Context-Aware Suggestions**: Recommend related UKIs based on current search context
+  4. **Knowledge Graph Navigation**: Visual exploration of related concepts and dependencies
+  
+  ## Integration Patterns
+  
+  ### LLM Integration
+  - Seamless handoff between search and conversation
+  - Context preservation across interactions
+  - Automatic citation of sources in responses
+  - Ability to ask follow-up questions
+  
+  ### Development Tool Integration
+  - In-IDE search panels and sidebar integration
+  - Contextual search based on current file or project
+  - Code snippet insertion from search results
+  - Real-time search as user types
+  
+  ### Web Interface
+  - Responsive design for various screen sizes
+  - Keyboard shortcuts for power users
+  - Shareable search result URLs
+  - Export capabilities for result sets
+  
+  ## Performance Guidelines
+  
+  1. **Sub-second Response Time**: Search results should appear within 500ms for good user experience
+  2. **Incremental Loading**: Load initial results quickly, then refine with additional context
+  3. **Caching Strategy**: Cache frequent queries and user-specific result sets
+  4. **Graceful Degradation**: Provide meaningful results even when some services are unavailable
+  
+  ## Accessibility Standards
+  
+  - Screen reader compatibility with proper ARIA labels
+  - Keyboard navigation for all search functions
+  - High contrast mode support
+  - Text scaling compatibility
+  - Alternative text for visual elements
+  
+  ## Multilingual Support
+  
+  - Interface translation for pt_BR and en_US
+  - Cross-language content search capabilities
+  - Language-specific result ranking
+  - Cultural adaptation of search patterns
+
+examples:
+  - input: "User searches for 'how to implement authentication'"
+    output: "Returns MEF UKIs tagged with authentication patterns, code examples, and related business rules with context highlighting"
+  - input: "Developer looks for project-specific patterns while coding"
+    output: "IDE integration shows contextual search results filtered to current project with inline code suggestions"
+  - input: "Business analyst searches for pricing rules"
+    output: "Domain-filtered results showing business rules, decision records, and related guidelines with clear source attribution"
+
+intent_of_use:
+  - design_search_interfaces
+  - optimize_user_workflows
+  - improve_knowledge_discovery
+  - enhance_productivity
+  - standardize_interactions
+
+use_case_stage:
+  - design
+  - implementation
+  - user_testing
+  - optimization
+
+related_to:
+  - unik-business-knowledge-indexing-rules
+  - unik-technical-semantic-search-implementation
+  - unik-product-cli-interface-design
+
+last_validation: 2024-12-08

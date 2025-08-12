@@ -1,0 +1,234 @@
+id: unik-culture-contribution-guidelines
+title: Open Source Contribution Guidelines and Community Standards
+domain: culture
+type: guideline
+context: implementation
+language: en_US
+content: |
+  Guidelines for contributing to Synapstor project, fostering inclusive community participation, and maintaining high-quality collaborative development practices.
+  
+  ## Community Values
+  
+  ### Core Principles
+  1. **Inclusivity**: Welcome contributors of all backgrounds, experience levels, and perspectives
+  2. **Respect**: Treat all community members with courtesy and professionalism
+  3. **Collaboration**: Foster cooperative problem-solving and knowledge sharing
+  4. **Quality**: Maintain high standards while supporting learning and growth
+  5. **Transparency**: Keep development processes open and decision-making visible
+  
+  ### Code of Conduct
+  - **Professional Communication**: Use respectful, constructive language in all interactions
+  - **Constructive Feedback**: Provide helpful, actionable feedback focused on improvement
+  - **Inclusive Environment**: Avoid language or behavior that excludes or discriminates
+  - **Conflict Resolution**: Address disagreements professionally and seek mediation when needed
+  
+  ## Contribution Types and Pathways
+  
+  ### Code Contributions
+  **Areas of Contribution:**
+  - Core Synapstor functionality improvements
+  - MEF specification enhancements
+  - MCP integration features
+  - CLI tool improvements
+  - Performance optimizations
+  - Bug fixes and stability improvements
+  
+  **Quality Standards:**
+  - Follow established coding conventions and style guidelines
+  - Include comprehensive tests for new functionality
+  - Update documentation for user-facing changes
+  - Use conventional commit message format
+  
+  ### Documentation Contributions
+  **Documentation Types:**
+  - User guides and tutorials
+  - API reference documentation
+  - MEF authoring guidelines
+  - Integration examples
+  - Troubleshooting guides
+  - Translation updates
+  
+  **Quality Standards:**
+  - Clear, concise writing appropriate for target audience
+  - Practical examples and use cases
+  - Up-to-date information reflecting current functionality
+  - Consistent formatting and style
+  
+  ### Community Support Contributions
+  **Support Activities:**
+  - Answer questions in GitHub Discussions
+  - Help troubleshoot user issues
+  - Moderate community spaces
+  - Organize community events
+  - Create educational content
+  - Mentor new contributors
+  
+  ## Development Workflow
+  
+  ### Getting Started Process
+  1. **Fork Repository**: Create personal fork of Synapstor repository
+  2. **Environment Setup**: Follow development environment setup instructions
+  3. **Issue Selection**: Choose appropriate issue based on experience level
+  4. **Communication**: Comment on issue to indicate intention to work on it
+  5. **Branch Creation**: Create feature branch with descriptive name
+  
+  ### Development Standards
+  **Code Quality Requirements:**
+  ```bash
+  # Run quality checks before submitting
+  pre-commit run --all-files
+  pytest --cov=synapstor
+  black .
+  ruff check --fix
+  ```
+  
+  **Testing Requirements:**
+  - Unit tests for new functionality
+  - Integration tests for complex features
+  - Regression tests for bug fixes
+  - Performance tests for optimization work
+  
+  ### Pull Request Process
+  1. **Pre-submission Checklist**:
+     - [ ] Code follows style guidelines
+     - [ ] Tests pass locally
+     - [ ] Documentation updated
+     - [ ] Conventional commit messages used
+     - [ ] Breaking changes documented
+  
+  2. **PR Description Template**:
+     ```markdown
+     ## Description
+     Brief description of changes
+     
+     ## Type of Change
+     - [ ] Bug fix
+     - [ ] New feature
+     - [ ] Breaking change
+     - [ ] Documentation update
+     
+     ## Testing
+     Description of testing performed
+     
+     ## Related Issues
+     Fixes #issue_number
+     ```
+  
+  3. **Review Process**:
+     - Automated checks must pass
+     - At least one maintainer review required
+     - Address feedback constructively
+     - Maintain respectful communication
+  
+  ## Contribution Recognition
+  
+  ### Contributor Acknowledgment
+  - **Contributors File**: All contributors acknowledged in CONTRIBUTORS.md
+  - **Release Notes**: Significant contributions highlighted in release announcements
+  - **Community Spotlights**: Regular features highlighting community contributions
+  - **Conference Speaking**: Opportunities to present work at conferences and meetups
+  
+  ### Advancement Pathways
+  **Contribution Levels:**
+  1. **First-time Contributor**: Successful first PR merged
+  2. **Regular Contributor**: Multiple accepted contributions
+  3. **Community Member**: Active in discussions and support
+  4. **Maintainer**: Trusted with review and merge responsibilities
+  5. **Core Team**: Strategic input on project direction
+  
+  ## Issue Management and Communication
+  
+  ### Issue Categories
+  - **Bug Reports**: Problems with existing functionality
+  - **Feature Requests**: Proposals for new capabilities
+  - **Documentation**: Improvements to documentation
+  - **Good First Issues**: Beginner-friendly contribution opportunities
+  - **Help Wanted**: Issues where community assistance is especially welcome
+  
+  ### Communication Channels
+  - **GitHub Issues**: Bug reports, feature requests, and development discussion
+  - **GitHub Discussions**: General questions, ideas, and community conversation
+  - **Discord/Slack**: Real-time community support and collaboration
+  - **Email Lists**: Important announcements and governance discussions
+  
+  ### Response Time Expectations
+  - **Issue Acknowledgment**: Within 48 hours
+  - **PR Initial Review**: Within 1 week
+  - **Community Questions**: Within 24 hours during business days
+  - **Security Issues**: Within 24 hours
+  
+  ## Specialized Contribution Areas
+  
+  ### MEF Specification Development
+  - Propose enhancements to MEF specification
+  - Contribute example UKIs and use cases
+  - Participate in specification governance discussions
+  - Help with MEF adoption and education
+  
+  ### Internationalization Support
+  - Translate interface text to new languages
+  - Review and improve existing translations
+  - Provide cultural context for localization
+  - Test multilingual functionality
+  
+  ### Integration Development
+  - Create plugins for popular development tools
+  - Develop MCP transport implementations
+  - Build embedding provider integrations
+  - Create example applications and demonstrations
+  
+  ## Onboarding and Mentorship
+  
+  ### New Contributor Support
+  - **Mentorship Program**: Experienced contributors paired with newcomers
+  - **Office Hours**: Regular sessions for questions and guidance
+  - **Contribution Workshops**: Training sessions on development practices
+  - **Documentation Walkthrough**: Guided tours of codebase and architecture
+  
+  ### Learning Resources
+  - **Architecture Overview**: High-level system design documentation
+  - **Development Setup Guide**: Step-by-step environment configuration
+  - **Code Tour**: Annotated walkthrough of key components
+  - **Best Practices Guide**: Coding standards and conventions reference
+  
+  ## Governance and Decision Making
+  
+  ### Decision Process
+  - **Small Changes**: Direct PR submission and review
+  - **Medium Changes**: GitHub issue discussion before implementation
+  - **Major Changes**: RFC (Request for Comments) process with community input
+  - **Breaking Changes**: Extended discussion period and migration planning
+  
+  ### Conflict Resolution
+  1. **Direct Communication**: Attempt to resolve disagreements directly
+  2. **Community Mediation**: Involve neutral community members
+  3. **Maintainer Intervention**: Escalate to project maintainers
+  4. **Code of Conduct Enforcement**: Final escalation for serious issues
+
+examples:
+  - input: "New developer wants to contribute but unsure where to start"
+    output: "Direct to 'Good First Issues' label, provide mentorship program contact, share development setup guide"
+  - input: "Experienced developer proposes major architectural change"
+    output: "Request RFC document, schedule community discussion, gather stakeholder input before implementation"
+  - input: "Community member reports inappropriate behavior"
+    output: "Follow code of conduct enforcement process with privacy and fairness for all parties"
+
+intent_of_use:
+  - guide_new_contributors
+  - maintain_community_standards
+  - ensure_quality_contributions
+  - foster_inclusive_environment
+  - streamline_collaboration
+
+use_case_stage:
+  - onboarding
+  - development
+  - community_building
+  - governance
+
+related_to:
+  - unik-culture-conventional-commits-standard
+  - unik-strategy-open-source-positioning
+  - unik-culture-internationalization-practices
+
+last_validation: 2024-12-08

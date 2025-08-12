@@ -1,0 +1,79 @@
+id: unik-business-mcp-integration-model
+title: Model Context Protocol Integration Business Model
+domain: business
+type: business_rule
+context: implementation
+language: en_US
+content: |
+  Business model governing how Synapstor integrates with LLMs through the Model Context Protocol (MCP).
+  
+  ## Core Business Principles
+  
+  1. **Transport Layer Flexibility**: Support multiple transport protocols to accommodate different integration scenarios:
+     - STDIO: Direct integration with desktop AI applications (Claude Desktop, Cursor)
+     - SSE: Server-Sent Events for web applications and browser-based integrations
+     - HTTP: Streamable HTTP MCP for API-first integrations and modern web services
+  
+  2. **Tool Description Customization**: Allow dynamic configuration of tool descriptions via environment variables to optimize integration with specific LLM platforms and use cases.
+  
+  3. **Read-Only Mode Support**: Provide read-only database access option for production environments where data integrity is critical.
+  
+  4. **Multi-Language Support**: Deliver consistent user experience across Portuguese (pt_BR) and English (en_US) languages through automatic translation system.
+  
+  5. **Semantic Memory Management**: Implement store/find pattern for LLM memory management:
+     - Store: Save contextual information for later retrieval
+     - Find: Semantic search through stored memories and indexed content
+  
+  ## Integration Scenarios
+  
+  ### Development Tools Integration
+  - **Claude Desktop**: STDIO transport for seamless desktop integration
+  - **Cursor IDE**: SSE transport for real-time code assistance
+  - **Windsurf**: HTTP transport for modern web-based development environments
+  
+  ### Production API Integration
+  - **Microsoft Copilot**: STDIO with custom tool descriptions
+  - **Enterprise LLMs**: HTTP transport with authentication and rate limiting
+  - **Web Applications**: SSE for real-time knowledge streaming
+  
+  ## Business Value Propositions
+  
+  1. **Enhanced Developer Productivity**: Contextual code assistance with project-specific knowledge
+  2. **Improved Decision Making**: Access to structured organizational knowledge during AI conversations
+  3. **Knowledge Continuity**: Persistent memory across AI sessions
+  4. **Reduced Context Switching**: Direct access to project documentation without leaving development environment
+  
+  ## Revenue Model Considerations
+  
+  - **Freemium Approach**: Core MCP functionality open source, premium features for enterprise
+  - **SaaS Integration**: Cloud-hosted Synapstor instances for teams
+  - **Enterprise Licensing**: On-premise deployment with advanced features
+  - **API Usage**: Consumption-based pricing for high-volume integrations
+
+examples:
+  - input: "Claude Desktop user wants project-specific code assistance"
+    output: "STDIO transport integration with custom tool descriptions for code-focused interactions"
+  - input: "Web application needs real-time knowledge streaming"
+    output: "SSE transport configuration with CORS support for browser-based clients"
+  - input: "Enterprise API requires authenticated knowledge access"
+    output: "HTTP transport with authentication middleware and rate limiting capabilities"
+
+intent_of_use:
+  - guide_integration_strategy
+  - define_business_model
+  - optimize_user_experience
+  - plan_revenue_streams
+  - ensure_scalability
+
+use_case_stage:
+  - planning
+  - implementation
+  - business_refinement
+  - partnership_development
+
+related_to:
+  - unik-technical-mcp-server-implementation
+  - unik-product-user-integration-flows
+  - unik-strategy-market-positioning
+
+last_validation: 2024-12-08

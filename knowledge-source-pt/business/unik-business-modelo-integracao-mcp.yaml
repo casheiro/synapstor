@@ -1,0 +1,79 @@
+id: unik-business-modelo-integracao-mcp
+title: Modelo de Negócio para Integração com Protocolo de Contexto de Modelo
+domain: business
+type: business_rule
+context: implementation
+language: pt_BR
+content: |
+  Modelo de negócio que governa como o Synapstor se integra com LLMs através do Model Context Protocol (MCP).
+  
+  ## Princípios Centrais de Negócio
+  
+  1. **Flexibilidade de Camada de Transporte**: Suporte a múltiplos protocolos de transporte para acomodar diferentes cenários de integração:
+     - STDIO: Integração direta com aplicações de IA desktop (Claude Desktop, Cursor)
+     - SSE: Server-Sent Events para aplicações web e integrações baseadas em navegador
+     - HTTP: Streamable HTTP MCP para integrações API-first e serviços web modernos
+  
+  2. **Personalização de Descrição de Ferramentas**: Permitir configuração dinâmica de descrições de ferramentas via variáveis de ambiente para otimizar integração com plataformas LLM específicas e casos de uso.
+  
+  3. **Suporte a Modo Somente Leitura**: Fornecer opção de acesso somente leitura ao banco de dados para ambientes de produção onde a integridade dos dados é crítica.
+  
+  4. **Suporte Multi-idioma**: Entregar experiência consistente do usuário em português (pt_BR) e inglês (en_US) através de sistema de tradução automática.
+  
+  5. **Gestão de Memória Semântica**: Implementar padrão store/find para gestão de memória LLM:
+     - Store: Salvar informações contextuais para recuperação posterior
+     - Find: Busca semântica através de memórias armazenadas e conteúdo indexado
+  
+  ## Cenários de Integração
+  
+  ### Integração com Ferramentas de Desenvolvimento
+  - **Claude Desktop**: Transporte STDIO para integração desktop perfeita
+  - **IDE Cursor**: Transporte SSE para assistência de código em tempo real
+  - **Windsurf**: Transporte HTTP para ambientes de desenvolvimento web modernos
+  
+  ### Integração de API de Produção
+  - **Microsoft Copilot**: STDIO com descrições de ferramentas personalizadas
+  - **LLMs Empresariais**: Transporte HTTP com autenticação e limitação de taxa
+  - **Aplicações Web**: SSE para streaming de conhecimento em tempo real
+  
+  ## Proposições de Valor de Negócio
+  
+  1. **Produtividade Aprimorada do Desenvolvedor**: Assistência de código contextual com conhecimento específico do projeto
+  2. **Tomada de Decisão Melhorada**: Acesso ao conhecimento organizacional estruturado durante conversas com IA
+  3. **Continuidade do Conhecimento**: Memória persistente através de sessões de IA
+  4. **Redução de Mudança de Contexto**: Acesso direto à documentação do projeto sem sair do ambiente de desenvolvimento
+  
+  ## Considerações do Modelo de Receita
+  
+  - **Abordagem Freemium**: Funcionalidade MCP central open source, recursos premium para empresas
+  - **Integração SaaS**: Instâncias Synapstor hospedadas na nuvem para equipes
+  - **Licenciamento Empresarial**: Implantação on-premise com recursos avançados
+  - **Uso de API**: Preços baseados em consumo para integrações de alto volume
+
+examples:
+  - input: "Usuário do Claude Desktop quer assistência de código específica do projeto"
+    output: "Integração de transporte STDIO com descrições de ferramentas personalizadas para interações focadas em código"
+  - input: "Aplicação web precisa de streaming de conhecimento em tempo real"
+    output: "Configuração de transporte SSE com suporte CORS para clientes baseados em navegador"
+  - input: "API empresarial requer acesso autenticado ao conhecimento"
+    output: "Transporte HTTP com middleware de autenticação e capacidades de limitação de taxa"
+
+intent_of_use:
+  - orientar_estrategia_integracao
+  - definir_modelo_negocio
+  - otimizar_experiencia_usuario
+  - planejar_fluxos_receita
+  - garantir_escalabilidade
+
+use_case_stage:
+  - planning
+  - implementation
+  - business_refinement
+  - partnership_development
+
+related_to:
+  - unik-technical-implementacao-servidor-mcp
+  - unik-product-fluxos-integracao-usuario
+  - unik-strategy-posicionamento-mercado
+
+last_validation: 2024-12-08

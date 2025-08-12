@@ -1,0 +1,234 @@
+id: unik-culture-diretrizes-contribuicao
+title: Diretrizes de Contribuição Open Source e Padrões Comunitários
+domain: culture
+type: guideline
+context: implementation
+language: pt_BR
+content: |
+  Diretrizes para contribuir com o projeto Synapstor, fomentando participação comunitária inclusiva e mantendo práticas de desenvolvimento colaborativo de alta qualidade.
+  
+  ## Valores da Comunidade
+  
+  ### Princípios Centrais
+  1. **Inclusividade**: Receber contribuidores de todas as origens, níveis de experiência e perspectivas
+  2. **Respeito**: Tratar todos os membros da comunidade com cortesia e profissionalismo
+  3. **Colaboração**: Fomentar resolução cooperativa de problemas e compartilhamento de conhecimento
+  4. **Qualidade**: Manter altos padrões enquanto apoia aprendizado e crescimento
+  5. **Transparência**: Manter processos de desenvolvimento abertos e tomada de decisão visível
+  
+  ### Código de Conduta
+  - **Comunicação Profissional**: Usar linguagem respeitosa e construtiva em todas as interações
+  - **Feedback Construtivo**: Fornecer feedback útil e acionável focado em melhoria
+  - **Ambiente Inclusivo**: Evitar linguagem ou comportamento que exclua ou discrimine
+  - **Resolução de Conflitos**: Abordar desacordos profissionalmente e buscar mediação quando necessário
+  
+  ## Tipos de Contribuição e Caminhos
+  
+  ### Contribuições de Código
+  **Áreas de Contribuição:**
+  - Melhorias de funcionalidade central do Synapstor
+  - Aprimoramentos de especificação MEF
+  - Recursos de integração MCP
+  - Melhorias de ferramentas CLI
+  - Otimizações de performance
+  - Correções de bug e melhorias de estabilidade
+  
+  **Padrões de Qualidade:**
+  - Seguir convenções estabelecidas de codificação e estilo
+  - Incluir testes abrangentes para nova funcionalidade
+  - Atualizar documentação para mudanças voltadas ao usuário
+  - Usar formato de mensagem de commit convencional
+  
+  ### Contribuições de Documentação
+  **Tipos de Documentação:**
+  - Guias do usuário e tutoriais
+  - Documentação de referência de API
+  - Diretrizes de autoria MEF
+  - Exemplos de integração
+  - Guias de solução de problemas
+  - Atualizações de tradução
+  
+  **Padrões de Qualidade:**
+  - Escrita clara e concisa apropriada para audiência-alvo
+  - Exemplos práticos e casos de uso
+  - Informação atualizada refletindo funcionalidade atual
+  - Formatação e estilo consistentes
+  
+  ### Contribuições de Suporte Comunitário
+  **Atividades de Suporte:**
+  - Responder perguntas no GitHub Discussions
+  - Ajudar a solucionar problemas de usuários
+  - Moderar espaços comunitários
+  - Organizar eventos comunitários
+  - Criar conteúdo educacional
+  - Mentorar novos contribuidores
+  
+  ## Fluxo de Desenvolvimento
+  
+  ### Processo de Início
+  1. **Fork do Repositório**: Criar fork pessoal do repositório Synapstor
+  2. **Configuração de Ambiente**: Seguir instruções de configuração de ambiente de desenvolvimento
+  3. **Seleção de Issue**: Escolher issue apropriada baseada no nível de experiência
+  4. **Comunicação**: Comentar na issue para indicar intenção de trabalhar nela
+  5. **Criação de Branch**: Criar branch de feature com nome descritivo
+  
+  ### Padrões de Desenvolvimento
+  **Requisitos de Qualidade de Código:**
+  ```bash
+  # Executar verificações de qualidade antes de submeter
+  pre-commit run --all-files
+  pytest --cov=synapstor
+  black .
+  ruff check --fix
+  ```
+  
+  **Requisitos de Teste:**
+  - Testes unitários para nova funcionalidade
+  - Testes de integração para recursos complexos
+  - Testes de regressão para correções de bug
+  - Testes de performance para trabalho de otimização
+  
+  ### Processo de Pull Request
+  1. **Checklist Pré-submissão**:
+     - [ ] Código segue diretrizes de estilo
+     - [ ] Testes passam localmente
+     - [ ] Documentação atualizada
+     - [ ] Mensagens de commit convencionais usadas
+     - [ ] Breaking changes documentadas
+  
+  2. **Template de Descrição de PR**:
+     ```markdown
+     ## Descrição
+     Breve descrição das mudanças
+     
+     ## Tipo de Mudança
+     - [ ] Correção de bug
+     - [ ] Nova funcionalidade
+     - [ ] Breaking change
+     - [ ] Atualização de documentação
+     
+     ## Testes
+     Descrição dos testes realizados
+     
+     ## Issues Relacionadas
+     Fixes #numero_issue
+     ```
+  
+  3. **Processo de Revisão**:
+     - Verificações automatizadas devem passar
+     - Pelo menos uma revisão de mantenedor requerida
+     - Abordar feedback construtivamente
+     - Manter comunicação respeitosa
+  
+  ## Reconhecimento de Contribuição
+  
+  ### Reconhecimento de Contribuidores
+  - **Arquivo de Contribuidores**: Todos os contribuidores reconhecidos em CONTRIBUTORS.md
+  - **Notas de Release**: Contribuições significativas destacadas em anúncios de release
+  - **Spotlights Comunitários**: Recursos regulares destacando contribuições comunitárias
+  - **Apresentações em Conferências**: Oportunidades de apresentar trabalho em conferências e meetups
+  
+  ### Caminhos de Progressão
+  **Níveis de Contribuição:**
+  1. **Contribuidor Iniciante**: Primeiro PR mergeado com sucesso
+  2. **Contribuidor Regular**: Múltiplas contribuições aceitas
+  3. **Membro da Comunidade**: Ativo em discussões e suporte
+  4. **Mantenedor**: Confiado com responsabilidades de revisão e merge
+  5. **Equipe Central**: Input estratégico na direção do projeto
+  
+  ## Gestão de Issues e Comunicação
+  
+  ### Categorias de Issues
+  - **Relatórios de Bug**: Problemas com funcionalidade existente
+  - **Solicitações de Feature**: Propostas para novas capacidades
+  - **Documentação**: Melhorias na documentação
+  - **Good First Issues**: Oportunidades de contribuição amigáveis para iniciantes
+  - **Help Wanted**: Issues onde assistência comunitária é especialmente bem-vinda
+  
+  ### Canais de Comunicação
+  - **GitHub Issues**: Relatórios de bug, solicitações de feature e discussão de desenvolvimento
+  - **GitHub Discussions**: Perguntas gerais, ideias e conversa comunitária
+  - **Discord/Slack**: Suporte comunitário em tempo real e colaboração
+  - **Listas de Email**: Anúncios importantes e discussões de governança
+  
+  ### Expectativas de Tempo de Resposta
+  - **Reconhecimento de Issue**: Dentro de 48 horas
+  - **Revisão Inicial de PR**: Dentro de 1 semana
+  - **Perguntas Comunitárias**: Dentro de 24 horas durante dias úteis
+  - **Issues de Segurança**: Dentro de 24 horas
+  
+  ## Áreas Especializadas de Contribuição
+  
+  ### Desenvolvimento de Especificação MEF
+  - Propor aprimoramentos à especificação MEF
+  - Contribuir com UKIs de exemplo e casos de uso
+  - Participar em discussões de governança de especificação
+  - Ajudar com adoção e educação MEF
+  
+  ### Suporte de Internacionalização
+  - Traduzir texto de interface para novos idiomas
+  - Revisar e melhorar traduções existentes
+  - Fornecer contexto cultural para localização
+  - Testar funcionalidade multilíngue
+  
+  ### Desenvolvimento de Integração
+  - Criar plugins para ferramentas populares de desenvolvimento
+  - Desenvolver implementações de transporte MCP
+  - Construir integrações de provedor de embedding
+  - Criar aplicações de exemplo e demonstrações
+  
+  ## Onboarding e Mentoria
+  
+  ### Suporte a Novos Contribuidores
+  - **Programa de Mentoria**: Contribuidores experientes pareados com recém-chegados
+  - **Office Hours**: Sessões regulares para perguntas e orientação
+  - **Workshops de Contribuição**: Sessões de treinamento sobre práticas de desenvolvimento
+  - **Walkthrough de Documentação**: Tours guiados de codebase e arquitetura
+  
+  ### Recursos de Aprendizado
+  - **Visão Geral de Arquitetura**: Documentação de design de sistema de alto nível
+  - **Guia de Configuração de Desenvolvimento**: Configuração de ambiente passo-a-passo
+  - **Tour de Código**: Walkthrough anotado de componentes-chave
+  - **Guia de Melhores Práticas**: Referência de padrões e convenções de codificação
+  
+  ## Governança e Tomada de Decisão
+  
+  ### Processo de Decisão
+  - **Mudanças Pequenas**: Submissão e revisão direta de PR
+  - **Mudanças Médias**: Discussão de issue no GitHub antes da implementação
+  - **Mudanças Grandes**: Processo RFC (Request for Comments) com input comunitário
+  - **Breaking Changes**: Período de discussão estendido e planejamento de migração
+  
+  ### Resolução de Conflitos
+  1. **Comunicação Direta**: Tentar resolver desacordos diretamente
+  2. **Mediação Comunitária**: Envolver membros neutros da comunidade
+  3. **Intervenção de Mantenedor**: Escalar para mantenedores do projeto
+  4. **Aplicação de Código de Conduta**: Escalação final para questões sérias
+
+examples:
+  - input: "Novo desenvolvedor quer contribuir mas não sabe por onde começar"
+    output: "Direcionar para label 'Good First Issues', fornecer contato do programa de mentoria, compartilhar guia de configuração de desenvolvimento"
+  - input: "Desenvolvedor experiente propõe mudança arquitetural importante"
+    output: "Solicitar documento RFC, agendar discussão comunitária, coletar input de stakeholders antes da implementação"
+  - input: "Membro da comunidade reporta comportamento inadequado"
+    output: "Seguir processo de aplicação do código de conduta com privacidade e justiça para todas as partes"
+
+intent_of_use:
+  - orientar_novos_contribuidores
+  - manter_padroes_comunidade
+  - garantir_contribuicoes_qualidade
+  - fomentar_ambiente_inclusivo
+  - agilizar_colaboracao
+
+use_case_stage:
+  - onboarding
+  - development
+  - community_building
+  - governance
+
+related_to:
+  - unik-culture-padrao-commits-convencionais
+  - unik-strategy-posicionamento-open-source
+  - unik-culture-praticas-internacionalizacao
+
+last_validation: 2024-12-08
